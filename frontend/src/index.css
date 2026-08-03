@@ -2,63 +2,162 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   CSS CUSTOM PROPERTIES — Toggle via data-theme attribute
+   ============================================================ */
+:root {
+  /* Dark mode defaults */
+  --bg-base:       #090d16;
+  --bg-surface:    #0f172a;
+  --bg-card:       #1e293b;
+  --bg-muted:      #334155;
+  --text-primary:  #f1f5f9;
+  --text-secondary:#94a3b8;
+  --text-muted:    #64748b;
+  --border-color:  rgba(255,255,255,0.08);
+  --glass-bg:      rgba(15, 23, 42, 0.75);
+  --glass-header:  rgba(9, 13, 22, 0.85);
+  --shadow-color:  rgba(0,0,0,0.5);
+  --scroll-track:  #090d16;
+  --scroll-thumb:  #1e293b;
+  --scroll-hover:  #334155;
+}
+
+[data-theme="light"] {
+  --bg-base:       #f8fafc;
+  --bg-surface:    #f1f5f9;
+  --bg-card:       #ffffff;
+  --bg-muted:      #e2e8f0;
+  --text-primary:  #0f172a;
+  --text-secondary:#475569;
+  --text-muted:    #64748b;
+  --border-color:  rgba(0,0,0,0.10);
+  --glass-bg:      rgba(255, 255, 255, 0.90);
+  --glass-header:  rgba(248, 250, 252, 0.92);
+  --shadow-color:  rgba(0,0,0,0.12);
+  --scroll-track:  #f1f5f9;
+  --scroll-thumb:  #cbd5e1;
+  --scroll-hover:  #94a3b8;
+}
+
+/* ============================================================
+   BASE STYLES
+   ============================================================ */
 @layer base {
   body {
-    @apply bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-slate-950;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    @apply font-sans antialiased selection:bg-emerald-500 selection:text-slate-950;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 }
 
-/* ============ LIGHT MODE OVERRIDES ============ */
-:root.light-mode body {
-  @apply bg-slate-50 text-slate-900;
+/* ============================================================
+   LIGHT MODE — Override common dark Tailwind classes
+   ============================================================ */
+
+/* --- Backgrounds --- */
+[data-theme="light"] .bg-slate-950,
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-900\/95,
+[data-theme="light"] .bg-slate-900\/90,
+[data-theme="light"] .bg-slate-900\/80,
+[data-theme="light"] .bg-slate-900\/60 {
+  background-color: var(--bg-surface) !important;
+}
+[data-theme="light"] .bg-slate-800,
+[data-theme="light"] .bg-slate-800\/80,
+[data-theme="light"] .bg-slate-800\/60 {
+  background-color: var(--bg-card) !important;
+}
+[data-theme="light"] .bg-slate-700 {
+  background-color: var(--bg-muted) !important;
 }
 
-:root.light-mode .glass-panel {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(0, 0, 0, 0.10);
+/* --- Text --- */
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200 {
+  color: var(--text-primary) !important;
+}
+[data-theme="light"] .text-slate-300 {
+  color: var(--text-secondary) !important;
+}
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-slate-500 {
+  color: var(--text-muted) !important;
+}
+[data-theme="light"] .text-white {
+  color: var(--text-primary) !important;
 }
 
-:root.light-mode .glass-header {
-  background: rgba(255, 255, 255, 0.90);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.10);
+/* --- Borders --- */
+[data-theme="light"] .border-slate-800,
+[data-theme="light"] .border-slate-700,
+[data-theme="light"] .border-slate-700\/80,
+[data-theme="light"] .border-slate-900 {
+  border-color: rgba(0,0,0,0.12) !important;
 }
 
-:root.light-mode .hero-gradient {
-  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, rgba(248, 250, 252, 0) 70%),
-              radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.07) 0%, rgba(248, 250, 252, 0) 50%);
+/* --- Glassmorphism panels --- */
+[data-theme="light"] .glass-panel {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--border-color) !important;
 }
 
-:root.light-mode ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-:root.light-mode ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-color: #f1f5f9;
-}
-:root.light-mode ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+[data-theme="light"] .glass-header {
+  background: var(--glass-header) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  box-shadow: 0 1px 20px rgba(0,0,0,0.08) !important;
 }
 
-/* Light mode nav pills */
-:root.light-mode nav.bg-slate-900\/80 {
-  background: rgba(241, 245, 249, 0.9) !important;
+/* --- Hero gradient for light --- */
+[data-theme="light"] .hero-gradient {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(16,185,129,0.10) 0%, transparent 70%),
+    radial-gradient(circle at 80% 20%, rgba(245,158,11,0.06) 0%, transparent 50%) !important;
+}
+
+/* --- Dropdown / menu panels --- */
+[data-theme="light"] nav {
+  background: rgba(241, 245, 249, 0.95) !important;
   border-color: rgba(0,0,0,0.10) !important;
 }
-:root.light-mode a.text-slate-300 {
-  color: #475569 !important;
+[data-theme="light"] .hover\:bg-slate-800:hover,
+[data-theme="light"] .hover\:bg-slate-900:hover {
+  background-color: var(--bg-muted) !important;
 }
-:root.light-mode a.hover\:text-white:hover {
-  color: #0f172a !important;
+[data-theme="light"] .hover\:bg-slate-800\/80:hover {
+  background-color: rgba(226,232,240,0.9) !important;
 }
 
+/* --- Cards and sections --- */
+[data-theme="light"] section {
+  background-color: transparent;
+}
+[data-theme="light"] .divide-slate-800 > * + * {
+  border-color: rgba(0,0,0,0.08) !important;
+}
 
-/* Glassmorphism & Modern Panels */
+/* --- Scrollbars --- */
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-color: var(--scroll-track);
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-hover);
+}
+
+/* ============================================================
+   GLASSMORPHISM & MODERN PANELS (dark defaults)
+   ============================================================ */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.75);
+  background: var(--glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
 }
 
 .glass-panel-light {
@@ -69,16 +168,19 @@
 }
 
 .glass-header {
-  background: rgba(9, 13, 22, 0.85);
+  background: var(--glass-header);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-color);
 }
 
-/* Modern Metallic Gradients */
+/* ============================================================
+   GRADIENTS & EFFECTS
+   ============================================================ */
 .hero-gradient {
-  background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15) 0%, rgba(15, 23, 42, 0) 70%),
-              radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0) 50%);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.15) 0%, rgba(15, 23, 42, 0) 70%),
+    radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.08) 0%, rgba(15, 23, 42, 0) 50%);
 }
 
 .karnataka-badge-gradient {
@@ -103,27 +205,28 @@
   opacity: 1;
 }
 
-/* Custom Scrollbars */
+/* ============================================================
+   CUSTOM SCROLLBARS
+   ============================================================ */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: var(--scroll-track);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--scroll-thumb);
   border-radius: 9999px;
-  border: 2px solid #090d16;
+  border: 2px solid var(--scroll-track);
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--scroll-hover);
 }
 
-/* Keyframes */
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
 @keyframes pulseGlow {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.9; }
@@ -132,4 +235,3 @@
 .animate-pulse-glow {
   animation: pulseGlow 3s infinite ease-in-out;
 }
-

@@ -9,6 +9,13 @@
     <link rel="apple-touch-icon" href="/pwa-192x192.png">
     <link rel="manifest" href="/manifest.json" />
     <title>Nimma Seva — GramOne & Seva Sindhu Token System</title>
+    <!-- Theme Init (prevents flash of wrong theme) -->
+    <script>
+      (function() {
+        var t = localStorage.getItem('nimmaseva-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +23,7 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   </head>
-  <body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-slate-950 overflow-x-hidden">
+  <body class="font-sans antialiased overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

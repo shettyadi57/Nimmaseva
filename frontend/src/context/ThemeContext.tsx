@@ -20,13 +20,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'light') {
-      root.classList.add('light-mode');
-      root.classList.remove('dark-mode');
-    } else {
-      root.classList.add('dark-mode');
-      root.classList.remove('light-mode');
-    }
+    root.setAttribute('data-theme', theme);
     localStorage.setItem('nimmaseva-theme', theme);
   }, [theme]);
 
