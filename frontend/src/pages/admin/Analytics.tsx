@@ -26,24 +26,24 @@ export const AdminAnalytics: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6 space-y-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 space-y-10">
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 glass-panel rounded-3xl p-6 border border-slate-800 shadow-2xl">
+          <div className="space-y-1">
             <KarnatakaBadge />
-            <h1 className="text-2xl font-black mt-1">SHIVAMOGGA SEVA ANALYTICS & REPORTS</h1>
-            <p className="text-xs text-slate-400">Peak hours, service demand breakdown, and weekly token utilization</p>
+            <h1 className="text-3xl font-black text-white mt-1">SHIVAMOGGA SEVA ANALYTICS & REPORTS</h1>
+            <p className="text-xs text-slate-400">Peak hours, service demand breakdown, and token utilization analytics</p>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-800 p-1 rounded-xl border border-slate-700">
+          <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
             {['daily', 'weekly', 'monthly'].map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-colors ${
-                  period === p ? 'bg-amber-500 text-emerald-950 shadow' : 'text-slate-400 hover:text-white'
+                className={`px-4 py-2 rounded-xl text-xs font-black capitalize transition-all ${
+                  period === p ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {p}
@@ -53,46 +53,46 @@ export const AdminAnalytics: React.FC = () => {
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* Peak Hours Traffic Chart */}
-          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 space-y-4">
+          <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-5 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-400" /> Peak Hour Traffic Distribution
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-400" /> Peak Hour Traffic Distribution
               </h3>
             </div>
 
-            <div className="h-64">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData?.hourly_traffic || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis dataKey="hour" stroke="#94a3b8" tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#94a3b8" tick={{ fontSize: 10 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="hour" stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <Tooltip contentStyle={{ backgroundColor: '#090d16', border: '1px solid #1e293b', borderRadius: '14px', color: '#fff' }} />
                   <Legend />
-                  <Bar dataKey="online" fill="#047857" name="Online Tokens" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="walkin" fill="#d97706" name="Walk-in Tokens" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="online" fill="#10b981" name="Online Tokens" radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="walkin" fill="#f59e0b" name="Walk-in Tokens" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Weekly Trends Line Chart */}
-          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 space-y-4">
+          <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-5 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-emerald-400" /> Weekly Token Volume & Revenue
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-400" /> Weekly Token Volume & Revenue
               </h3>
             </div>
 
-            <div className="h-64">
+            <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData?.weekly_trends || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis dataKey="day" stroke="#94a3b8" tick={{ fontSize: 10 }} />
-                  <YAxis stroke="#94a3b8" tick={{ fontSize: 10 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="day" stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
+                  <Tooltip contentStyle={{ backgroundColor: '#090d16', border: '1px solid #1e293b', borderRadius: '14px', color: '#fff' }} />
                   <Line type="monotone" dataKey="total" stroke="#f59e0b" strokeWidth={3} name="Total Bookings" />
                 </LineChart>
               </ResponsiveContainer>
@@ -100,20 +100,20 @@ export const AdminAnalytics: React.FC = () => {
           </div>
         </div>
 
-        {/* Most Requested Services Breakdown */}
-        <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 space-y-4">
-          <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <PieChart className="w-4 h-4 text-indigo-400" /> Most Requested Government Services
+        {/* Service Demand Breakdown */}
+        <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-5 shadow-2xl">
+          <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+            <PieChart className="w-5 h-5 text-indigo-400" /> Most Requested Government Services
           </h3>
 
-          <div className="h-64">
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData?.service_demand || []} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 10 }} />
-                <YAxis dataKey="name" type="category" stroke="#94a3b8" tick={{ fontSize: 10 }} width={140} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px' }} />
-                <Bar dataKey="bookings" fill="#10b981" radius={[0, 4, 4, 0]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                <XAxis type="number" stroke="#64748b" tick={{ fontSize: 10 }} />
+                <YAxis dataKey="name" type="category" stroke="#64748b" tick={{ fontSize: 10 }} width={160} />
+                <Tooltip contentStyle={{ backgroundColor: '#090d16', border: '1px solid #1e293b', borderRadius: '14px', color: '#fff' }} />
+                <Bar dataKey="bookings" fill="#10b981" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

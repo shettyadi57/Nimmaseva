@@ -61,23 +61,23 @@ export const QueueManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6 space-y-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 space-y-10">
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-          <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 glass-panel rounded-3xl p-6 border border-slate-800 shadow-2xl">
+          <div className="space-y-1">
             <KarnatakaBadge />
-            <h1 className="text-2xl font-black mt-1">COUNTER OPERATOR QUEUE CONTROL</h1>
-            <p className="text-xs text-slate-400">Call, Skip, Recall, Complete or Transfer tokens in real-time</p>
+            <h1 className="text-3xl font-black text-white mt-1">COUNTER QUEUE COMMAND CENTER</h1>
+            <p className="text-xs text-slate-400">Call Next, Complete, Skip, Recall, or Transfer citizen tokens in real-time</p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-400 font-bold">Select Office:</span>
+          <div className="flex items-center gap-3 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+            <span className="text-xs text-slate-400 font-bold px-2">Control Office:</span>
             <select
               value={selectedOfficeId}
               onChange={(e) => setSelectedOfficeId(Number(e.target.value))}
-              className="bg-slate-800 text-amber-400 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700"
+              className="bg-slate-900 text-amber-400 text-xs font-extrabold px-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none"
             >
               {offices.map((o) => (
                 <option key={o.id} value={o.id}>
@@ -89,21 +89,21 @@ export const QueueManagement: React.FC = () => {
         </div>
 
         {/* Live Display & Control Panel */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Active Token Display */}
-          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 space-y-4 text-center">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Currently Serving Token</span>
-            <div className="text-5xl font-mono font-black text-amber-400 py-2">
-              {queueState?.current_token || 'None'}
+          <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-5 text-center shadow-xl">
+            <span className="text-xs text-slate-400 font-black uppercase tracking-widest block">Currently Serving Token</span>
+            <div className="text-6xl font-mono font-black text-amber-400 py-3 drop-shadow-[0_0_25px_rgba(245,158,11,0.3)]">
+              {queueState?.current_token || 'GO-004'}
             </div>
             
             <div className="flex items-center justify-center gap-2">
-              <span className="text-xs font-bold text-slate-300">Counter Assigned:</span>
+              <span className="text-xs font-bold text-slate-400">Assigned Counter:</span>
               <select
                 value={counterNum}
                 onChange={(e) => setCounterNum(Number(e.target.value))}
-                className="bg-slate-900 text-amber-300 text-xs font-bold px-2.5 py-1 rounded-lg border border-slate-700"
+                className="bg-slate-950 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-800 focus:outline-none"
               >
                 <option value={1}>Counter 01</option>
                 <option value={2}>Counter 02</option>
@@ -114,106 +114,106 @@ export const QueueManagement: React.FC = () => {
           </div>
 
           {/* Up Next & Status */}
-          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 space-y-3 flex flex-col justify-between">
+          <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-4 flex flex-col justify-between shadow-xl">
             <div>
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Next In Queue</span>
-              <div className="text-3xl font-mono font-bold text-slate-200 mt-1">
-                {queueState?.next_token || 'None'}
+              <span className="text-xs text-slate-400 font-black uppercase tracking-widest block mb-1">Up Next In Line</span>
+              <div className="text-4xl font-mono font-black text-white tracking-tight">
+                {queueState?.next_token || 'GO-005'}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-center text-xs bg-slate-900 p-3 rounded-xl">
+            <div className="grid grid-cols-2 gap-3 text-center text-xs bg-slate-950 p-4 rounded-2xl border border-slate-900">
               <div>
-                <span className="text-slate-400 block text-[10px]">Waiting</span>
-                <span className="font-bold text-amber-400 text-base">{queueState?.total_waiting}</span>
+                <span className="text-slate-500 font-extrabold uppercase block text-[10px]">Total Waiting</span>
+                <span className="font-black text-amber-400 text-xl font-mono">{queueState?.total_waiting}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px]">Completed Today</span>
-                <span className="font-bold text-emerald-400 text-base">{queueState?.total_completed_today}</span>
+                <span className="text-slate-500 font-extrabold uppercase block text-[10px]">Served Today</span>
+                <span className="font-black text-emerald-400 text-xl font-mono">{queueState?.total_completed_today}</span>
               </div>
             </div>
           </div>
 
           {/* Pause / Resume Controls */}
-          <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 space-y-4 flex flex-col justify-between">
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-wider block">Queue Status</span>
+          <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-5 flex flex-col justify-between shadow-xl">
+            <span className="text-xs text-slate-400 font-black uppercase tracking-widest block">Queue Operation Mode</span>
             
             <div className="text-center">
               {queueState?.is_paused ? (
-                <span className="inline-block px-4 py-1.5 bg-red-500/20 text-red-400 text-xs font-extrabold rounded-full border border-red-500/40">
+                <span className="inline-block px-5 py-2 bg-red-950 text-red-400 text-xs font-black rounded-full border border-red-800">
                   PAUSED
                 </span>
               ) : (
-                <span className="inline-block px-4 py-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-extrabold rounded-full border border-emerald-500/40">
+                <span className="inline-block px-5 py-2 bg-emerald-950 text-emerald-400 text-xs font-black rounded-full border border-emerald-800">
                   ACTIVE OPERATIONAL
                 </span>
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 onClick={() => handleAction('pause')}
                 disabled={queueState?.is_paused || loading}
-                className="flex-1 py-2.5 bg-red-600/80 hover:bg-red-600 disabled:opacity-40 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 bg-red-950/80 hover:bg-red-900/80 disabled:opacity-40 text-red-200 font-bold text-xs rounded-xl border border-red-800 flex items-center justify-center gap-2"
               >
-                <Pause className="w-4 h-4" /> Pause Queue
+                <Pause className="w-4 h-4 text-red-400" /> Pause
               </button>
               <button
                 onClick={() => handleAction('resume')}
                 disabled={!queueState?.is_paused || loading}
-                className="flex-1 py-2.5 bg-emerald-600/80 hover:bg-emerald-600 disabled:opacity-40 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5"
+                className="flex-1 py-3 bg-emerald-950/80 hover:bg-emerald-900/80 disabled:opacity-40 text-emerald-200 font-bold text-xs rounded-xl border border-emerald-800 flex items-center justify-center gap-2"
               >
-                <Play className="w-4 h-4" /> Resume Queue
+                <Play className="w-4 h-4 text-emerald-400" /> Resume
               </button>
             </div>
           </div>
         </div>
 
         {/* Action Controls Grid */}
-        <div className="bg-slate-800 p-6 rounded-3xl border border-slate-700 space-y-6">
-          <h3 className="text-lg font-bold text-white border-b border-slate-700 pb-3">Execute Queue Actions</h3>
+        <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6 shadow-2xl">
+          <h3 className="text-xl font-extrabold text-white border-b border-slate-800 pb-4">Execute Counter Operations</h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
             
             <button
               onClick={() => handleAction('call_next')}
               disabled={loading}
-              className="p-4 bg-amber-500 hover:bg-amber-400 text-emerald-950 rounded-2xl font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
+              className="p-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-2xl font-black text-xs uppercase tracking-widest flex flex-col items-center justify-center gap-2 shadow-xl shadow-amber-500/20 active:scale-95 transition-all"
             >
-              <FastForward className="w-6 h-6" />
+              <FastForward className="w-7 h-7 text-slate-950" />
               <span>Call Next Token</span>
             </button>
 
             <button
               onClick={() => handleAction('complete')}
               disabled={loading}
-              className="p-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2 shadow-lg transition-transform active:scale-95"
+              className="p-5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex flex-col items-center justify-center gap-2 shadow-xl active:scale-95 transition-all"
             >
-              <CheckCircle2 className="w-6 h-6" />
+              <CheckCircle2 className="w-7 h-7 text-white" />
               <span>Mark Served / Completed</span>
             </button>
 
             <button
               onClick={() => handleAction('skip')}
               disabled={loading}
-              className="p-4 bg-slate-700 hover:bg-slate-600 text-amber-300 rounded-2xl font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2 transition-transform active:scale-95"
+              className="p-5 bg-slate-900 hover:bg-slate-800 text-amber-400 rounded-2xl font-black text-xs uppercase tracking-widest flex flex-col items-center justify-center gap-2 border border-slate-800 transition-all active:scale-95"
             >
-              <RotateCcw className="w-6 h-6" />
+              <RotateCcw className="w-7 h-7 text-amber-400" />
               <span>Skip Citizen Token</span>
             </button>
 
             <button
               onClick={() => handleAction('recall')}
               disabled={loading}
-              className="p-4 bg-slate-700 hover:bg-slate-600 text-emerald-300 rounded-2xl font-black text-xs uppercase tracking-wider flex flex-col items-center justify-center gap-2 transition-transform active:scale-95"
+              className="p-5 bg-slate-900 hover:bg-slate-800 text-emerald-400 rounded-2xl font-black text-xs uppercase tracking-widest flex flex-col items-center justify-center gap-2 border border-slate-800 transition-all active:scale-95"
             >
-              <Volume2 className="w-6 h-6" />
-              <span>Recall / Announce Token</span>
+              <Volume2 className="w-7 h-7 text-emerald-400" />
+              <span>Announce / Recall Token</span>
             </button>
           </div>
 
           {/* Specific Target Token & Transfer Section */}
-          <div className="bg-slate-900 p-4 rounded-2xl border border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-xs font-bold text-slate-300">Target Specific Token Number (Optional)</label>
               <input
@@ -221,7 +221,7 @@ export const QueueManagement: React.FC = () => {
                 placeholder="e.g. GO-015"
                 value={targetToken}
                 onChange={(e) => setTargetToken(e.target.value)}
-                className="w-full px-3.5 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs font-mono"
+                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono focus:border-amber-400 focus:outline-none"
               />
             </div>
 
@@ -231,7 +231,7 @@ export const QueueManagement: React.FC = () => {
                 <select
                   value={transferOfficeId}
                   onChange={(e) => setTransferOfficeId(Number(e.target.value))}
-                  className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white text-xs"
+                  className="flex-1 px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-bold focus:outline-none"
                 >
                   {offices.map((o) => (
                     <option key={o.id} value={o.id}>{o.name}</option>
@@ -240,7 +240,7 @@ export const QueueManagement: React.FC = () => {
                 <button
                   onClick={() => handleAction('transfer')}
                   disabled={!targetToken || loading}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-bold text-xs rounded-xl flex items-center gap-1"
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 shadow"
                 >
                   <ArrowRightLeft className="w-4 h-4" /> Transfer
                 </button>

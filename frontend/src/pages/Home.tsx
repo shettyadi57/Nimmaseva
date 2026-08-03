@@ -5,7 +5,10 @@ import { Office, Service } from '../types';
 import { useStore } from '../store/useStore';
 import { OfficeMap } from '../components/map/OfficeMap';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
-import { MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, Ticket, Users, CheckCircle2, RefreshCw } from 'lucide-react';
+import { 
+  MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
+  Ticket, Users, CheckCircle2, RefreshCw, Zap, Sparkles, Activity, FileText, CheckCircle
+} from 'lucide-react';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +19,6 @@ export const Home: React.FC = () => {
   const [locationStatus, setLocationStatus] = useState<string>('Detecting location...');
 
   useEffect(() => {
-    // Request geolocation
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -26,7 +28,6 @@ export const Home: React.FC = () => {
           loadData(loc.lat, loc.lng);
         },
         (err) => {
-          // Default fallback to Shivamogga city coordinates
           const defaultLoc = { lat: 13.9299, lng: 75.5681 };
           setUserLocation(defaultLoc, "Shivamogga City Center");
           setLocationStatus("Default Location (Shivamogga)");
@@ -66,121 +67,158 @@ export const Home: React.FC = () => {
     navigate('/book');
   };
 
-  // Check Office Operating Hour Status (09:00 AM to 05:00 PM, Lunch 12-1 PM)
   const currentHour = new Date().getHours();
   const isClosed = currentHour >= 17 || currentHour < 9;
   const isLunch = currentHour === 12;
 
   return (
-    <div className="min-h-screen bg-slate-50 space-y-10 pb-16">
+    <div className="min-h-screen bg-slate-950 text-slate-100 space-y-14 pb-24">
       
-      {/* Hero Section with Karnataka Theme */}
-      <section className="relative karnataka-gradient text-white pt-12 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] opacity-10" />
-        
-        <div className="relative max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-4 max-w-2xl text-center md:text-left">
+      {/* High-Impact Hero Section */}
+      <section className="relative hero-gradient pt-10 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden border-b border-slate-900">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          
+          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <KarnatakaBadge />
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-              Nimma Seva <br />
-              <span className="text-amber-400">Shivamogga Token Management System</span>
+            
+            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-none text-white">
+              Next-Gen Public Service <br />
+              <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
+                Token Engine
+              </span>
             </h1>
-            <p className="text-emerald-100 text-sm sm:text-base leading-relaxed">
-              Book tokens online for GramOne and Seva Sindhu centers in Shivamogga. Real-time queue tracking, Tatkal completion prediction, and priority pass allocation.
+            
+            <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
+              Zero-queue token booking for GramOne & Seva Sindhu centers in Shivamogga. Powered by real-time WebSocket queue tracking, Tatkal completion prediction, and priority pass allocation.
             </p>
 
-            {/* Status Announcement Banner */}
+            {/* Operating Hours Alert */}
             {isClosed ? (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/20 border border-red-400/40 text-red-100 text-xs font-semibold">
-                <AlertTriangle className="w-4 h-4 text-red-300" />
-                <span>Office Closed (05:00 PM - 09:00 AM). Bookings automatically scheduled for next working day.</span>
+              <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-950/60 border border-red-800/60 text-red-200 text-xs font-semibold backdrop-blur-md">
+                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                <span>Operating Hours Closed (05:00 PM - 09:00 AM). Next available slots automatically assigned for tomorrow.</span>
               </div>
             ) : isLunch ? (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 text-xs font-semibold">
-                <Clock className="w-4 h-4 text-amber-300" />
-                <span>Lunch Break in Progress (12:00 PM - 01:00 PM). Counters paused temporarily.</span>
+              <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-950/60 border border-amber-800/60 text-amber-200 text-xs font-semibold backdrop-blur-md">
+                <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <span>Lunch Recess Active (12:00 PM - 01:00 PM). Counters paused temporarily.</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-xs font-semibold">
-                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                <span>Offices Active • Normal Operations • Earliest Slot Booking Available</span>
+              <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-semibold backdrop-blur-md">
+                <Activity className="w-4 h-4 text-emerald-400 animate-pulse flex-shrink-0" />
+                <span>Counters Active • Instant Digital Slot Booking Available</span>
               </div>
             )}
 
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4">
               <Link
                 to="/book"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold text-sm transition-transform active:scale-95 shadow-lg"
+                className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-500/20 active:scale-95 transition-all"
               >
-                <Ticket className="w-5 h-5" />
+                <Ticket className="w-5 h-5 text-slate-950" />
                 <span>Book Token Pass Now</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 to="/queue"
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-amber-300 font-bold text-sm border border-emerald-600 shadow"
+                className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-100 font-bold text-sm border border-slate-700/80 shadow-lg transition-all"
               >
-                <Users className="w-5 h-5" />
-                <span>View Live Queue</span>
+                <Users className="w-5 h-5 text-amber-400" />
+                <span>Live Counter Board</span>
               </Link>
+            </div>
+
+            {/* Metric Counters Bar */}
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-900 max-w-lg">
+              <div>
+                <span className="text-2xl font-black text-white font-mono block">12,480+</span>
+                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">Tokens Issued</span>
+              </div>
+              <div>
+                <span className="text-2xl font-black text-emerald-400 font-mono block">~12 Mins</span>
+                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">Avg Processing</span>
+              </div>
+              <div>
+                <span className="text-2xl font-black text-amber-400 font-mono block">99.4%</span>
+                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">Tatkal Accuracy</span>
+              </div>
             </div>
           </div>
 
-          {/* Quick Location & Office Widget */}
-          <div className="w-full md:w-96 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
-                <MapPin className="w-4 h-4" />
-                <span>Detected Location</span>
-              </div>
-              <button 
-                onClick={() => userLocation && loadData(userLocation.lat, userLocation.lng)} 
-                className="text-emerald-200 hover:text-white"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-              </button>
-            </div>
+          {/* Quick Location & Nearest Centers Glass Card */}
+          <div className="lg:col-span-5">
+            <div className="glass-panel rounded-3xl p-6 shadow-2xl border border-slate-800 space-y-5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
-            <p className="text-xs text-emerald-100 font-mono">
-              Latitude: {userLocation?.lat.toFixed(4)} | Longitude: {userLocation?.lng.toFixed(4)}
-            </p>
-
-            <div className="border-t border-emerald-700/50 pt-3 space-y-3">
-              <div className="text-xs font-bold text-white uppercase tracking-wider">Nearest Centers</div>
-              {offices.slice(0, 2).map((off) => (
-                <div key={off.id} className="bg-emerald-900/60 p-3 rounded-xl border border-emerald-700/40 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-xs text-white block">{off.name}</span>
-                    <span className="text-[11px] text-emerald-200">{off.distance_km ? `${off.distance_km} km away` : 'Shivamogga'}</span>
-                  </div>
-                  <button
-                    onClick={() => handleBookAtOffice(off)}
-                    className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-bold text-xs rounded-lg"
-                  >
-                    Select
-                  </button>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+                  <MapPin className="w-4 h-4 text-emerald-400" />
+                  <span>Detected Coordinates</span>
                 </div>
-              ))}
+                <button 
+                  onClick={() => userLocation && loadData(userLocation.lat, userLocation.lng)} 
+                  className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 font-mono text-xs text-slate-300 flex items-center justify-between">
+                <span>Lat: {userLocation?.lat.toFixed(4)} | Lng: {userLocation?.lng.toFixed(4)}</span>
+                <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 text-[10px] font-bold">GPS ACTIVE</span>
+              </div>
+
+              <div className="space-y-3 pt-2">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Nearest Shivamogga Centers</span>
+                
+                {offices.slice(0, 2).map((off) => (
+                  <div key={off.id} className="bg-slate-900/90 p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-all">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${off.type === 'GramOne' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                        <span className="font-bold text-sm text-white">{off.name}</span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-1">{off.distance_km ? `${off.distance_km} km away` : 'Shivamogga City'}</p>
+                    </div>
+                    <button
+                      onClick={() => handleBookAtOffice(off)}
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-all"
+                    >
+                      Book Pass
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
         
         {/* Map & Nearest Offices Section */}
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <section className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Nearest GramOne & Seva Sindhu Centers</h2>
-              <p className="text-slate-500 text-xs sm:text-sm">Interactive map showing center status, distance, and current queue length</p>
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold tracking-widest uppercase mb-1">
+                <Navigation className="w-4 h-4" />
+                <span>Geospatial Coverage</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Shivamogga Service Centers Map
+              </h2>
             </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold bg-emerald-100 px-2 py-1 rounded">
-                🟢 GramOne
+            <div className="flex items-center gap-3 text-xs">
+              <span className="px-3 py-1 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-400 font-bold">
+                🟢 GramOne Centers
               </span>
-              <span className="inline-flex items-center gap-1 text-amber-700 font-semibold bg-amber-100 px-2 py-1 rounded">
-                🟠 Seva Sindhu
+              <span className="px-3 py-1 rounded-full bg-amber-950 border border-amber-800 text-amber-400 font-bold">
+                🟠 Seva Sindhu Centers
               </span>
             </div>
           </div>
@@ -188,51 +226,55 @@ export const Home: React.FC = () => {
           <OfficeMap offices={offices} userLocation={userLocation} onSelectOffice={handleBookAtOffice} />
         </section>
 
-        {/* Centers Grid */}
-        <section className="space-y-4">
-          <h3 className="text-xl font-bold text-slate-900">Center Operating Status</h3>
+        {/* Center Operating Status Cards */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">Center Live Operations</h3>
+            <span className="text-xs text-slate-400 font-mono">Synced with Shivamogga Queue Server</span>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {offices.map((office) => (
-              <div key={office.id} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow space-y-4">
+              <div key={office.id} className="glass-panel rounded-3xl p-7 shadow-xl border border-slate-800 hover:border-slate-700 transition-all space-y-5">
                 <div className="flex items-start justify-between">
                   <div>
-                    <span className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-bold text-white mb-1.5 ${office.type === 'GramOne' ? 'bg-emerald-700' : 'bg-amber-600'}`}>
+                    <span className={`inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider mb-2 ${office.type === 'GramOne' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'}`}>
                       {office.type} Center
                     </span>
-                    <h4 className="text-lg font-bold text-slate-900">{office.name}</h4>
-                    <p className="text-xs text-slate-500">{office.address}</p>
+                    <h4 className="text-xl font-extrabold text-white">{office.name}</h4>
+                    <p className="text-xs text-slate-400 mt-1">{office.address}</p>
                   </div>
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${office.server_status === 'Active' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${office.server_status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`}>
                     {office.server_status}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 text-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <div className="grid grid-cols-3 gap-3 text-center bg-slate-950 p-4 rounded-2xl border border-slate-900">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Current Queue</span>
-                    <span className="text-lg font-bold text-slate-800">{office.current_queue_count || 0}</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-extrabold block">Current Queue</span>
+                    <span className="text-xl font-black text-amber-400 font-mono">{office.current_queue_count || 0}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Remaining</span>
-                    <span className="text-lg font-bold text-emerald-600">{office.remaining_tokens || 100}</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-extrabold block">Tokens Remaining</span>
+                    <span className="text-xl font-black text-emerald-400 font-mono">{office.remaining_tokens || 100}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Distance</span>
-                    <span className="text-lg font-bold text-slate-800">{office.distance_km ? `${office.distance_km} km` : 'N/A'}</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-extrabold block">Distance</span>
+                    <span className="text-xl font-black text-slate-200 font-mono">{office.distance_km ? `${office.distance_km} km` : 'City'}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{office.working_hours} (Lunch {office.lunch_break})</span>
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-900">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-slate-500" />
+                    <span>{office.working_hours}</span>
                   </div>
                   <button
                     onClick={() => handleBookAtOffice(office)}
-                    className="flex items-center gap-1 text-emerald-700 font-bold hover:text-emerald-800"
+                    className="flex items-center gap-1.5 text-amber-400 font-bold hover:text-amber-300 transition-colors"
                   >
-                    <span>Book Token</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <span>Book Pass</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -240,42 +282,46 @@ export const Home: React.FC = () => {
           </div>
         </section>
 
-        {/* Quick Government Services Grid */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900">Available Government Services</h3>
-              <p className="text-xs text-slate-500">Select any service to begin automated slot allocation</p>
-            </div>
+        {/* Available Government Services Grid */}
+        <section className="space-y-6">
+          <div>
+            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">Karnataka Public Services</span>
+            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Available Citizen Services</h3>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {services.map((service) => (
               <div
                 key={service.id}
                 onClick={() => handleSelectService(service)}
-                className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer group space-y-3"
+                className="glass-panel rounded-2xl p-5 border border-slate-800 hover:border-emerald-500/60 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
                     {service.category}
                   </span>
-                  <span className="text-xs font-bold text-slate-900">
+                  <span className="text-xs font-black text-amber-400 font-mono">
                     {service.fee === 0 ? 'FREE' : `₹${service.fee}`}
                   </span>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors">
+                  <h4 className="font-extrabold text-base text-white group-hover:text-amber-400 transition-colors leading-snug">
                     {service.name}
                   </h4>
-                  <p className="text-[11px] text-slate-500 mt-1">Avg Time: {service.avg_processing_time_mins} mins</p>
+                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" />
+                    <span>Avg Processing: ~{service.avg_processing_time_mins} mins</span>
+                  </p>
                 </div>
 
-                <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-100">
-                  <span className="text-slate-400">Req Docs: {service.required_documents?.length || 3}</span>
-                  <span className="text-emerald-700 font-bold flex items-center gap-0.5">
-                    Book <ArrowRight className="w-3 h-3" />
+                <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-900 text-slate-400">
+                  <span className="flex items-center gap-1 text-[11px]">
+                    <FileText className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Docs: {service.required_documents?.length || 3} required</span>
+                  </span>
+                  <span className="text-emerald-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                    Book <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </div>

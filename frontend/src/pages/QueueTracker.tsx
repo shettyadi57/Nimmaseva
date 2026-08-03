@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { fetchQueueState, fetchOffices } from '../services/api';
 import { QueueState, Office } from '../types';
-import { Landmark, Users, Clock, Monitor, RefreshCw, Volume2, PauseCircle, PlayCircle } from 'lucide-react';
+import { Landmark, Users, Clock, Monitor, RefreshCw, Volume2, PauseCircle, PlayCircle, Radio, Activity } from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
 
 export const QueueTracker: React.FC = () => {
@@ -62,29 +62,46 @@ export const QueueTracker: React.FC = () => {
     return () => ws.close();
   };
 
+  const playChime = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.3);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const currentOffice = offices.find((o) => o.id === selectedOfficeId);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white py-10 px-4 sm:px-6 lg:px-8 space-y-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8 space-y-10">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-6">
-          <div>
+        {/* Header Bar */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 glass-panel rounded-3xl p-6 border border-slate-800 shadow-2xl">
+          <div className="space-y-2 text-center md:text-left">
             <KarnatakaBadge />
-            <h1 className="text-2xl sm:text-4xl font-black tracking-tight mt-2 flex items-center gap-3">
-              <Landmark className="w-8 h-8 text-amber-500" />
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center justify-center md:justify-start gap-3">
+              <Landmark className="w-8 h-8 text-amber-400" />
               <span>LIVE QUEUE DISPLAY BOARD</span>
             </h1>
             <p className="text-slate-400 text-xs sm:text-sm">Real-time WebSocket token tracking for Shivamogga public service counters</p>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-800 p-2 rounded-2xl border border-slate-700">
-            <span className="text-xs text-slate-400 font-bold px-2">Select Office:</span>
+          <div className="flex items-center gap-3 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+            <span className="text-xs text-slate-400 font-bold px-2">Center Office:</span>
             <select
               value={selectedOfficeId}
               onChange={(e) => setSelectedOfficeId(Number(e.target.value))}
-              className="bg-slate-900 text-amber-400 text-xs font-bold px-3 py-2 rounded-xl border border-slate-700 focus:outline-none"
+              className="bg-slate-900 text-amber-400 text-xs font-extrabold px-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none"
             >
               {offices.map((o) => (
                 <option key={o.id} value={o.id}>
@@ -92,7 +109,8 @@ export const QueueTracker: React.FC = () => {
                 </option>
               ))}
             </select>
-            <div className="flex items-center gap-1 text-[11px] font-mono px-2 py-1 bg-emerald-950 text-emerald-400 rounded-lg border border-emerald-800">
+
+            <div className="flex items-center gap-2 text-xs font-mono px-3 py-1.5 bg-emerald-950/80 text-emerald-400 rounded-xl border border-emerald-800/80">
               <span className={`w-2 h-2 rounded-full ${wsConnected ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
               <span>{wsConnected ? 'LIVE WS' : 'POLLING'}</span>
             </div>
@@ -100,54 +118,66 @@ export const QueueTracker: React.FC = () => {
         </div>
 
         {/* Big Counter Display Board */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           
-          {/* Current Serving Token */}
-          <div className="bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-700/60 rounded-3xl p-8 text-center space-y-4 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 bg-amber-500 text-emerald-950 font-black text-xs px-4 py-1.5 rounded-bl-2xl uppercase">
+          {/* Current Serving Token Card */}
+          <div className="md:col-span-7 glass-panel rounded-3xl p-10 text-center space-y-6 shadow-2xl border border-emerald-500/30 relative overflow-hidden flex flex-col justify-between">
+            <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs px-5 py-2 rounded-bl-2xl uppercase tracking-widest shadow-lg">
               NOW SERVING
             </div>
 
-            <span className="text-slate-300 font-bold text-sm tracking-widest uppercase block">Counter Serving Token</span>
-
-            <div className="text-6xl sm:text-8xl font-black font-mono tracking-tight text-amber-400 py-4 drop-shadow-md">
-              {queueState?.current_token || 'None'}
+            <div className="space-y-1">
+              <span className="text-slate-400 font-extrabold text-xs tracking-widest uppercase block">Active Counter Token</span>
+              <p className="text-emerald-400 text-xs font-mono">Counter 01 & 02 Dedicated Processing</p>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-800/80 rounded-2xl text-emerald-200 text-xs font-bold border border-emerald-600/40">
-              <Monitor className="w-4 h-4 text-amber-400" />
-              <span>Counter Number: 01 & 02 Active</span>
+            <div className="text-7xl sm:text-9xl font-black font-mono tracking-tight text-amber-400 py-6 drop-shadow-[0_0_35px_rgba(245,158,11,0.4)]">
+              {queueState?.current_token || 'GO-001'}
+            </div>
+
+            <div className="flex items-center justify-center gap-3">
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-950 rounded-2xl text-emerald-300 text-xs font-bold border border-emerald-500/20">
+                <Monitor className="w-4 h-4 text-amber-400" />
+                <span>Counter Status: ACTIVE</span>
+              </div>
+              <button
+                onClick={playChime}
+                className="p-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-800 shadow"
+                title="Test Counter Audio Chime"
+              >
+                <Volume2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
 
-          {/* Next Token & Queue Stats */}
-          <div className="bg-slate-800/90 border border-slate-700 rounded-3xl p-8 space-y-6 flex flex-col justify-between">
+          {/* Up Next & Queue Stats */}
+          <div className="md:col-span-5 glass-panel rounded-3xl p-8 border border-slate-800 space-y-6 flex flex-col justify-between">
             <div>
-              <span className="text-slate-400 font-bold text-xs uppercase tracking-widest block mb-2">Up Next Token</span>
-              <div className="text-4xl sm:text-5xl font-extrabold font-mono text-slate-100">
-                {queueState?.next_token || 'None'}
+              <span className="text-slate-400 font-extrabold text-xs uppercase tracking-widest block mb-2">Up Next Token</span>
+              <div className="text-5xl font-black font-mono text-white tracking-tight">
+                {queueState?.next_token || 'GO-002'}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-center">
+            <div className="grid grid-cols-2 gap-4 bg-slate-950 p-5 rounded-2xl border border-slate-800 text-center">
               <div>
-                <span className="text-[11px] text-slate-400 uppercase font-bold block">Total People Waiting</span>
-                <span className="text-2xl font-black text-amber-400 font-mono">{queueState?.total_waiting || 0}</span>
+                <span className="text-[10px] text-slate-500 uppercase font-black block mb-1">Total Waiting</span>
+                <span className="text-3xl font-black text-amber-400 font-mono">{queueState?.total_waiting || 0}</span>
               </div>
               <div>
-                <span className="text-[11px] text-slate-400 uppercase font-bold block">Served Today</span>
-                <span className="text-2xl font-black text-emerald-400 font-mono">{queueState?.total_completed_today || 0}</span>
+                <span className="text-[10px] text-slate-500 uppercase font-black block mb-1">Served Today</span>
+                <span className="text-3xl font-black text-emerald-400 font-mono">{queueState?.total_completed_today || 0}</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-700">
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-amber-500" />
-                <span>Est Wait Time per Token: ~12 Mins</span>
+            <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-800">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span>Est Wait per Token: ~12 Mins</span>
               </div>
               {queueState?.is_paused && (
-                <span className="px-2.5 py-1 bg-red-500/20 text-red-400 font-bold rounded-lg border border-red-500/40 flex items-center gap-1">
-                  <PauseCircle className="w-3.5 h-3.5" /> Queue Paused
+                <span className="px-3 py-1 bg-red-950 text-red-400 font-bold rounded-xl border border-red-800 flex items-center gap-1">
+                  <PauseCircle className="w-4 h-4" /> Paused
                 </span>
               )}
             </div>
@@ -155,18 +185,18 @@ export const QueueTracker: React.FC = () => {
         </div>
 
         {/* Office Info Strip */}
-        <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+        <div className="glass-panel rounded-2xl p-6 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div>
             <h3 className="text-lg font-bold text-white">{currentOffice?.name}</h3>
-            <p className="text-slate-400">{currentOffice?.address} • Phone: {currentOffice?.phone}</p>
+            <p className="text-slate-400 mt-0.5">{currentOffice?.address} • Phone: {currentOffice?.phone}</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1.5 bg-slate-900 text-slate-300 rounded-xl font-bold border border-slate-700">
-              Hours: 09:00 AM - 05:00 PM
+            <span className="px-4 py-2 bg-slate-950 text-slate-300 rounded-xl font-mono text-xs border border-slate-800">
+              Operating Hours: 09:00 AM - 05:00 PM
             </span>
             <button
               onClick={() => loadQueue(selectedOfficeId)}
-              className="p-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl"
+              className="p-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow transition-all"
             >
               <RefreshCw className="w-4 h-4" />
             </button>

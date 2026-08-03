@@ -9,8 +9,8 @@ export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const { setAdminAuth } = useStore();
 
-  const [emailOrPhone, setEmailOrPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('admin@nimmaseva.in');
+  const [password, setPassword] = useState('Admin@123');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -24,26 +24,31 @@ export const AdminLogin: React.FC = () => {
       setAdminAuth(res.access_token, { name: res.user_name, role: res.role });
       navigate('/admin/dashboard');
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || 'Invalid admin credentials');
+      setErrorMsg(err.response?.data?.detail || 'Invalid staff credentials');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl">
-        <div className="text-center space-y-2">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-md w-full glass-panel p-8 sm:p-10 rounded-3xl border border-slate-800 shadow-2xl space-y-6 relative z-10">
+        <div className="text-center space-y-3">
           <KarnatakaBadge />
-          <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mt-2">
-            <Landmark className="w-7 h-7 text-emerald-950" />
+          
+          <div className="w-14 h-14 bg-gradient-to-tr from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20 text-slate-950 font-bold">
+            <Landmark className="w-7 h-7" />
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">Staff / Operator Portal</h2>
-          <p className="text-xs text-slate-400">Shivamogga GramOne & Seva Sindhu Admin Access</p>
+          
+          <h2 className="text-3xl font-black text-white tracking-tight">Staff Operator Portal</h2>
+          <p className="text-xs text-slate-400">Shivamogga GramOne & Seva Sindhu Control Center Access</p>
         </div>
 
         {errorMsg && (
-          <div className="p-3 bg-red-500/20 border border-red-500/40 rounded-xl flex items-center gap-2 text-red-300 text-xs">
+          <div className="p-4 bg-red-950/80 border border-red-800/80 rounded-2xl flex items-center gap-3 text-red-200 text-xs font-bold">
             <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
             <span>{errorMsg}</span>
           </div>
@@ -51,39 +56,46 @@ export const AdminLogin: React.FC = () => {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Email or Phone</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">Staff Email / Phone</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-4 top-3.5" />
               <input
                 type="text"
                 value={emailOrPhone}
                 onChange={(e) => setEmailOrPhone(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:ring-2 focus:ring-amber-500"
+                placeholder="admin@nimmaseva.in"
+                className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs font-mono focus:border-amber-400 focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Password</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">Password</label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <Lock className="w-4 h-4 text-slate-500 absolute left-4 top-3.5" />
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:ring-2 focus:ring-amber-500"
+                placeholder="••••••••"
+                className="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-slate-100 text-xs font-mono focus:border-amber-400 focus:outline-none"
               />
             </div>
+          </div>
+
+          <div className="p-3 bg-slate-950 rounded-xl border border-slate-900 text-[11px] text-slate-400 flex items-center justify-between font-mono">
+            <span>Demo Creds:</span>
+            <span className="text-amber-400 font-bold">admin@nimmaseva.in / Admin@123</span>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-emerald-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg"
+            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-xl shadow-amber-500/20 active:scale-95 mt-2"
           >
-            {loading ? 'Authenticating...' : 'Sign In to Admin Panel'}
+            {loading ? 'Authenticating Access...' : 'Sign In to Operator Panel'}
           </button>
         </form>
       </div>

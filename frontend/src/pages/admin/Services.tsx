@@ -34,41 +34,41 @@ export const ServicesControl: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-6 space-y-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 space-y-10">
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="border-b border-slate-800 pb-4">
+        <div className="glass-panel rounded-3xl p-6 border border-slate-800 shadow-2xl space-y-2">
           <KarnatakaBadge />
-          <h1 className="text-2xl font-black mt-1">SERVICE SERVER STATUS CONTROL</h1>
-          <p className="text-xs text-slate-400">Toggle service availability, set Maintenance or Down status to block user bookings</p>
+          <h1 className="text-3xl font-black text-white mt-1">SERVICE SERVER STATUS CONTROL CENTER</h1>
+          <p className="text-xs text-slate-400">Toggle individual service availability (Active, Maintenance, Server Down) to instantly control citizen booking slots</p>
         </div>
 
         {/* Services Table */}
-        <div className="bg-slate-800 rounded-3xl border border-slate-700 overflow-hidden">
+        <div className="glass-panel rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
           <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-900 text-slate-400 uppercase font-bold text-[10px]">
+            <thead className="bg-slate-950 text-slate-400 uppercase font-black text-[10px] tracking-wider border-b border-slate-800">
               <tr>
                 <th className="p-4">Service Code</th>
                 <th className="p-4">Service Name</th>
                 <th className="p-4">Category</th>
                 <th className="p-4">Fee (₹)</th>
-                <th className="p-4">Server Status</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4">Current Server Status</th>
+                <th className="p-4 text-right">Status Controls</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className="divide-y divide-slate-800">
               {services.map((srv) => (
-                <tr key={srv.id} className="hover:bg-slate-750">
-                  <td className="p-4 font-mono font-bold text-amber-400">{srv.code}</td>
+                <tr key={srv.id} className="hover:bg-slate-900/60 transition-colors">
+                  <td className="p-4 font-mono font-black text-amber-400 text-sm">{srv.code}</td>
                   <td className="p-4 font-bold text-white text-sm">{srv.name}</td>
-                  <td className="p-4 text-emerald-300 font-semibold">{srv.category}</td>
+                  <td className="p-4 text-emerald-400 font-bold">{srv.category}</td>
                   <td className="p-4 font-mono font-bold text-slate-200">₹ {srv.fee}</td>
                   <td className="p-4">
-                    <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] ${
-                      srv.server_status === 'Active' ? 'bg-emerald-500/20 text-emerald-400' :
-                      srv.server_status === 'Maintenance' ? 'bg-amber-500/20 text-amber-300' :
-                      'bg-red-500/20 text-red-400'
+                    <span className={`px-3 py-1 rounded-full font-black text-[10px] ${
+                      srv.server_status === 'Active' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                      srv.server_status === 'Maintenance' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
+                      'bg-red-950 text-red-400 border border-red-800'
                     }`}>
                       {srv.server_status}
                     </span>
@@ -76,19 +76,19 @@ export const ServicesControl: React.FC = () => {
                   <td className="p-4 text-right space-x-2">
                     <button
                       onClick={() => handleStatusChange(srv.id, 'Active', true)}
-                      className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-[10px] rounded-lg"
+                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10px] rounded-xl shadow transition-all"
                     >
                       Active
                     </button>
                     <button
                       onClick={() => handleStatusChange(srv.id, 'Maintenance', true)}
-                      className="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white font-bold text-[10px] rounded-lg"
+                      className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-[10px] rounded-xl shadow transition-all"
                     >
                       Maintenance
                     </button>
                     <button
                       onClick={() => handleStatusChange(srv.id, 'Down', false)}
-                      className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white font-bold text-[10px] rounded-lg"
+                      className="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white font-extrabold text-[10px] rounded-xl shadow transition-all"
                     >
                       Server Down
                     </button>
