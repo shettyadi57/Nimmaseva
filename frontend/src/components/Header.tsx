@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, Ticket, Search, LayoutDashboard, ShieldCheck, Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown } from 'lucide-react';
+import {
+  Building2, Ticket, Search, LayoutDashboard, ShieldCheck,
+  Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight
+} from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useTheme } from '../context/ThemeContext';
 import { useLang, Language } from '../context/LanguageContext';
@@ -18,13 +21,17 @@ export const Header: React.FC = () => {
   const { lang, setLang, t } = useLang();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [mobileLangOpen, setMobileLangOpen] = useState(false);
 
-  // Close lang dropdown on outside click
+  // Close desktop lang dropdown on outside click
   useEffect(() => {
     const handler = () => setLangDropdownOpen(false);
     if (langDropdownOpen) document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
   }, [langDropdownOpen]);
+
+  // Close mobile menu on route change
+  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
 
   const navLinks = [
     { path: '/', label: t.navHome, icon: Building2 },
@@ -37,33 +44,33 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 glass-header text-slate-100 shadow-2xl">
-      {/* Top Metallic Gold/Emerald Accent Line */}
+      {/* Top accent line */}
       <div className="bg-gradient-to-r from-amber-500 via-emerald-400 to-amber-500 h-[2px] w-full opacity-80" />
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          
+        <div className="flex items-center justify-between h-16 md:h-20">
+
           {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-3.5 group">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-0.5 shadow-lg shadow-emerald-950/50 group-hover:scale-105 transition-all duration-300">
+          <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
+            <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-0.5 shadow-lg shadow-emerald-950/50 group-hover:scale-105 transition-all duration-300">
               <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
-                <Landmark className="w-6 h-6 text-amber-400 group-hover:rotate-6 transition-transform" />
+                <Landmark className="w-5 h-5 md:w-6 md:h-6 text-amber-400 group-hover:rotate-6 transition-transform" />
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-xl tracking-tight text-white font-sans group-hover:text-amber-400 transition-colors">
+                <span className="font-extrabold text-lg md:text-xl tracking-tight text-white font-sans group-hover:text-amber-400 transition-colors">
                   {t.appName}
                 </span>
-                <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full border border-emerald-500/30 shadow-inner">
+                <span className="hidden sm:inline bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full border border-emerald-500/30 shadow-inner">
                   Smart PWA
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium tracking-wide">{t.appSubtitle}</p>
+              <p className="text-[10px] md:text-[11px] text-slate-400 font-medium tracking-wide leading-tight">{t.appSubtitle}</p>
             </div>
           </Link>
 
-          {/* Desktop Nav Pills */}
+          {/* ===== DESKTOP Nav Pills ===== */}
           <nav className="hidden md:flex items-center gap-1.5 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 shadow-inner">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -85,14 +92,14 @@ export const Header: React.FC = () => {
             })}
           </nav>
 
-          {/* Action Buttons & System Status */}
+          {/* ===== DESKTOP Action Buttons ===== */}
           <div className="hidden md:flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] font-medium text-slate-400">
               <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
               <span>{t.allSystems}</span>
             </div>
 
-            {/* Language Selector */}
+            {/* Desktop Language Selector */}
             <div className="relative" onClick={e => e.stopPropagation()}>
               <button
                 onClick={() => setLangDropdownOpen(prev => !prev)}
@@ -102,7 +109,6 @@ export const Header: React.FC = () => {
                 <span className="font-bold">{currentLang.native}</span>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
-
               {langDropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-44 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden z-50">
                   {LANG_OPTIONS.map(option => (
@@ -127,12 +133,11 @@ export const Header: React.FC = () => {
               )}
             </div>
 
-            {/* Dark / Light Mode Toggle */}
+            {/* Desktop Theme Toggle */}
             <button
               onClick={toggleTheme}
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-300 active:scale-95
-                bg-slate-900/80 border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800"
+              className="relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-300 active:scale-95 bg-slate-900/80 border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800"
             >
               <span
                 className="absolute inset-0 flex items-center justify-center transition-all duration-300"
@@ -167,24 +172,67 @@ export const Header: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            {/* Mobile Language Select (compact) */}
-            <div className="relative" onClick={e => e.stopPropagation()}>
+          {/* ===== MOBILE: Only hamburger button ===== */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2.5 rounded-2xl bg-slate-900/80 text-slate-200 border border-slate-700 active:scale-95 transition-all"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* ===== MOBILE DRAWER (full-featured) ===== */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-800 bg-slate-950/98 backdrop-blur-xl">
+          {/* Nav Links */}
+          <div className="px-4 pt-4 pb-2 space-y-1.5">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location.pathname === link.path;
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg'
+                      : 'text-slate-300 hover:bg-slate-900 border border-transparent hover:border-slate-800'
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-amber-300' : 'text-amber-400'}`} />
+                  <span>{link.label}</span>
+                  {!isActive && <ChevronRight className="w-4 h-4 ml-auto text-slate-600" />}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Divider */}
+          <div className="mx-4 my-2 border-t border-slate-800" />
+
+          {/* Settings row: Language + Theme */}
+          <div className="px-4 py-3 flex items-center gap-3">
+            {/* Language selector (inline) */}
+            <div className="flex-1 bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
               <button
-                onClick={() => setLangDropdownOpen(prev => !prev)}
-                className="flex items-center gap-1 px-2 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold active:scale-95 transition-all"
+                onClick={() => setMobileLangOpen(!mobileLangOpen)}
+                className="w-full flex items-center gap-3 px-4 py-3"
               >
-                <Globe className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px]">{currentLang.native.slice(0, 2)}</span>
+                <Globe className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <span className="text-sm font-semibold text-slate-200">{currentLang.native}</span>
+                <span className="text-xs text-slate-500 ml-1">({currentLang.label})</span>
+                <ChevronDown className={`w-4 h-4 text-slate-500 ml-auto transition-transform ${mobileLangOpen ? 'rotate-180' : ''}`} />
               </button>
-              {langDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-40 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50">
+              {mobileLangOpen && (
+                <div className="border-t border-slate-800">
                   {LANG_OPTIONS.map(option => (
                     <button
                       key={option.code}
-                      onClick={() => { setLang(option.code); setLangDropdownOpen(false); }}
-                      className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm font-semibold transition-all ${
+                      onClick={() => { setLang(option.code); setMobileLangOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-all ${
                         lang === option.code ? 'bg-emerald-600/20 text-emerald-300' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
@@ -197,45 +245,27 @@ export const Header: React.FC = () => {
               )}
             </div>
 
-            {/* Mobile Theme Toggle */}
+            {/* Theme toggle (large) */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 active:scale-95 transition-all"
+              className="flex flex-col items-center justify-center gap-1 w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 active:scale-95 transition-all flex-shrink-0"
             >
-              {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
-            </button>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-slate-900 text-slate-200 border border-slate-800"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {theme === 'dark'
+                ? <Moon className="w-5 h-5 text-indigo-400" />
+                : <Sun className="w-5 h-5 text-amber-400" />
+              }
+              <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-wide">
+                {theme === 'dark' ? 'Dark' : 'Light'}
+              </span>
             </button>
           </div>
-        </div>
-      </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-slate-950/95 border-b border-slate-800 px-4 pt-3 pb-6 space-y-3">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-200 hover:bg-slate-900 text-sm font-semibold border border-slate-900"
-              >
-                <Icon className="w-5 h-5 text-amber-400" />
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
-          <div className="pt-3 border-t border-slate-800 flex flex-col gap-2">
+          {/* Admin / Staff link */}
+          <div className="px-4 pb-5">
             <Link
-              to={adminToken ? "/admin/dashboard" : "/admin/login"}
+              to={adminToken ? '/admin/dashboard' : '/admin/login'}
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-amber-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-amber-500/20"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-extrabold text-sm shadow-lg shadow-amber-500/20 active:scale-98 transition-all"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>{adminToken ? t.adminPanel : t.staffLogin}</span>

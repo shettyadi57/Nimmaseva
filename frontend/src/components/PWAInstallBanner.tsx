@@ -1,26 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Download, X, Smartphone, Zap, Wifi, Bell } from 'lucide-react';
-import { useLang } from '../context/LanguageContext';
+import { Download, X, Zap, Wifi, Bell, Share } from 'lucide-react';
+
+// Detect iOS Safari
+const isIOS = () =>
+  /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
+
+const isInStandaloneMode = () =>
+  (window.navigator as any).standalone === true ||
+  window.matchMedia('(display-mode: standalone)').matches;
 
 export const PWAInstallBanner: React.FC = () => {
-  const { t } = useLang();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [visible, setVisible] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [installed, setInstalled] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [isIos, setIsIos] = useState(false);
 
   useEffect(() => {
-    // Don't show if user already dismissed this session
+    // Don't show if already installed as PWA
+    if (isInStandaloneMode()) return;
+    // Don't show if dismissed this session
     if (sessionStorage.getItem('pwa-banner-dismissed')) return;
 
+    const ios = isIOS();
+    setIsIos(ios);
+
+    if (ios) {
+      // iOS: always show the install guide after 3s
+      const t = setTimeout(() => setVisible(true), 3000);
+      return () => clearTimeout(t);
+    }
+
+    // Android/Desktop: wait for beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Show after a short delay so page loads first
-      setTimeout(() => setVisible(true), 3000);
+      const t = setTimeout(() => setVisible(true), 3000);
+      return () => clearTimeout(t);
     };
-
     window.addEventListener('beforeinstallprompt', handler as EventListener);
 
     window.addEventListener('appinstalled', () => {
@@ -28,7 +45,15 @@ export const PWAInstallBanner: React.FC = () => {
       setTimeout(() => setVisible(false), 2500);
     });
 
-    return () => window.removeEventListener('beforeinstallprompt', handler as EventListener);
+    // Fallback: show after 5s even without event (some browsers suppress it)
+    const fallbackTimer = setTimeout(() => {
+      setVisible(true);
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler as EventListener);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   const handleInstall = async () => {
@@ -45,38 +70,40 @@ export const PWAInstallBanner: React.FC = () => {
   };
 
   const handleDismiss = () => {
-    setDismissed(true);
     setVisible(false);
     sessionStorage.setItem('pwa-banner-dismissed', '1');
   };
 
-  if (!visible || dismissed) return null;
+  if (!visible) return null;
 
   return (
     <>
-      {/* Backdrop blur overlay */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[998] bg-black/30 backdrop-blur-sm"
+        className="fixed inset-0 z-[998] bg-black/40 backdrop-blur-sm"
         onClick={handleDismiss}
-        style={{
-          animation: 'fadeIn 0.3s ease',
-        }}
+        style={{ animation: 'fadeIn 0.3s ease' }}
       />
 
-      {/* Install Card */}
+      {/* Card */}
       <div
-        className="fixed bottom-6 left-1/2 z-[999] w-full max-w-md"
+        className="fixed bottom-0 left-0 right-0 z-[999] sm:bottom-6 sm:left-1/2 sm:right-auto sm:w-full sm:max-w-sm"
         style={{
-          transform: 'translateX(-50%)',
+          transform: window.innerWidth >= 640 ? 'translateX(-50%)' : undefined,
           animation: 'slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}
       >
-        <div className="mx-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 border border-slate-700/60 shadow-2xl shadow-black/60 overflow-hidden">
-          
-          {/* Top accent stripe */}
+        <div className="mx-0 sm:mx-4 rounded-t-3xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 border-t border-x sm:border border-slate-700/60 shadow-2xl shadow-black/60 overflow-hidden">
+
+          {/* Accent stripe */}
           <div className="h-1 w-full bg-gradient-to-r from-amber-500 via-emerald-400 to-amber-500" />
 
-          <div className="p-6">
+          {/* Drag handle (mobile) */}
+          <div className="sm:hidden flex justify-center pt-3 pb-1">
+            <div className="w-10 h-1 rounded-full bg-slate-700" />
+          </div>
+
+          <div className="p-5 sm:p-6 relative">
             {/* Close button */}
             <button
               onClick={handleDismiss}
@@ -86,22 +113,61 @@ export const PWAInstallBanner: React.FC = () => {
             </button>
 
             {installed ? (
-              /* Installed success state */
               <div className="flex flex-col items-center py-4 text-center">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mb-4 animate-bounce">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mb-4">
                   <span className="text-3xl">🎉</span>
                 </div>
                 <h3 className="text-white font-extrabold text-lg mb-1">App Installed!</h3>
-                <p className="text-slate-400 text-sm">Nimma Seva has been added to your home screen.</p>
+                <p className="text-slate-400 text-sm">Nimma Seva added to your home screen.</p>
               </div>
-            ) : (
+            ) : isIos ? (
+              /* iOS Install Guide */
               <>
-                {/* Header row */}
-                <div className="flex items-center gap-4 mb-5">
-                  {/* App icon */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-0.5 shadow-lg flex-shrink-0">
+                    <div className="w-full h-full bg-slate-950 rounded-[12px] flex items-center justify-center">
+                      <span className="text-2xl">🏛️</span>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-extrabold text-base">Add to Home Screen</h3>
+                    <p className="text-slate-400 text-xs mt-0.5">ನಿಮ್ಮ ಸೇವಾ · निम्म सेवा</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-5">
+                  {[
+                    { step: '1', icon: Share, text: 'Tap the Share button', sub: 'Bottom toolbar in Safari' },
+                    { step: '2', icon: Download, text: 'Tap "Add to Home Screen"', sub: 'Scroll down in the share sheet' },
+                    { step: '3', icon: Bell, text: 'Tap "Add"', sub: 'App appears on your home screen' },
+                  ].map(({ step, icon: Icon, text, sub }) => (
+                    <div key={step} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-800/60 border border-slate-700/50">
+                      <div className="w-7 h-7 rounded-xl bg-emerald-600 flex items-center justify-center text-xs font-black text-white flex-shrink-0">
+                        {step}
+                      </div>
+                      <Icon className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <div>
+                        <div className="text-white text-xs font-semibold">{text}</div>
+                        <div className="text-slate-500 text-[10px]">{sub}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleDismiss}
+                  className="w-full py-3 rounded-2xl border border-slate-600 text-slate-300 text-sm font-semibold hover:bg-slate-800 transition-all"
+                >
+                  Got it, thanks!
+                </button>
+              </>
+            ) : (
+              /* Android / Desktop */
+              <>
+                <div className="flex items-center gap-4 mb-4">
                   <div className="relative flex-shrink-0">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-0.5 shadow-lg shadow-emerald-900/50">
-                      <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 p-0.5 shadow-lg">
+                      <div className="w-full h-full bg-slate-950 rounded-[12px] flex items-center justify-center">
                         <span className="text-2xl">🏛️</span>
                       </div>
                     </div>
@@ -109,25 +175,19 @@ export const PWAInstallBanner: React.FC = () => {
                       <span className="text-[9px] text-white font-black">✓</span>
                     </div>
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-extrabold text-base leading-tight">
-                      Install Nimma Seva
-                    </h3>
+                  <div>
+                    <h3 className="text-white font-extrabold text-base">Install Nimma Seva</h3>
                     <p className="text-slate-400 text-xs mt-0.5">ನಿಮ್ಮ ಸೇವಾ · निम्म सेवा</p>
-                    <div className="flex items-center gap-1 mt-1.5">
-                      {[1,2,3,4,5].map(i => (
-                        <span key={i} className="text-amber-400 text-xs">★</span>
-                      ))}
+                    <div className="flex items-center gap-1 mt-1">
+                      {[1,2,3,4,5].map(i => <span key={i} className="text-amber-400 text-xs">★</span>)}
                       <span className="text-slate-500 text-[10px] ml-1">Govt Verified</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Feature pills */}
-                <div className="grid grid-cols-3 gap-2 mb-5">
+                <div className="grid grid-cols-3 gap-2 mb-4">
                   {[
-                    { icon: Zap, label: 'Fast', sub: 'Lightning speed', color: 'text-amber-400' },
+                    { icon: Zap, label: 'Fast', sub: 'Lightning', color: 'text-amber-400' },
                     { icon: Wifi, label: 'Offline', sub: 'Works offline', color: 'text-emerald-400' },
                     { icon: Bell, label: 'Alerts', sub: 'Token updates', color: 'text-indigo-400' },
                   ].map(({ icon: Icon, label, sub, color }) => (
@@ -139,12 +199,10 @@ export const PWAInstallBanner: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Description */}
-                <p className="text-slate-400 text-xs leading-relaxed mb-5">
-                  Add <span className="text-emerald-400 font-semibold">Nimma Seva</span> to your home screen for instant access to token booking, live queue tracking, and government schemes — even without internet.
+                <p className="text-slate-400 text-xs leading-relaxed mb-4">
+                  Add <span className="text-emerald-400 font-semibold">Nimma Seva</span> to your home screen for instant access — even without internet.
                 </p>
 
-                {/* Action buttons */}
                 <div className="flex gap-3">
                   <button
                     onClick={handleDismiss}
@@ -153,9 +211,9 @@ export const PWAInstallBanner: React.FC = () => {
                     Not Now
                   </button>
                   <button
-                    onClick={handleInstall}
+                    onClick={deferredPrompt ? handleInstall : handleDismiss}
                     disabled={installing}
-                    className="flex-2 flex-[2] flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-900/50 active:scale-95 transition-all disabled:opacity-70"
+                    className="flex-[2] flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-900/50 active:scale-95 transition-all disabled:opacity-70"
                   >
                     {installing ? (
                       <>
@@ -168,13 +226,12 @@ export const PWAInstallBanner: React.FC = () => {
                     ) : (
                       <>
                         <Download className="w-4 h-4" />
-                        Install App
+                        {deferredPrompt ? 'Install App' : 'Add to Home'}
                       </>
                     )}
                   </button>
                 </div>
 
-                {/* Fine print */}
                 <p className="text-center text-slate-600 text-[10px] mt-3">
                   Free · No sign-up required · Karnataka Govt Portal
                 </p>
@@ -186,8 +243,8 @@ export const PWAInstallBanner: React.FC = () => {
 
       <style>{`
         @keyframes slideUp {
-          from { opacity: 0; transform: translateX(-50%) translateY(40px); }
-          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+          from { opacity: 0; transform: translateY(40px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeIn {
           from { opacity: 0; }
