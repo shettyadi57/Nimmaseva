@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, Ticket, Search, LayoutDashboard, ShieldCheck, Download, Menu, X, Landmark, Activity } from 'lucide-react';
+import { Building2, Ticket, Search, LayoutDashboard, ShieldCheck, Download, Menu, X, Landmark, Activity, Sun, Moon } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useTheme } from '../context/ThemeContext';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const { adminToken } = useStore();
+  const { theme, toggleTheme } = useTheme();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -89,6 +91,28 @@ export const Header: React.FC = () => {
               <span>All Systems Operational</span>
             </div>
 
+            {/* Dark / Light Mode Toggle */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-300 active:scale-95
+                bg-slate-900/80 border-slate-700 hover:border-emerald-500/50
+                dark:text-amber-300 text-slate-600 hover:bg-slate-800"
+            >
+              <span
+                className="absolute inset-0 flex items-center justify-center transition-all duration-300"
+                style={{ opacity: theme === 'dark' ? 1 : 0, transform: theme === 'dark' ? 'rotate(0deg)' : 'rotate(-90deg)' }}
+              >
+                <Moon className="w-4 h-4 text-indigo-400" />
+              </span>
+              <span
+                className="absolute inset-0 flex items-center justify-center transition-all duration-300"
+                style={{ opacity: theme === 'light' ? 1 : 0, transform: theme === 'light' ? 'rotate(0deg)' : 'rotate(90deg)' }}
+              >
+                <Sun className="w-4 h-4 text-amber-500" />
+              </span>
+            </button>
+
             <button
               onClick={handleInstallPWA}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
@@ -118,6 +142,14 @@ export const Header: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
+            {/* Mobile Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 active:scale-95 transition-all"
+            >
+              {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+            </button>
             <button
               onClick={handleInstallPWA}
               className="p-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow"

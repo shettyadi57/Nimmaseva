@@ -11,3 +11,4 @@ pillow
 websockets
 python-multipart
 requests
+psycopg2-binary
