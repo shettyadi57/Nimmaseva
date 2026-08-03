@@ -65,7 +65,7 @@ export interface Translations {
 
   // Footer
   helpline: string;
-  emergency: string;
+  footerEmergency: string;
   copyright: string;
 }
 
@@ -127,6 +127,7 @@ const translations: Record<Language, Translations> = {
     eligibility: 'Eligibility',
 
     helpline: 'Helpline',
+    footerEmergency: 'Emergency',
     copyright: '© 2026 Nimma Seva — Shivamogga Smart Governance. All rights reserved.',
   },
 
@@ -187,6 +188,7 @@ const translations: Record<Language, Translations> = {
     eligibility: 'ಅರ್ಹತೆ',
 
     helpline: 'ಸಹಾಯವಾಣಿ',
+    footerEmergency: 'ತುರ್ತು',
     copyright: '© 2026 ನಿಮ್ಮ ಸೇವಾ — ಶಿವಮೊಗ್ಗ ಸ್ಮಾರ್ಟ್ ಆಡಳಿತ. ಎಲ್ಲ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.',
   },
 
@@ -247,6 +249,7 @@ const translations: Record<Language, Translations> = {
     eligibility: 'पात्रता',
 
     helpline: 'हेल्पलाइन',
+    footerEmergency: 'आपातकाल',
     copyright: '© 2026 निम्म सेवा — शिवमोग्गा स्मार्ट शासन। सर्वाधिकार सुरक्षित।',
   },
 };
