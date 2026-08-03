@@ -91,14 +91,7 @@ export const PWAInstallBanner: React.FC = () => {
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-[998] bg-black/40 backdrop-blur-sm"
-        onClick={handleDismiss}
-        style={{ animation: 'fadeIn 0.25s ease' }}
-      />
-
-      {/* Bottom-sheet on mobile, centered card on desktop */}
+      {/* Bottom-sheet on mobile, floating card on desktop */}
       <div
         className="fixed z-[999] bottom-0 inset-x-0 sm:bottom-6 sm:left-1/2 sm:inset-x-auto sm:w-[22rem]"
         style={{
