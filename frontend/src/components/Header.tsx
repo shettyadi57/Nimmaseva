@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, Ticket, Search, LayoutDashboard, ShieldCheck, Download, Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown } from 'lucide-react';
+import { Building2, Ticket, Search, LayoutDashboard, ShieldCheck, Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useTheme } from '../context/ThemeContext';
 import { useLang, Language } from '../context/LanguageContext';
@@ -16,16 +16,8 @@ export const Header: React.FC = () => {
   const { adminToken } = useStore();
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLang();
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-
-  useEffect(() => {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    });
-  }, []);
 
   // Close lang dropdown on outside click
   useEffect(() => {
@@ -33,15 +25,6 @@ export const Header: React.FC = () => {
     if (langDropdownOpen) document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
   }, [langDropdownOpen]);
-
-  const handleInstallPWA = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => setDeferredPrompt(null));
-    } else {
-      alert("App is ready! Tap your browser menu and select 'Add to Home Screen' or 'Install App'.");
-    }
-  };
 
   const navLinks = [
     { path: '/', label: t.navHome, icon: Building2 },
@@ -165,14 +148,6 @@ export const Header: React.FC = () => {
               </span>
             </button>
 
-            <button
-              onClick={handleInstallPWA}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
-            >
-              <Download className="w-4 h-4" />
-              <span>{t.installPwa}</span>
-            </button>
-
             {adminToken ? (
               <Link
                 to="/admin/dashboard"
@@ -228,12 +203,6 @@ export const Header: React.FC = () => {
               className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 active:scale-95 transition-all"
             >
               {theme === 'dark' ? <Moon className="w-4 h-4 text-indigo-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
-            </button>
-            <button
-              onClick={handleInstallPWA}
-              className="p-2 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow"
-            >
-              <Download className="w-4 h-4" />
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

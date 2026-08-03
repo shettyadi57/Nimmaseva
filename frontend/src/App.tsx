@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
 import { Home } from './pages/Home';
 import { BookingForm } from './pages/BookingForm';
 import { TokenView } from './pages/TokenView';
@@ -28,6 +29,7 @@ export const App: React.FC = () => {
     <Router>
       <div className="flex flex-col min-h-screen">
         <Header />
+        <PWAInstallBanner />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
