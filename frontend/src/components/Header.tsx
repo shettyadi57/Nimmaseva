@@ -217,6 +217,11 @@ export const Header: React.FC = () => {
           {/* Divider */}
           <div className="mx-4 my-2 border-t border-slate-800" />
 
+          {/* Mobile State Leadership Dignitaries */}
+          <div className="px-4 py-2 flex justify-center">
+            <LeaderPortraits />
+          </div>
+
           {/* Settings row: Language + Theme */}
           <div className="px-4 py-3 flex items-center gap-3">
             {/* Language selector (inline) */}
