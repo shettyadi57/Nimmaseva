@@ -7,6 +7,7 @@ import {
 import { useStore } from '../store/useStore';
 import { useTheme } from '../context/ThemeContext';
 import { useLang, Language } from '../context/LanguageContext';
+import { LeaderPortraits } from './LeaderPortraits';
 
 const LANG_OPTIONS: { code: Language; label: string; native: string; flag: string }[] = [
   { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ', flag: '🇮🇳' },
@@ -94,7 +95,10 @@ export const Header: React.FC = () => {
 
           {/* ===== DESKTOP Action Buttons ===== */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] font-medium text-slate-400">
+            {/* Karnataka Leaders Portraits */}
+            <LeaderPortraits />
+
+            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] font-medium text-slate-400">
               <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
               <span>{t.allSystems}</span>
             </div>

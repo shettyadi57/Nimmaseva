@@ -5,6 +5,7 @@ import { Office, Service } from '../types';
 import { useStore } from '../store/useStore';
 import { OfficeMap } from '../components/map/OfficeMap';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
+import { LeaderPortraits } from '../components/LeaderPortraits';
 import { useLang } from '../context/LanguageContext';
 import { 
   MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
@@ -84,7 +85,10 @@ export const Home: React.FC = () => {
         <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <KarnatakaBadge />
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+              <KarnatakaBadge />
+              <LeaderPortraits />
+            </div>
             
             <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-none text-white">
               {t.heroTitle.split('\n')[0]} <br />
