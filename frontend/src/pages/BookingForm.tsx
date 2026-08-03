@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchOffices, fetchServices, sendOTP, verifyOTP, createBooking } from '../services/api';
 import { Office, Service, Booking } from '../types';
 import { useStore } from '../store/useStore';
-import { Ticket, CheckCircle2, AlertCircle, ShieldCheck, User, Phone, IdCard, Calendar, Clock, ArrowRight, ArrowLeft, FileText, Sparkles, AlertTriangle } from 'lucide-react';
+import { Ticket, CheckCircle2, AlertCircle, ShieldCheck, User, Phone, Calendar, Clock, ArrowRight, ArrowLeft, FileText, Sparkles, AlertTriangle } from 'lucide-react';
 
 export const BookingForm: React.FC = () => {
   const navigate = useNavigate();

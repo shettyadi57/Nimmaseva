@@ -49,7 +49,7 @@ export interface Booking {
   service_id: number;
   booking_date: string;
   visit_date: string;
-  visit_time: str;
+  visit_time: string;
   status: 'Pending' | 'Called' | 'In Progress' | 'Completed' | 'Cancelled' | 'Skipped' | 'Transferred';
   counter_number?: number;
   amount_paid: number;
