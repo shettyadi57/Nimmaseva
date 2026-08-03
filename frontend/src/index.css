@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
+  }
+}
+
+/* Custom scrollbars & glassmorphism */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.karnataka-gradient {
+  background: linear-gradient(135deg, #065f46 0%, #047857 50%, #0f766e 100%);
+}
+
+.saffron-badge {
+  background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+}

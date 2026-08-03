@@ -1,0 +1,55 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+from app.api import auth, offices, services, bookings, queue, admin, analytics, schemes, notifications
+from app.seed import seed_database
+from app.core.database import engine, Base
+
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description="Shivamogga GramOne & Seva Sindhu Token Management System API",
+    version="1.0.0",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+)
+
+# Set CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Startup event to seed database
+@app.on_event("startup")
+def on_startup():
+    try:
+        Base.metadata.create_all(bind=engine)
+        seed_database()
+    except Exception as e:
+        print(f"Startup database initialization: {e}")
+
+@app.get("/")
+def root():
+    return {
+        "system": settings.PROJECT_NAME,
+        "status": "Operational",
+        "location": "Shivamogga, Karnataka",
+        "docs": "/docs"
+    }
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "healthy", "service": "Shivamogga Seva Token System Backend"}
+
+# Include Routers
+app.include_router(auth.router, prefix=settings.API_V1_STR)
+app.include_router(offices.router, prefix=settings.API_V1_STR)
+app.include_router(services.router, prefix=settings.API_V1_STR)
+app.include_router(bookings.router, prefix=settings.API_V1_STR)
+app.include_router(queue.router, prefix=settings.API_V1_STR)
+app.include_router(admin.router, prefix=settings.API_V1_STR)
+app.include_router(analytics.router, prefix=settings.API_V1_STR)
+app.include_router(schemes.router, prefix=settings.API_V1_STR)
+app.include_router(notifications.router, prefix=settings.API_V1_STR)

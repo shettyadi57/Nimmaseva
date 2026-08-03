@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: nimmaseva_db
+    restart: always
+    environment:
+      POSTGRES_USER: nimmaseva
+      POSTGRES_PASSWORD: nimmaseva123
+      POSTGRES_DB: nimmasevadb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nimmaseva_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://nimmaseva:nimmaseva123@db:5432/nimmasevadb
+      - SECRET_KEY=SHIVAMOGGA_SEVA_SECRET_KEY_SUPER_SECURE_2026_KARNATAKA
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nimmaseva_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
