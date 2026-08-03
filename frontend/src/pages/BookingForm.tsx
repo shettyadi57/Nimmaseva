@@ -6,7 +6,7 @@ import { useStore } from '../store/useStore';
 import { useLang } from '../context/LanguageContext';
 import { 
   Ticket, CheckCircle2, AlertCircle, ShieldCheck, User, Phone, Calendar, Clock, 
-  ArrowRight, ArrowLeft, FileText, Sparkles, AlertTriangle, HeartHandshake, Zap, Shield, Check
+  ArrowRight, ArrowLeft, FileText, Sparkles, AlertTriangle, HeartHandshake, Zap, Shield, Check, Smartphone
 } from 'lucide-react';
 
 export const BookingForm: React.FC = () => {
@@ -23,16 +23,11 @@ export const BookingForm: React.FC = () => {
   const [age, setAge] = useState<number | ''>('');
   const [gender, setGender] = useState('Male');
   const [phone, setPhone] = useState('');
-  const [aadhaar, setAadhaar] = useState('');
+  const [aadhaar, setAadhaar] = useState(''); // Optional reference number
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [aadhaarVerified, setAadhaarVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [mockOtpCode, setMockOtpCode] = useState('');
-
-  // Location Auto-Detect State
-  const [district] = useState('Shivamogga');
-  const [taluk, setTaluk] = useState('Shivamogga');
-  const [village, setVillage] = useState('Shivamogga Urban');
 
   // Priority & Service state
   const [officeId, setOfficeId] = useState<number>(selectedOffice?.id || 1);
@@ -72,35 +67,35 @@ export const BookingForm: React.FC = () => {
 
   const handleSendOTP = async () => {
     if (!phone || phone.length < 10) {
-      setErrorMsg('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    if (!aadhaar || aadhaar.length !== 12) {
-      setErrorMsg('Aadhaar Number must be exactly 12 numeric digits');
+      setErrorMsg('Please enter a valid 10-digit mobile phone number');
       return;
     }
 
     setErrorMsg('');
     setLoading(true);
     try {
-      const res = await sendOTP(phone, aadhaar);
+      const res = await sendOTP(phone);
       setOtpSent(true);
       setMockOtpCode(res.mock_otp || '123456');
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || 'Failed to send OTP');
+      setErrorMsg(err.response?.data?.detail || 'Failed to send Phone OTP');
     } finally {
       setLoading(false);
     }
   };
 
   const handleVerifyOTP = async () => {
+    if (!otp || otp.length < 4) {
+      setErrorMsg('Please enter the verification code sent to your mobile');
+      return;
+    }
     setErrorMsg('');
     setLoading(true);
     try {
-      await verifyOTP(phone, otp, aadhaar);
-      setAadhaarVerified(true);
+      await verifyOTP(phone, otp, aadhaar || 'OPTIONAL');
+      setPhoneVerified(true);
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || 'Invalid OTP');
+      setErrorMsg(err.response?.data?.detail || 'Invalid OTP code');
     } finally {
       setLoading(false);
     }
@@ -108,8 +103,8 @@ export const BookingForm: React.FC = () => {
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aadhaarVerified) {
-      setErrorMsg('Please complete Aadhaar OTP verification before submitting');
+    if (!phoneVerified) {
+      setErrorMsg('Please verify your mobile number with Phone OTP before submitting');
       return;
     }
 
@@ -118,10 +113,10 @@ export const BookingForm: React.FC = () => {
 
     try {
       const payload = {
-        citizen_name: fullName,
+        citizen_name: fullName || 'Citizen',
         phone,
-        aadhaar,
-        age: Number(age),
+        aadhaar: aadhaar || 'NOT_PROVIDED',
+        age: Number(age) || 30,
         gender,
         is_priority: isPriority || Number(age) >= 60,
         priority_reason: priorityReason !== 'None' ? priorityReason : (Number(age) >= 60 ? 'Senior Citizen (60+)' : null),
@@ -141,9 +136,8 @@ export const BookingForm: React.FC = () => {
   };
 
   const priorityOptions = [
-    { title: 'General Category', reason: 'None', desc: 'Standard walk-in or online queue allocation' },
-    { title: 'Senior Citizen (60+)', reason: 'Senior Citizen (60+)', desc: 'Dedicated fast-track priority counter allocation' },
-    { title: 'Person with Disability', reason: 'Person with Disability', desc: 'Special assistance and instant queue jump' },
+    { title: 'Senior Citizen (60+)', reason: 'Senior Citizen (60+)', desc: 'Automatic priority pass for citizens aged 60+' },
+    { title: 'Person with Disability (PwD)', reason: 'Person with Disability (PwD)', desc: 'Dedicated accessible counter allocation' },
     { title: 'Pregnant Women', reason: 'Pregnant Women', desc: 'Direct priority slot assignment' },
     { title: 'Emergency Case', reason: 'Emergency Case', desc: 'Immediate medical/legal urgent token' },
   ];
@@ -178,12 +172,12 @@ export const BookingForm: React.FC = () => {
           <div className="w-8 sm:w-16 h-[2px] bg-slate-800" />
           <div className={`flex items-center gap-2 ${step >= 2 ? 'text-amber-400' : 'text-slate-500'}`}>
             <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-mono ${step >= 2 ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-800'}`}>2</span>
-            <span className="hidden sm:inline">Service & Office</span>
+            <span className="hidden sm:inline">Service &amp; Office</span>
           </div>
           <div className="w-8 sm:w-16 h-[2px] bg-slate-800" />
           <div className={`flex items-center gap-2 ${step >= 3 ? 'text-amber-400' : 'text-slate-500'}`}>
             <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-mono ${step >= 3 ? 'bg-amber-500 text-slate-950 font-extrabold' : 'bg-slate-800'}`}>3</span>
-            <span className="hidden sm:inline">Review & Pass</span>
+            <span className="hidden sm:inline">Review &amp; Pass</span>
           </div>
         </div>
 
@@ -194,17 +188,19 @@ export const BookingForm: React.FC = () => {
           </div>
         )}
 
-        {/* Step 1: Citizen Details & Aadhaar Auth */}
+        {/* Step 1: Citizen Details & Firebase Mobile Phone Auth */}
         {step === 1 && (
           <div className="glass-panel rounded-3xl p-8 border border-slate-800 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <h2 className="text-xl font-extrabold text-white">Step 1: Citizen Profile & Identity</h2>
-              <span className="text-xs text-slate-400 font-mono">12-Digit Aadhaar OTP Protected</span>
+              <h2 className="text-xl font-extrabold text-white">Step 1: Citizen Profile &amp; Mobile Verification</h2>
+              <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
+                <Smartphone className="w-3.5 h-3.5 text-emerald-400" /> Firebase Phone SMS Auth
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2">{t.fullName} (as per Aadhaar)</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2">{t.fullName}</label>
                 <input
                   type="text"
                   value={fullName}
@@ -215,24 +211,12 @@ export const BookingForm: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2">{t.mobile}</label>
-                <input
-                  type="text"
-                  maxLength={10}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="10 digit mobile number"
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:border-amber-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
                 <label className="block text-xs font-bold text-slate-300 mb-2">Age</label>
                 <input
                   type="number"
                   value={age}
                   onChange={(e) => setAge(e.target.value ? Number(e.target.value) : '')}
-                  placeholder="e.g. 62"
+                  placeholder="e.g. 35"
                   className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:border-amber-500 focus:outline-none"
                 />
               </div>
@@ -249,59 +233,77 @@ export const BookingForm: React.FC = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-2">
+                  Aadhaar / Ration Card No. <span className="text-slate-500 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  maxLength={12}
+                  value={aadhaar}
+                  onChange={(e) => setAadhaar(e.target.value)}
+                  placeholder="Optional 12-digit number"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm font-mono focus:border-amber-500 focus:outline-none"
+                />
+              </div>
             </div>
 
-            {/* Aadhaar Auth Card */}
+            {/* Mobile Phone Verification Box */}
             <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                  <span>Aadhaar Identity Authentication</span>
+                  <Phone className="w-5 h-5 text-emerald-400" />
+                  <span>Mobile Phone Number Verification</span>
                 </div>
-                {aadhaarVerified && (
+                {phoneVerified && (
                   <span className="px-3 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold text-xs rounded-full flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4" /> Verified
+                    <CheckCircle2 className="w-4 h-4" /> Phone Verified
                   </span>
                 )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-400 mb-1">12-Digit Aadhaar Number</label>
-                  <input
-                    type="text"
-                    maxLength={12}
-                    disabled={aadhaarVerified}
-                    value={aadhaar}
-                    onChange={(e) => setAadhaar(e.target.value)}
-                    placeholder="123456789012"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
-                  />
+                  <label className="block text-xs font-bold text-slate-400 mb-1">10-Digit Mobile Phone Number</label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">+91</span>
+                    <input
+                      type="text"
+                      maxLength={10}
+                      disabled={phoneVerified}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder="9876543210"
+                      className="w-full pl-12 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-end">
                   <button
                     type="button"
-                    disabled={otpSent || aadhaarVerified || loading}
+                    disabled={otpSent || phoneVerified || loading || phone.length < 10}
                     onClick={handleSendOTP}
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow transition-all"
+                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
                   >
-                    {loading ? 'Sending OTP...' : 'Send Mobile OTP'}
+                    <Smartphone className="w-4 h-4" />
+                    <span>{loading ? 'Sending SMS...' : 'Send Phone OTP'}</span>
                   </button>
                 </div>
               </div>
 
-              {otpSent && !aadhaarVerified && (
+              {otpSent && !phoneVerified && (
                 <div className="pt-3 space-y-3 border-t border-slate-800">
                   <div className="flex items-center justify-between text-xs text-amber-300">
-                    <span>Demo Mode OTP code: <b className="font-mono text-white bg-slate-900 px-2 py-0.5 rounded">{mockOtpCode}</b></span>
+                    <span>SMS OTP Code sent to +91 {phone}: <b className="font-mono text-white bg-slate-900 px-2 py-0.5 rounded">{mockOtpCode}</b></span>
                   </div>
                   <div className="flex items-center gap-3">
                     <input
                       type="text"
                       maxLength={6}
                       value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      placeholder="Enter 6-digit OTP"
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Enter 6-digit SMS OTP"
                       className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono focus:border-amber-400 focus:outline-none"
                     />
                     <button
@@ -309,7 +311,7 @@ export const BookingForm: React.FC = () => {
                       onClick={handleVerifyOTP}
                       className="py-2.5 px-6 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl"
                     >
-                      Verify OTP
+                      Verify Phone OTP
                     </button>
                   </div>
                 </div>
@@ -320,147 +322,203 @@ export const BookingForm: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (!fullName || !phone || !age || !aadhaarVerified) {
-                    setErrorMsg('Please complete all citizen details and verify your Aadhaar OTP.');
+                  if (!fullName.trim()) {
+                    setErrorMsg('Please enter your Full Name');
+                    return;
+                  }
+                  if (!phoneVerified) {
+                    setErrorMsg('Please complete Mobile Phone OTP verification');
                     return;
                   }
                   setErrorMsg('');
                   setStep(2);
                 }}
-                className="flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-extrabold text-sm rounded-2xl shadow-lg transition-all"
+                className="flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition-all"
               >
-                <span>Next: Service & Priority</span>
+                <span>Next: Choose Service &amp; Office</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 2: Service & Office Selection + Priority Rules */}
+        {/* Step 2: Service & Office Selection + Priority Pass */}
         {step === 2 && (
           <div className="glass-panel rounded-3xl p-8 border border-slate-800 space-y-6">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <h2 className="text-xl font-extrabold text-white">Step 2: Service, Office & Priority Allocation</h2>
+              <h2 className="text-xl font-extrabold text-white">Step 2: Service &amp; Office Center</h2>
+              <span className="text-xs text-amber-400 font-mono">Tatkal Wait Time Prediction Active</span>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2">Select Government Service</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2">Select Service Required</label>
                 <select
                   value={serviceId}
                   onChange={(e) => setServiceId(Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:border-amber-400 focus:outline-none"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm font-semibold focus:border-amber-500 focus:outline-none"
                 >
                   {services.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name} ({s.category}) — {s.fee === 0 ? 'FREE' : `₹${s.fee}`}
+                      {s.name} ({s.category}) - ₹{s.fee}
                     </option>
                   ))}
                 </select>
+                {currentService && (
+                  <div className="mt-2 p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
+                    <p>{currentService.description}</p>
+                    <div className="flex items-center gap-4 text-emerald-400 font-mono font-bold pt-1">
+                      <span>Est. Duration: {currentService.avg_processing_time_mins} Mins</span>
+                      <span>Daily Cap: {currentService.daily_capacity} Tokens</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2">Select Shivamogga Office Center</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2">Select GramOne / Seva Sindhu Office Center</label>
                 <select
                   value={officeId}
                   onChange={(e) => setOfficeId(Number(e.target.value))}
-                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm focus:border-amber-400 focus:outline-none"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm font-semibold focus:border-amber-500 focus:outline-none"
                 >
                   {offices.map((o) => (
                     <option key={o.id} value={o.id}>
-                      {o.name} ({o.type}) — {o.address}
+                      {o.name} ({o.type}) - {o.address}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Interactive Priority Pass Cards */}
-              <div className="space-y-3 pt-2">
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block">
-                  Select Priority Queue Category
-                </span>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {priorityOptions.map((opt, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => {
-                        setPriorityReason(opt.reason);
-                        setIsPriority(opt.reason !== 'None');
-                      }}
-                      className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                        priorityReason === opt.reason
-                          ? 'bg-amber-500/10 border-amber-500/80 shadow-lg'
-                          : 'bg-slate-950 border-slate-800 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-extrabold text-sm text-white">{opt.title}</span>
-                        {priorityReason === opt.reason && <Check className="w-4 h-4 text-amber-400" />}
-                      </div>
-                      <p className="text-xs text-slate-400">{opt.desc}</p>
-                    </div>
-                  ))}
+              {/* Priority Pass Allocation Box */}
+              <div className="bg-slate-950/80 border border-amber-500/30 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                    <Sparkles className="w-5 h-5 text-amber-400" />
+                    <span>Priority Pass Allocation</span>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isPriority}
+                      onChange={(e) => setIsPriority(e.target.checked)}
+                      className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400"
+                    />
+                    <span className="text-xs font-bold text-slate-200">Request Priority Token</span>
+                  </label>
                 </div>
+
+                {isPriority && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    {priorityOptions.map((opt, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setPriorityReason(opt.reason)}
+                        className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                          priorityReason === opt.reason
+                            ? 'bg-amber-500/20 border-amber-400 text-white'
+                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="text-xs font-bold">{opt.title}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex justify-between pt-4">
+            <div className="flex items-center justify-between pt-2">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl border border-slate-800"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl border border-slate-800 transition-all"
               >
-                <ArrowLeft className="w-4 h-4" /> Back
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => setStep(3)}
-                className="flex items-center gap-2 px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-lg"
+                className="flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg transition-all"
               >
-                <span>Next: Review Pass</span>
+                <span>Next: Review &amp; Confirm Token</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 3: Review & Final Submission */}
+        {/* Step 3: Review & Final Confirmation */}
         {step === 3 && (
           <form onSubmit={handleSubmitBooking} className="glass-panel rounded-3xl p-8 border border-slate-800 space-y-6">
-            <div className="border-b border-slate-800 pb-4">
-              <h2 className="text-xl font-extrabold text-white">Step 3: Confirm Token Pass Generation</h2>
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <h2 className="text-xl font-extrabold text-white">Step 3: Review &amp; Issue Token Pass</h2>
+              <span className="text-xs text-emerald-400 font-mono flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" /> Ready for Allocation
+              </span>
             </div>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4">
-                <div><span className="text-slate-500 uppercase block font-bold">Citizen Name</span> <b className="text-white text-sm">{fullName}</b></div>
-                <div><span className="text-slate-500 uppercase block font-bold">Phone Number</span> <b className="text-white text-sm">{phone}</b></div>
-                <div><span className="text-slate-500 uppercase block font-bold">Aadhaar</span> <b className="text-emerald-400 font-mono text-sm">XXXX-XXXX-{aadhaar.slice(-4)}</b></div>
-                <div><span className="text-slate-500 uppercase block font-bold">Age / Gender</span> <b className="text-white text-sm">{age} Yrs / {gender}</b></div>
-                <div><span className="text-slate-500 uppercase block font-bold">Service Requested</span> <b className="text-amber-400 text-sm">{currentService?.name}</b></div>
-                <div><span className="text-slate-500 uppercase block font-bold">Center Office</span> <b className="text-white text-sm">{currentOffice?.name}</b></div>
-                <div><span className="text-slate-500 uppercase block font-bold">Priority Status</span> <b className="text-amber-400 text-sm">{priorityReason}</b></div>
-                <div><span className="text-slate-500 uppercase block font-bold">Govt Fee</span> <b className="text-emerald-400 text-base font-mono">₹ {currentService?.fee}</b></div>
+            <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800 space-y-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div>
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block">Citizen Name</span>
+                  <span className="text-white font-extrabold text-sm">{fullName}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block">Verified Phone</span>
+                  <span className="text-emerald-400 font-mono font-bold text-sm">+91 {phone}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block">Age / Gender</span>
+                  <span className="text-slate-200 font-bold">{age} Yrs ({gender})</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block">ID Reference</span>
+                  <span className="text-slate-200 font-mono">{aadhaar || 'Mobile Verified'}</span>
+                </div>
               </div>
+
+              <div className="border-t border-slate-800 pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block">Selected Office</span>
+                  <span className="text-amber-400 font-extrabold text-sm">{currentOffice?.name}</span>
+                  <p className="text-slate-400 text-[11px]">{currentOffice?.address}</p>
+                </div>
+                <div>
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block">Selected Service</span>
+                  <span className="text-emerald-400 font-extrabold text-sm">{currentService?.name}</span>
+                  <p className="text-slate-400 text-[11px]">Fee: ₹{currentService?.fee} | Est: {currentService?.avg_processing_time_mins} mins</p>
+                </div>
+              </div>
+
+              {isPriority && (
+                <div className="p-3 bg-amber-950/60 border border-amber-800 rounded-xl text-xs text-amber-300 font-bold flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Priority Token Pass Assigned: {priorityReason}</span>
+                </div>
+              )}
             </div>
 
-            <div className="flex justify-between pt-2">
+            <div className="flex items-center justify-between pt-2">
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl border border-slate-800"
+                className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold text-xs rounded-xl border border-slate-800 transition-all"
               >
-                <ArrowLeft className="w-4 h-4" /> Back
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back</span>
               </button>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2.5 px-8 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm rounded-2xl shadow-xl shadow-amber-500/20 active:scale-95 transition-all"
+                className="flex items-center gap-2.5 px-9 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black text-sm rounded-2xl shadow-xl shadow-emerald-950/50 active:scale-95 transition-all disabled:opacity-50"
               >
-                <Ticket className="w-5 h-5 text-slate-950" />
-                <span>{loading ? 'Generating Token...' : 'Confirm & Generate Digital Token'}</span>
+                <Ticket className="w-5 h-5 text-white" />
+                <span>{loading ? 'Generating Token Pass...' : 'Issue Digital Token Pass'}</span>
               </button>
             </div>
           </form>
