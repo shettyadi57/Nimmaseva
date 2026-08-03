@@ -9,8 +9,8 @@ export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const { setAdminAuth } = useStore();
 
-  const [emailOrPhone, setEmailOrPhone] = useState('admin@nimmaseva.in');
-  const [password, setPassword] = useState('Admin@123');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -76,11 +76,6 @@ export const AdminLogin: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-white text-xs focus:ring-2 focus:ring-amber-500"
               />
             </div>
-          </div>
-
-          <div className="bg-slate-900 p-3 rounded-xl border border-slate-700 text-[11px] text-slate-400">
-            <span className="font-bold text-amber-400 block mb-0.5">Demo Admin Credentials:</span>
-            User: <code className="text-emerald-300 font-mono">admin@nimmaseva.in</code> | Pass: <code className="text-emerald-300 font-mono">Admin@123</code>
           </div>
 
           <button

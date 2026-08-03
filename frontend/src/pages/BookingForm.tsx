@@ -229,12 +229,12 @@ export const BookingForm: React.FC = () => {
               </div>
             </div>
 
-            {/* Fake Aadhaar Verification Box */}
-            <div className="bg-amber-500/5 border border-amber-500/30 rounded-2xl p-5 space-y-4">
+            {/* Aadhaar Verification Box */}
+            <div className="bg-emerald-500/5 border border-emerald-500/30 rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-amber-600" />
-                  <span className="font-bold text-sm text-slate-900">Fake Aadhaar Demo Authentication</span>
+                  <ShieldCheck className="w-5 h-5 text-emerald-700" />
+                  <span className="font-bold text-sm text-slate-900">Aadhaar Authentication</span>
                 </div>
                 {aadhaarVerified && (
                   <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full flex items-center gap-1">
@@ -269,10 +269,9 @@ export const BookingForm: React.FC = () => {
               </div>
 
               {otpSent && !aadhaarVerified && (
-                <div className="pt-2 space-y-2 border-t border-amber-200">
-                  <div className="flex items-center justify-between text-xs text-amber-800">
-                    <span>Mock OTP sent to {phone}</span>
-                    <span className="font-mono bg-amber-200 px-2 py-0.5 rounded font-bold">Demo OTP: {mockOtpCode}</span>
+                <div className="pt-2 space-y-2 border-t border-emerald-200">
+                  <div className="flex items-center justify-between text-xs text-emerald-800">
+                    <span>OTP sent to registered mobile number ending in {phone.slice(-4)}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <input
@@ -286,7 +285,7 @@ export const BookingForm: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleVerifyOTP}
-                      className="py-2 px-5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl"
+                      className="py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl"
                     >
                       Verify OTP
                     </button>

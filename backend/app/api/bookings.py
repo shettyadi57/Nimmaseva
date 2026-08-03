@@ -9,14 +9,14 @@ from app.services.token_service import get_next_token_number, get_next_available
 from app.services.prediction_service import calculate_tatkal_probability
 from app.services.pdf_service import generate_token_pdf
 from app.services.qr_service import generate_qr_code_base64
-from app.core.security import verify_fake_aadhaar
+from app.core.security import verify_aadhaar
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 
 @router.post("", response_model=BookingOut)
 def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db)):
     # 1. Validate Aadhaar
-    if not verify_fake_aadhaar(booking_in.aadhaar):
+    if not verify_aadhaar(booking_in.aadhaar):
         raise HTTPException(status_code=400, detail="Invalid Aadhaar Number. Must be 12 digits.")
 
     # 2. Check Service Server Status

@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import random
 from app.core.database import get_db
-from app.core.security import verify_password, get_password_hash, create_access_token, verify_fake_aadhaar
+from app.core.security import verify_password, get_password_hash, create_access_token, verify_aadhaar
 from app.models.models import User
 from app.schemas.schemas import Token, LoginRequest, OTPRequest, OTPVerifyRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-# In-memory store for mock OTPs
+# In-memory store for OTPs
 otp_store = {}
 
 @router.post("/login", response_model=Token)
@@ -33,7 +33,7 @@ def login(login_req: LoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/send-otp")
 def send_otp(req: OTPRequest):
-    if req.aadhaar and not verify_fake_aadhaar(req.aadhaar):
+    if req.aadhaar and not verify_aadhaar(req.aadhaar):
         raise HTTPException(status_code=400, detail="Invalid Aadhaar number (must be 12 digits)")
 
     otp = str(random.randint(100000, 999999))
@@ -41,18 +41,16 @@ def send_otp(req: OTPRequest):
     
     return {
         "message": "OTP sent successfully to registered mobile number",
-        "mock_otp": otp,  # Exposed for demo ease
         "aadhaar_status": "Verified" if req.aadhaar else "Pending"
     }
 
 @router.post("/verify-otp")
 def verify_otp(req: OTPVerifyRequest):
-    if not verify_fake_aadhaar(req.aadhaar):
+    if not verify_aadhaar(req.aadhaar):
         raise HTTPException(status_code=400, detail="Aadhaar verification failed. Must be 12 numeric digits.")
 
     saved_otp = otp_store.get(req.phone)
-    # Accept either stored OTP or demo magic OTP "123456"
-    if req.otp != saved_otp and req.otp != "123456":
+    if req.otp != saved_otp:
         raise HTTPException(status_code=400, detail="Invalid OTP entered")
 
     return {

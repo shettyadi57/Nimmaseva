@@ -22,7 +22,7 @@ def create_access_token(subject: Union[str, Any], expires_delta: Optional[timede
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
-def verify_fake_aadhaar(aadhaar_number: str) -> bool:
-    """Mock verification for demo purposes"""
+def verify_aadhaar(aadhaar_number: str) -> bool:
+    """Validate 12-digit Aadhaar format."""
     cleaned = aadhaar_number.replace(" ", "").replace("-", "")
     return len(cleaned) == 12 and cleaned.isdigit()

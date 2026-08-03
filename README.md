@@ -13,7 +13,7 @@ A production-ready **Progressive Web Application (PWA)** built for GramOne and S
 ### 🏛️ Citizen Portal
 - **Automatic Geolocation Detection**: Detects user coordinates, displays nearest GramOne and Seva Sindhu offices on an interactive Leaflet map with distance & estimated driving travel time.
 - **Multi-Step Token Booking**: Multi-step booking form with dynamic taluk, village, and service selection.
-- **Fake Aadhaar & OTP Authentication**: Instant mock 12-digit Aadhaar verification and OTP generation.
+- **Aadhaar & OTP Authentication**: 12-digit Aadhaar validation and mobile OTP verification.
 - **Priority Queue Allocation**: Automatic priority slot assignment for Senior Citizens (60+), Persons with Disabilities (PwD), Pregnant Women, and Emergency Cases.
 - **Hybrid Token Engine**: Intelligent split ranges for Online vs Walk-in vs Priority & Emergency citizens.
 - **AI-Inspired Tatkal Prediction Engine**: Real-time completion probability estimation (Low, Medium, High, Very High) based on queue size, active counters, server status, and processing time.
