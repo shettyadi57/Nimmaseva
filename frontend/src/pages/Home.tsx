@@ -82,8 +82,8 @@ export const Home: React.FC = () => {
           <div className="space-y-4 max-w-2xl text-center md:text-left">
             <KarnatakaBadge />
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-              Shivamogga Smart Seva <br />
-              <span className="text-amber-400">Token Management System</span>
+              Nimma Seva <br />
+              <span className="text-amber-400">Shivamogga Token Management System</span>
             </h1>
             <p className="text-emerald-100 text-sm sm:text-base leading-relaxed">
               Book tokens online for GramOne and Seva Sindhu centers in Shivamogga. Real-time queue tracking, Tatkal completion prediction, and priority pass allocation.

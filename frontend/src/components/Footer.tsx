@@ -10,7 +10,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-white font-bold text-base">
               <Shield className="w-5 h-5 text-amber-500 fill-amber-500/20" />
-              <span>Shivamogga Smart Seva</span>
+              <span>Nimma Seva</span>
             </div>
             <p className="text-slate-400 leading-relaxed">
               Official Progressive Web Application for GramOne and Seva Sindhu centers across Shivamogga District, Government of Karnataka.

@@ -7,7 +7,7 @@ from app.core.database import engine, Base
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Shivamogga GramOne & Seva Sindhu Token Management System API",
+    description="Nimma Seva - GramOne & Seva Sindhu Token Management System API",
     version="1.0.0",
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )

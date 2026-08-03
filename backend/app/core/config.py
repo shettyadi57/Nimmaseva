@@ -2,7 +2,7 @@ import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Shivamogga Smart Seva Token System"
+    PROJECT_NAME: str = "Nimma Seva - Shivamogga Smart Seva Token System"
     API_V1_STR: str = "/api"
     SECRET_KEY: str = "SHIVAMOGGA_SEVA_SECRET_KEY_SUPER_SECURE_2026_KARNATAKA"
     ALGORITHM: str = "HS256"
@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
-        "postgresql://nimmaseva:nimmaseva123@db:5432/nimmasevadb"
+        "sqlite:///./nimmaseva.db"
     )
 
     # CORS

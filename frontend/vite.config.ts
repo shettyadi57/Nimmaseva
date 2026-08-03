@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Shivamogga Smart Seva Token System',
-        short_name: 'Shivamogga Seva',
+        name: 'Nimma Seva Token System',
+        short_name: 'Nimma Seva',
         description: 'GramOne & Seva Sindhu Token Management System Shivamogga',
         theme_color: '#065f46',
         background_color: '#ffffff',

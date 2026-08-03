@@ -48,7 +48,7 @@ export const Header: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-lg tracking-tight text-white group-hover:text-amber-400 transition-colors">
-                  Shivamogga Smart Seva
+                  Nimma Seva
                 </span>
                 <span className="bg-emerald-800/80 text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-600/50">
                   PWA
