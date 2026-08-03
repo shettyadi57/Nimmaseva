@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchOffices, fetchServices, sendOTP, verifyOTP, createBooking } from '../services/api';
 import { Office, Service, Booking } from '../types';
 import { useStore } from '../store/useStore';
+import { useLang } from '../context/LanguageContext';
 import { 
   Ticket, CheckCircle2, AlertCircle, ShieldCheck, User, Phone, Calendar, Clock, 
   ArrowRight, ArrowLeft, FileText, Sparkles, AlertTriangle, HeartHandshake, Zap, Shield, Check
@@ -10,6 +11,7 @@ import {
 
 export const BookingForm: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLang();
   const { selectedOffice, selectedService, setCurrentBooking } = useStore();
 
   const [step, setStep] = useState<number>(1);
@@ -158,7 +160,7 @@ export const BookingForm: React.FC = () => {
             <span className="text-amber-400 font-extrabold text-xs tracking-widest uppercase block">
               Shivamogga Digital Pass Allocation
             </span>
-            <h1 className="text-3xl font-black tracking-tight text-white">Book Citizen Service Token</h1>
+            <h1 className="text-3xl font-black tracking-tight text-white">{t.bookTitle}</h1>
             <p className="text-slate-400 text-xs sm:text-sm">Instant digital slot reservation for GramOne and Seva Sindhu offices</p>
           </div>
 
@@ -202,7 +204,7 @@ export const BookingForm: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2">Full Name (as per Aadhaar)</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2">{t.fullName} (as per Aadhaar)</label>
                 <input
                   type="text"
                   value={fullName}
@@ -213,7 +215,7 @@ export const BookingForm: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-2">Mobile Phone Number</label>
+                <label className="block text-xs font-bold text-slate-300 mb-2">{t.mobile}</label>
                 <input
                   type="text"
                   maxLength={10}

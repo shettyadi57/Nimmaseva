@@ -5,6 +5,7 @@ import { Office, Service } from '../types';
 import { useStore } from '../store/useStore';
 import { OfficeMap } from '../components/map/OfficeMap';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
+import { useLang } from '../context/LanguageContext';
 import { 
   MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
   Ticket, Users, CheckCircle2, RefreshCw, Zap, Sparkles, Activity, FileText, CheckCircle
@@ -12,6 +13,7 @@ import {
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLang();
   const { userLocation, setUserLocation, setSelectedOffice, setSelectedService } = useStore();
   const [offices, setOffices] = useState<Office[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -85,14 +87,14 @@ export const Home: React.FC = () => {
             <KarnatakaBadge />
             
             <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-none text-white">
-              Next-Gen Public Service <br />
+              {t.heroTitle.split('\n')[0]} <br />
               <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
-                Token Engine
+                {t.heroTitle.split('\n')[1] || 'Token Engine'}
               </span>
             </h1>
             
             <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
-              Zero-queue token booking for GramOne & Seva Sindhu centers in Shivamogga. Powered by real-time WebSocket queue tracking, Tatkal completion prediction, and priority pass allocation.
+              {t.heroDesc}
             </p>
 
             {/* Operating Hours Alert */}
@@ -120,7 +122,7 @@ export const Home: React.FC = () => {
                 className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-500/20 active:scale-95 transition-all"
               >
                 <Ticket className="w-5 h-5 text-slate-950" />
-                <span>Book Token Pass Now</span>
+                <span>{t.bookNow}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
@@ -128,7 +130,7 @@ export const Home: React.FC = () => {
                 className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-100 font-bold text-sm border border-slate-700/80 shadow-lg transition-all"
               >
                 <Users className="w-5 h-5 text-amber-400" />
-                <span>Live Counter Board</span>
+                <span>{t.liveQueue}</span>
               </Link>
             </div>
 
@@ -136,15 +138,15 @@ export const Home: React.FC = () => {
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-900 max-w-lg">
               <div>
                 <span className="text-2xl font-black text-white font-mono block">12,480+</span>
-                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">Tokens Issued</span>
+                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tokensIssued}</span>
               </div>
               <div>
                 <span className="text-2xl font-black text-emerald-400 font-mono block">~12 Mins</span>
-                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">Avg Processing</span>
+                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.avgProcessing}</span>
               </div>
               <div>
                 <span className="text-2xl font-black text-amber-400 font-mono block">99.4%</span>
-                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">Tatkal Accuracy</span>
+                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tatkalAccuracy}</span>
               </div>
             </div>
           </div>

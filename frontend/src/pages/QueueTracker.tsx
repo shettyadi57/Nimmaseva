@@ -4,8 +4,10 @@ import { fetchQueueState, fetchOffices } from '../services/api';
 import { QueueState, Office } from '../types';
 import { Landmark, Users, Clock, Monitor, RefreshCw, Volume2, PauseCircle, PlayCircle, Radio, Activity } from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
+import { useLang } from '../context/LanguageContext';
 
 export const QueueTracker: React.FC = () => {
+  const { t } = useLang();
   const [searchParams] = useSearchParams();
   const officeIdParam = searchParams.get('office') || '1';
 
@@ -91,7 +93,7 @@ export const QueueTracker: React.FC = () => {
             <KarnatakaBadge />
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center justify-center md:justify-start gap-3">
               <Landmark className="w-8 h-8 text-amber-400" />
-              <span>LIVE QUEUE DISPLAY BOARD</span>
+              <span>{t.queueTitle}</span>
             </h1>
             <p className="text-slate-400 text-xs sm:text-sm">Real-time WebSocket token tracking for Shivamogga public service counters</p>
           </div>
@@ -123,7 +125,7 @@ export const QueueTracker: React.FC = () => {
           {/* Current Serving Token Card */}
           <div className="md:col-span-7 glass-panel rounded-3xl p-10 text-center space-y-6 shadow-2xl border border-emerald-500/30 relative overflow-hidden flex flex-col justify-between">
             <div className="absolute top-0 right-0 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-xs px-5 py-2 rounded-bl-2xl uppercase tracking-widest shadow-lg">
-              NOW SERVING
+              {t.nowServing.toUpperCase()}
             </div>
 
             <div className="space-y-1">

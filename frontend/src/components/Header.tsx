@@ -185,7 +185,7 @@ export const Header: React.FC = () => {
 
       {/* ===== MOBILE DRAWER (full-featured) ===== */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-slate-950/98 backdrop-blur-xl">
+        <div className="md:hidden border-t border-slate-800 bg-slate-950 backdrop-blur-xl">
           {/* Nav Links */}
           <div className="px-4 pt-4 pb-2 space-y-1.5">
             {navLinks.map((link) => {

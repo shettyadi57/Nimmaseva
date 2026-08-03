@@ -3,8 +3,10 @@ import { searchSchemes } from '../services/api';
 import { Scheme } from '../types';
 import { Search, Sparkles, CheckCircle2, FileText, ExternalLink, Filter, ShieldCheck } from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
+import { useLang } from '../context/LanguageContext';
 
 export const SchemeSearch: React.FC = () => {
+  const { t } = useLang();
   const [schemes, setSchemes] = useState<Scheme[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -45,7 +47,7 @@ export const SchemeSearch: React.FC = () => {
           
           <KarnatakaBadge />
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-            Karnataka Government Scheme Eligibility Engine
+            {t.schemesTitle}
           </h1>
           <p className="text-slate-300 text-xs sm:text-sm max-w-2xl leading-relaxed">
             Enter citizen age, family income, and occupation to automatically filter eligible state welfare schemes like Gruha Lakshmi, Yuva Nidhi, Raita Vidya Nidhi & Sandhya Suraksha Pension.
