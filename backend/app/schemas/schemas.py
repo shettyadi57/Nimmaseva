@@ -13,6 +13,15 @@ class LoginRequest(BaseModel):
     email_or_phone: str
     password: str
 
+class RegisterRequest(BaseModel):
+    full_name: str
+    email_or_phone: str
+    password: str
+    employee_id: Optional[str] = None
+    department: Optional[str] = "Revenue & E-Governance"
+    office_id: Optional[int] = 1
+    role: Optional[str] = "admin"
+
 class OTPRequest(BaseModel):
     phone: str
     aadhaar: Optional[str] = None
@@ -21,6 +30,19 @@ class OTPVerifyRequest(BaseModel):
     phone: str
     otp: str
     aadhaar: str
+
+class BookingStatusUpdate(BaseModel):
+    status: str
+    counter_number: Optional[int] = None
+
+class WalkinBookingCreate(BaseModel):
+    citizen_name: str
+    phone: str
+    service_id: int
+    office_id: int
+    is_priority: bool = False
+    priority_reason: Optional[str] = None
+
 
 # Office Schemas
 class OfficeBase(BaseModel):

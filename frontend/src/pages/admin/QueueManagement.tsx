@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { fetchQueueState, controlQueueAction, fetchOffices } from '../../services/api';
 import { QueueState, Office } from '../../types';
-import { Monitor, Play, Pause, FastForward, CheckCircle2, RotateCcw, XCircle, ArrowRightLeft, Volume2, Shield } from 'lucide-react';
+import { Monitor, Play, Pause, FastForward, CheckCircle2, RotateCcw, XCircle, ArrowRightLeft, Volume2, VolumeX, Shield, ArrowLeft } from 'lucide-react';
 import { KarnatakaBadge } from '../../components/KarnatakaBadge';
+import { Link } from 'react-router-dom';
 
 export const QueueManagement: React.FC = () => {
   const [offices, setOffices] = useState<Office[]>([]);
@@ -12,6 +13,7 @@ export const QueueManagement: React.FC = () => {
   const [targetToken, setTargetToken] = useState<string>('');
   const [transferOfficeId, setTransferOfficeId] = useState<number>(2);
   const [loading, setLoading] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   useEffect(() => {
     loadInitialData();
@@ -42,6 +44,20 @@ export const QueueManagement: React.FC = () => {
     }
   };
 
+  const announceTokenAudio = (tokenStr: string, counter: number) => {
+    if (!soundEnabled || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel(); // Stop ongoing speech
+      const text = `Attention please. Token number ${tokenStr.replace('-', ' ')}, please proceed to Counter 0 ${counter}.`;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.error('Speech synthesis error', e);
+    }
+  };
+
   const handleAction = async (action: string) => {
     setLoading(true);
     try {
@@ -52,6 +68,11 @@ export const QueueManagement: React.FC = () => {
         transfer_office_id: action === 'transfer' ? Number(transferOfficeId) : undefined
       });
       setQueueState(updated);
+
+      if ((action === 'call_next' || action === 'recall') && updated.current_token && updated.current_token !== 'None') {
+        announceTokenAudio(updated.current_token, counterNum);
+      }
+
       setTargetToken('');
     } catch (e) {
       console.error(e);
@@ -67,24 +88,42 @@ export const QueueManagement: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 glass-panel rounded-3xl p-6 border border-slate-800 shadow-2xl">
           <div className="space-y-1">
-            <KarnatakaBadge />
+            <div className="flex items-center gap-3">
+              <Link to="/admin/dashboard" className="p-2 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl border border-slate-800 transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+              <KarnatakaBadge />
+            </div>
             <h1 className="text-3xl font-black text-white mt-1">COUNTER QUEUE COMMAND CENTER</h1>
             <p className="text-xs text-slate-400">Call Next, Complete, Skip, Recall, or Transfer citizen tokens in real-time</p>
           </div>
 
-          <div className="flex items-center gap-3 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
-            <span className="text-xs text-slate-400 font-bold px-2">Control Office:</span>
-            <select
-              value={selectedOfficeId}
-              onChange={(e) => setSelectedOfficeId(Number(e.target.value))}
-              className="bg-slate-900 text-amber-400 text-xs font-extrabold px-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none"
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
+                soundEnabled ? 'bg-amber-950/80 border-amber-800 text-amber-400' : 'bg-slate-900 border-slate-800 text-slate-500'
+              }`}
+              title="Toggle Audio Token Voice Announcement"
             >
-              {offices.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name} ({o.type})
-                </option>
-              ))}
-            </select>
+              {soundEnabled ? <Volume2 className="w-4 h-4 text-amber-400" /> : <VolumeX className="w-4 h-4" />}
+              <span>{soundEnabled ? 'Voice Alerts ON' : 'Muted'}</span>
+            </button>
+
+            <div className="flex items-center gap-3 bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+              <span className="text-xs text-slate-400 font-bold px-2">Control Office:</span>
+              <select
+                value={selectedOfficeId}
+                onChange={(e) => setSelectedOfficeId(Number(e.target.value))}
+                className="bg-slate-900 text-amber-400 text-xs font-extrabold px-4 py-2.5 rounded-xl border border-slate-800 focus:outline-none"
+              >
+                {offices.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.name} ({o.type})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -95,7 +134,7 @@ export const QueueManagement: React.FC = () => {
           <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-5 text-center shadow-xl">
             <span className="text-xs text-slate-400 font-black uppercase tracking-widest block">Currently Serving Token</span>
             <div className="text-6xl font-mono font-black text-amber-400 py-3 drop-shadow-[0_0_25px_rgba(245,158,11,0.3)]">
-              {queueState?.current_token || 'GO-004'}
+              {queueState?.current_token || 'GO-104'}
             </div>
             
             <div className="flex items-center justify-center gap-2">
@@ -118,7 +157,7 @@ export const QueueManagement: React.FC = () => {
             <div>
               <span className="text-xs text-slate-400 font-black uppercase tracking-widest block mb-1">Up Next In Line</span>
               <div className="text-4xl font-mono font-black text-white tracking-tight">
-                {queueState?.next_token || 'GO-005'}
+                {queueState?.next_token || 'GO-105'}
               </div>
             </div>
 
@@ -218,7 +257,7 @@ export const QueueManagement: React.FC = () => {
               <label className="block text-xs font-bold text-slate-300">Target Specific Token Number (Optional)</label>
               <input
                 type="text"
-                placeholder="e.g. GO-015"
+                placeholder="e.g. GO-105"
                 value={targetToken}
                 onChange={(e) => setTargetToken(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-mono focus:border-amber-400 focus:outline-none"

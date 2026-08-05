@@ -4,7 +4,7 @@ import random
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, verify_aadhaar
 from app.models.models import User
-from app.schemas.schemas import Token, LoginRequest, OTPRequest, OTPVerifyRequest
+from app.schemas.schemas import Token, LoginRequest, RegisterRequest, OTPRequest, OTPVerifyRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -30,6 +30,42 @@ def login(login_req: LoginRequest, db: Session = Depends(get_db)):
         "user_name": user.full_name,
         "role": user.role
     }
+
+@router.post("/register", response_model=Token)
+def register(reg_req: RegisterRequest, db: Session = Depends(get_db)):
+    # Check existing user
+    existing_user = db.query(User).filter(
+        (User.email == reg_req.email_or_phone) | (User.phone == reg_req.email_or_phone)
+    ).first()
+    
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An account with this email/phone already exists"
+        )
+    
+    hashed_pwd = get_password_hash(reg_req.password)
+    is_email = "@" in reg_req.email_or_phone
+
+    new_user = User(
+        full_name=reg_req.full_name,
+        email=reg_req.email_or_phone if is_email else None,
+        phone=reg_req.email_or_phone if not is_email else "9876543210",
+        hashed_password=hashed_pwd,
+        role=reg_req.role or "admin"
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    access_token = create_access_token(subject=new_user.email or new_user.phone)
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_name": new_user.full_name,
+        "role": new_user.role
+    }
+
 
 @router.post("/send-otp")
 def send_otp(req: OTPRequest):

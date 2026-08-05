@@ -401,192 +401,10 @@ export const fetchServices = async (): Promise<Service[]> => {
   return MOCK_SERVICES;
 };
 
-export const createBooking = async (data: any): Promise<Booking> => {
-  try {
-    const res = await api.post('/bookings', data);
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn('API createBooking failed, returning mock created booking');
-  }
-  
-  const rand = Math.floor(100 + Math.random() * 899);
-  const tokenNum = `GO-${rand}`;
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// ── Local Storage Helper Functions for Persistence & Mock Synchronization ──
 
-  return {
-    id: Date.now(),
-    token_number: tokenNum,
-    verification_code: `${rand}99`,
-    citizen_name: data.citizen_name || 'Citizen',
-    phone: data.phone || '9876543210',
-    aadhaar: data.aadhaar || 'XXXX-XXXX-1234',
-    age: Number(data.age) || 30,
-    gender: data.gender || 'Male',
-    is_priority: Boolean(data.is_priority),
-    priority_reason: data.priority_reason || undefined,
-    booking_type: data.booking_type || 'Online',
-    office_id: Number(data.office_id) || 1,
-    service_id: Number(data.service_id) || 1,
-    booking_date: dateStr,
-    visit_date: dateStr,
-    visit_time: timeStr,
-    status: 'Pending',
-    counter_number: 1,
-    amount_paid: 25,
-    tatkal_probability: 95,
-    created_at: now.toISOString(),
-    office_name: MOCK_OFFICES.find(o => o.id === Number(data.office_id))?.name || MOCK_OFFICES[0].name,
-    service_name: MOCK_SERVICES.find(s => s.id === Number(data.service_id))?.name || MOCK_SERVICES[0].name,
-    people_ahead: 5,
-    avg_wait_mins: 15
-  };
-};
-
-export const fetchBookingByToken = async (tokenNumber: string): Promise<Booking> => {
-  try {
-    const res = await api.get(`/bookings/token/${tokenNumber}`);
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn(`API fetchBookingByToken(${tokenNumber}) unreachable, using fallback`);
-  }
-
-  const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-
-  return {
-    id: 1,
-    token_number: tokenNumber || 'GO-104',
-    verification_code: '8899',
-    citizen_name: 'Adithya Shetty',
-    phone: '9876543210',
-    aadhaar: 'XXXX-XXXX-8899',
-    age: 28,
-    gender: 'Male',
-    is_priority: false,
-    priority_reason: undefined,
-    booking_type: 'Online',
-    office_id: 1,
-    service_id: 1,
-    booking_date: dateStr,
-    visit_date: dateStr,
-    visit_time: '10:30 AM',
-    status: 'Pending',
-    counter_number: 1,
-    amount_paid: 25,
-    tatkal_probability: 95,
-    created_at: now.toISOString(),
-    office_name: MOCK_OFFICES[0].name,
-    service_name: MOCK_SERVICES[0].name,
-    people_ahead: 3,
-    avg_wait_mins: 10
-  };
-};
-
-export const downloadPDFUrl = (tokenNumber: string): string => {
-  return `${API_BASE}/bookings/pdf/${tokenNumber}`;
-};
-
-export const fetchQueueState = async (officeId: number): Promise<QueueState> => {
-  try {
-    const res = await api.get(`/queue/${officeId}`);
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn(`API fetchQueueState(${officeId}) unreachable, using fallback`);
-  }
-
-  return {
-    office_id: officeId,
-    current_token: 'GO-104',
-    next_token: 'GO-105',
-    active_counters: 3,
-    is_paused: false,
-    total_waiting: 5,
-    total_completed_today: 42,
-    updated_at: new Date().toISOString()
-  };
-};
-
-export const controlQueueAction = async (officeId: number, actionData: any): Promise<QueueState> => {
-  try {
-    const res = await api.post(`/queue/${officeId}/control`, actionData);
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn('API controlQueueAction unreachable');
-  }
-  return fetchQueueState(officeId);
-};
-
-export const sendOTP = async (phone: string, aadhaar?: string) => {
-  try {
-    const res = await api.post('/auth/send-otp', { phone, aadhaar });
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn('API sendOTP unreachable, using mock success');
-  }
-  return { success: true, message: 'OTP sent successfully (Mock: 123456)', mock_otp: '123456' };
-};
-
-export const verifyOTP = async (phone: string, otp: string, aadhaar: string) => {
-  try {
-    const res = await api.post('/auth/verify-otp', { phone, otp, aadhaar });
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn('API verifyOTP unreachable, using mock success');
-  }
-  return { success: true, message: 'Aadhaar OTP Verified Successfully' };
-};
-
-export const adminLogin = async (email_or_phone: string, password: string) => {
-  try {
-    const res = await api.post('/auth/login', { email_or_phone, password });
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn('API adminLogin unreachable, returning mock token');
-  }
-  return { access_token: 'mock-jwt-admin-token-2026', token_type: 'bearer', admin_name: 'System Admin' };
-};
-
-export const fetchAdminSummary = async (officeId?: number): Promise<AnalyticsSummary> => {
-  try {
-    const params = officeId ? { office_id: officeId } : {};
-    const res = await api.get('/admin/summary', { params });
-    if (res.data) return res.data;
-  } catch (err) {
-    console.warn('API fetchAdminSummary unreachable, using fallback');
-  }
-
-  return {
-    today_bookings: 47,
-    today_revenue: 1175,
-    completed_tokens: 42,
-    cancelled_tokens: 0,
-    pending_tokens: 5,
-    walkin_tokens: 28,
-    online_tokens: 19,
-    priority_tokens: 6,
-    current_queue_len: 5,
-    avg_wait_time_mins: 11.5,
-    no_show_percentage: 2.1,
-    most_requested_service: 'Income & Caste Certificate',
-    peak_hour: '11:00 AM'
-  };
-};
-
-export const fetchAllBookings = async (status?: string, officeId?: number): Promise<Booking[]> => {
-  try {
-    const params: any = {};
-    if (status) params.status = status;
-    if (officeId) params.office_id = officeId;
-    const res = await api.get('/admin/bookings', { params });
-    if (Array.isArray(res.data)) return res.data;
-  } catch (err) {
-    console.warn('API fetchAllBookings unreachable, using fallback');
-  }
-
+const getInitialSeedBookings = (): Booking[] => {
   const dateStr = new Date().toISOString().split('T')[0];
-
   return [
     {
       id: 101,
@@ -641,8 +459,492 @@ export const fetchAllBookings = async (status?: string, officeId?: number): Prom
       service_name: MOCK_SERVICES[3].name,
       people_ahead: 0,
       avg_wait_mins: 0
+    },
+    {
+      id: 103,
+      token_number: 'GO-105',
+      verification_code: '1288',
+      citizen_name: 'Sumangala Devi',
+      phone: '9845112233',
+      aadhaar: 'XXXX-XXXX-1288',
+      age: 45,
+      gender: 'Female',
+      is_priority: false,
+      priority_reason: undefined,
+      booking_type: 'Online',
+      office_id: 1,
+      service_id: 2,
+      booking_date: dateStr,
+      visit_date: dateStr,
+      visit_time: '11:00 AM',
+      status: 'Pending',
+      counter_number: 3,
+      amount_paid: 50,
+      tatkal_probability: 92,
+      created_at: new Date().toISOString(),
+      office_name: MOCK_OFFICES[0].name,
+      service_name: MOCK_SERVICES[1].name,
+      people_ahead: 4,
+      avg_wait_mins: 15
     }
   ];
+};
+
+export const getStoredBookings = (): Booking[] => {
+  try {
+    const raw = localStorage.getItem('nimmaseva_bookings');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error(e);
+  }
+  const seeds = getInitialSeedBookings();
+  localStorage.setItem('nimmaseva_bookings', JSON.stringify(seeds));
+  return seeds;
+};
+
+export const saveStoredBooking = (booking: Booking): Booking[] => {
+  const current = getStoredBookings();
+  const updated = [booking, ...current.filter(b => b.id !== booking.id)];
+  localStorage.setItem('nimmaseva_bookings', JSON.stringify(updated));
+  return updated;
+};
+
+export const updateStoredBookingStatus = (id: number, status: string, counterNumber?: number): Booking[] => {
+  const current = getStoredBookings();
+  const updated = current.map(b => {
+    if (b.id === id || b.token_number === String(id)) {
+      return {
+        ...b,
+        status: status as any,
+        counter_number: counterNumber !== undefined ? counterNumber : b.counter_number
+      };
+    }
+    return b;
+  });
+  localStorage.setItem('nimmaseva_bookings', JSON.stringify(updated));
+  return updated;
+};
+
+export interface RegisteredAdmin {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  employee_id: string;
+  department: string;
+  office_name: string;
+  password?: string;
+  role: string;
+}
+
+export const getStoredAdmins = (): RegisteredAdmin[] => {
+  try {
+    const raw = localStorage.getItem('nimmaseva_registered_admins');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {
+    console.error(e);
+  }
+  const defaultAdmins: RegisteredAdmin[] = [
+    {
+      id: 'adm-01',
+      name: 'System District Admin',
+      email: 'admin@nimmaseva.in',
+      phone: '9876543210',
+      employee_id: 'KA-GOV-2026-001',
+      department: 'Revenue & E-Governance',
+      office_name: 'GramOne Shivamogga Main',
+      password: 'Admin@123',
+      role: 'District Administrator'
+    }
+  ];
+  localStorage.setItem('nimmaseva_registered_admins', JSON.stringify(defaultAdmins));
+  return defaultAdmins;
+};
+
+export const saveStoredAdmin = (admin: RegisteredAdmin): RegisteredAdmin[] => {
+  const current = getStoredAdmins();
+  const updated = [admin, ...current.filter(a => a.email !== admin.email && a.phone !== admin.phone)];
+  localStorage.setItem('nimmaseva_registered_admins', JSON.stringify(updated));
+  return updated;
+};
+
+export const createBooking = async (data: any): Promise<Booking> => {
+  let created: Booking | null = null;
+  try {
+    const res = await api.post('/bookings', data);
+    if (res.data) created = res.data;
+  } catch (err) {
+    console.warn('API createBooking failed, returning mock created booking');
+  }
+
+  if (!created) {
+    const rand = Math.floor(100 + Math.random() * 899);
+    const tokenNum = `GO-${rand}`;
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    created = {
+      id: Date.now(),
+      token_number: tokenNum,
+      verification_code: `${rand}99`,
+      citizen_name: data.citizen_name || 'Citizen',
+      phone: data.phone || '9876543210',
+      aadhaar: data.aadhaar || 'XXXX-XXXX-1234',
+      age: Number(data.age) || 30,
+      gender: data.gender || 'Male',
+      is_priority: Boolean(data.is_priority),
+      priority_reason: data.priority_reason || undefined,
+      booking_type: data.booking_type || 'Online',
+      office_id: Number(data.office_id) || 1,
+      service_id: Number(data.service_id) || 1,
+      booking_date: dateStr,
+      visit_date: dateStr,
+      visit_time: timeStr,
+      status: 'Pending',
+      counter_number: 1,
+      amount_paid: MOCK_SERVICES.find(s => s.id === Number(data.service_id))?.fee || 25,
+      tatkal_probability: 95,
+      created_at: now.toISOString(),
+      office_name: MOCK_OFFICES.find(o => o.id === Number(data.office_id))?.name || MOCK_OFFICES[0].name,
+      service_name: MOCK_SERVICES.find(s => s.id === Number(data.service_id))?.name || MOCK_SERVICES[0].name,
+      people_ahead: 5,
+      avg_wait_mins: 15
+    };
+  }
+
+  saveStoredBooking(created);
+  return created;
+};
+
+export const fetchBookingByToken = async (tokenNumber: string): Promise<Booking> => {
+  try {
+    const res = await api.get(`/bookings/token/${tokenNumber}`);
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn(`API fetchBookingByToken(${tokenNumber}) unreachable, using fallback`);
+  }
+
+  const stored = getStoredBookings();
+  const match = stored.find(b => b.token_number.toLowerCase() === tokenNumber.toLowerCase());
+  if (match) return match;
+
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+
+  return {
+    id: 1,
+    token_number: tokenNumber || 'GO-104',
+    verification_code: '8899',
+    citizen_name: 'Adithya Shetty',
+    phone: '9876543210',
+    aadhaar: 'XXXX-XXXX-8899',
+    age: 28,
+    gender: 'Male',
+    is_priority: false,
+    priority_reason: undefined,
+    booking_type: 'Online',
+    office_id: 1,
+    service_id: 1,
+    booking_date: dateStr,
+    visit_date: dateStr,
+    visit_time: '10:30 AM',
+    status: 'Pending',
+    counter_number: 1,
+    amount_paid: 25,
+    tatkal_probability: 95,
+    created_at: now.toISOString(),
+    office_name: MOCK_OFFICES[0].name,
+    service_name: MOCK_SERVICES[0].name,
+    people_ahead: 3,
+    avg_wait_mins: 10
+  };
+};
+
+export const downloadPDFUrl = (tokenNumber: string): string => {
+  return `${API_BASE}/bookings/pdf/${tokenNumber}`;
+};
+
+export const fetchQueueState = async (officeId: number): Promise<QueueState> => {
+  try {
+    const res = await api.get(`/queue/${officeId}`);
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn(`API fetchQueueState(${officeId}) unreachable, using fallback`);
+  }
+
+  const bookings = getStoredBookings().filter(b => b.office_id === officeId);
+  const serving = bookings.find(b => b.status === 'Called' || b.status === 'In Progress');
+  const pending = bookings.filter(b => b.status === 'Pending');
+  const completed = bookings.filter(b => b.status === 'Completed');
+
+  return {
+    office_id: officeId,
+    current_token: serving ? serving.token_number : (pending[0]?.token_number || 'GO-104'),
+    next_token: pending[1]?.token_number || 'GO-105',
+    active_counters: 3,
+    is_paused: false,
+    total_waiting: pending.length,
+    total_completed_today: completed.length + 42,
+    updated_at: new Date().toISOString()
+  };
+};
+
+export const controlQueueAction = async (officeId: number, actionData: any): Promise<QueueState> => {
+  try {
+    const res = await api.post(`/queue/${officeId}/control`, actionData);
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn('API controlQueueAction unreachable');
+  }
+
+  // Handle local state queue updates
+  const bookings = getStoredBookings();
+  if (actionData.action === 'call_next') {
+    const nextPending = bookings.find(b => b.status === 'Pending');
+    if (nextPending) {
+      updateStoredBookingStatus(nextPending.id, 'Called', actionData.counter_number || 1);
+    }
+  } else if (actionData.action === 'complete') {
+    const called = bookings.find(b => b.status === 'Called' || b.status === 'In Progress');
+    if (called) {
+      updateStoredBookingStatus(called.id, 'Completed');
+    }
+  } else if (actionData.action === 'skip') {
+    const called = bookings.find(b => b.status === 'Called' || b.status === 'In Progress');
+    if (called) {
+      updateStoredBookingStatus(called.id, 'Cancelled');
+    }
+  }
+
+  return fetchQueueState(officeId);
+};
+
+export const sendOTP = async (phone: string, aadhaar?: string) => {
+  try {
+    const res = await api.post('/auth/send-otp', { phone, aadhaar });
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn('API sendOTP unreachable, using mock success');
+  }
+  return { success: true, message: 'OTP sent successfully (Mock: 123456)', mock_otp: '123456' };
+};
+
+export const verifyOTP = async (phone: string, otp: string, aadhaar: string) => {
+  try {
+    const res = await api.post('/auth/verify-otp', { phone, otp, aadhaar });
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn('API verifyOTP unreachable, using mock success');
+  }
+  return { success: true, message: 'Aadhaar OTP Verified Successfully' };
+};
+
+export const adminLogin = async (email_or_phone: string, password: string) => {
+  try {
+    const res = await api.post('/auth/login', { email_or_phone, password });
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn('API adminLogin unreachable, checking stored local credentials');
+  }
+
+  const storedAdmins = getStoredAdmins();
+  const match = storedAdmins.find(
+    a => (a.email.toLowerCase() === email_or_phone.toLowerCase() || a.phone === email_or_phone || a.employee_id.toLowerCase() === email_or_phone.toLowerCase()) &&
+         (!a.password || a.password === password)
+  );
+
+  if (match) {
+    return {
+      access_token: `jwt-token-${Date.now()}`,
+      token_type: 'bearer',
+      user_name: match.name,
+      role: match.role || 'Government Staff Operator',
+      department: match.department,
+      employee_id: match.employee_id
+    };
+  }
+
+  if (email_or_phone === 'admin@nimmaseva.in' && password === 'Admin@123') {
+    return {
+      access_token: 'mock-jwt-admin-token-2026',
+      token_type: 'bearer',
+      user_name: 'District Administrator',
+      role: 'District Officer'
+    };
+  }
+
+  throw { response: { data: { detail: 'Invalid Official Staff ID or Password' } } };
+};
+
+export const adminRegister = async (data: any) => {
+  try {
+    const res = await api.post('/auth/register', data);
+    if (res.data) {
+      saveStoredAdmin({
+        id: `adm-${Date.now()}`,
+        name: data.full_name,
+        email: data.email_or_phone,
+        phone: data.email_or_phone,
+        employee_id: data.employee_id || `KA-GOV-${Math.floor(1000 + Math.random() * 9000)}`,
+        department: data.department || 'Revenue & E-Governance',
+        office_name: MOCK_OFFICES.find(o => o.id === Number(data.office_id))?.name || MOCK_OFFICES[0].name,
+        password: data.password,
+        role: data.role || 'Government Officer'
+      });
+      return res.data;
+    }
+  } catch (err) {
+    console.warn('API adminRegister unreachable, registering in local store');
+  }
+
+  const office = MOCK_OFFICES.find(o => o.id === Number(data.office_id)) || MOCK_OFFICES[0];
+  const newAdmin: RegisteredAdmin = {
+    id: `adm-${Date.now()}`,
+    name: data.full_name,
+    email: data.email_or_phone,
+    phone: data.phone || data.email_or_phone,
+    employee_id: data.employee_id || `KA-GOV-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    department: data.department || 'Revenue & E-Governance',
+    office_name: office.name,
+    password: data.password,
+    role: data.role || 'Government Staff Operator'
+  };
+
+  saveStoredAdmin(newAdmin);
+
+  return {
+    access_token: `jwt-registered-${Date.now()}`,
+    token_type: 'bearer',
+    user_name: newAdmin.name,
+    role: newAdmin.role,
+    department: newAdmin.department
+  };
+};
+
+export const fetchAdminSummary = async (officeId?: number): Promise<AnalyticsSummary> => {
+  try {
+    const params = officeId ? { office_id: officeId } : {};
+    const res = await api.get('/admin/summary', { params });
+    if (res.data) return res.data;
+  } catch (err) {
+    console.warn('API fetchAdminSummary unreachable, calculating dynamic local summary');
+  }
+
+  const allBookings = getStoredBookings();
+  const bookings = officeId ? allBookings.filter(b => b.office_id === officeId) : allBookings;
+
+  const todayBookings = bookings.length;
+  const todayRevenue = bookings.reduce((sum, b) => sum + (b.amount_paid || 0), 0);
+  const completedTokens = bookings.filter(b => b.status === 'Completed').length;
+  const cancelledTokens = bookings.filter(b => b.status === 'Cancelled').length;
+  const pendingTokens = bookings.filter(b => b.status === 'Pending' || b.status === 'Called' || b.status === 'In Progress').length;
+  const walkinTokens = bookings.filter(b => b.booking_type === 'Offline').length;
+  const onlineTokens = bookings.filter(b => b.booking_type === 'Online' || b.booking_type === 'Tatkal').length;
+  const priorityTokens = bookings.filter(b => b.is_priority).length;
+
+  return {
+    today_bookings: todayBookings,
+    today_revenue: todayRevenue,
+    completed_tokens: completedTokens,
+    cancelled_tokens: cancelledTokens,
+    pending_tokens: pendingTokens,
+    walkin_tokens: walkinTokens,
+    online_tokens: onlineTokens,
+    priority_tokens: priorityTokens,
+    current_queue_len: pendingTokens,
+    avg_wait_time_mins: 11.5,
+    no_show_percentage: 1.8,
+    most_requested_service: 'Income & Caste Certificate',
+    peak_hour: '11:00 AM - 12:00 PM'
+  };
+};
+
+export const fetchAllBookings = async (status?: string, officeId?: number): Promise<Booking[]> => {
+  try {
+    const params: any = {};
+    if (status) params.status = status;
+    if (officeId) params.office_id = officeId;
+    const res = await api.get('/admin/bookings', { params });
+    if (Array.isArray(res.data)) return res.data;
+  } catch (err) {
+    console.warn('API fetchAllBookings unreachable, returning stored local bookings');
+  }
+
+  let list = getStoredBookings();
+  if (status) {
+    list = list.filter(b => b.status.toLowerCase() === status.toLowerCase());
+  }
+  if (officeId) {
+    list = list.filter(b => b.office_id === officeId);
+  }
+  return list;
+};
+
+export const updateBookingStatus = async (bookingId: number, status: string, counterNumber?: number) => {
+  try {
+    const res = await api.patch(`/admin/bookings/${bookingId}/status`, { status, counter_number: counterNumber });
+    if (res.data) {
+      updateStoredBookingStatus(bookingId, status, counterNumber);
+      return res.data;
+    }
+  } catch (err) {
+    console.warn('API updateBookingStatus unreachable, updating local state');
+  }
+  updateStoredBookingStatus(bookingId, status, counterNumber);
+  return { status: 'success', message: `Token status updated to ${status}` };
+};
+
+export const createWalkinBooking = async (data: any): Promise<Booking> => {
+  try {
+    const res = await api.post('/admin/bookings/walk-in', data);
+    if (res.data) {
+      saveStoredBooking(res.data);
+      return res.data;
+    }
+  } catch (err) {
+    console.warn('API createWalkinBooking unreachable, generating local walk-in ticket');
+  }
+
+  const rand = Math.floor(200 + Math.random() * 700);
+  const tokenNum = `SS-W${rand}`;
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const office = MOCK_OFFICES.find(o => o.id === Number(data.office_id)) || MOCK_OFFICES[0];
+  const service = MOCK_SERVICES.find(s => s.id === Number(data.service_id)) || MOCK_SERVICES[0];
+
+  const walkin: Booking = {
+    id: Date.now(),
+    token_number: tokenNum,
+    verification_code: `W-${rand}`,
+    citizen_name: data.citizen_name || 'Walk-in Citizen',
+    phone: data.phone || '9876543210',
+    aadhaar: 'WALK-IN-TOKEN',
+    age: 30,
+    gender: 'Male',
+    is_priority: Boolean(data.is_priority),
+    priority_reason: data.priority_reason,
+    booking_type: 'Offline',
+    office_id: Number(data.office_id),
+    service_id: Number(data.service_id),
+    booking_date: dateStr,
+    visit_date: dateStr,
+    visit_time: timeStr,
+    status: 'Pending',
+    counter_number: 1,
+    amount_paid: service.fee,
+    tatkal_probability: 99,
+    created_at: now.toISOString(),
+    office_name: office.name,
+    service_name: service.name,
+    people_ahead: 0,
+    avg_wait_mins: 10
+  };
+
+  saveStoredBooking(walkin);
+  return walkin;
 };
 
 export const fetchAnalyticsCharts = async (period: string = 'daily') => {
@@ -699,3 +1001,4 @@ export const toggleServiceStatus = async (serviceId: number, serverStatus: strin
 export const getExportCsvUrl = (): string => `${API_BASE}/admin/export/csv`;
 
 export default api;
+
