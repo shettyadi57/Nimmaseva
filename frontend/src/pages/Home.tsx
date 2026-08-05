@@ -5,7 +5,6 @@ import { Office, Service } from '../types';
 import { useStore } from '../store/useStore';
 import { OfficeMap } from '../components/map/OfficeMap';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
-import { LeaderPortraits } from '../components/LeaderPortraits';
 import { useLang } from '../context/LanguageContext';
 import { 
   MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
@@ -87,7 +86,6 @@ export const Home: React.FC = () => {
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
               <KarnatakaBadge />
-              <LeaderPortraits />
             </div>
             
             <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-none text-white">
