@@ -331,11 +331,12 @@ export const AdminDashboard: React.FC = () => {
                       <td className="p-4">
                         <span className={`px-2.5 py-1 rounded-full font-extrabold text-[10px] ${
                           b.status === 'Completed' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                          b.status === 'Approaching Counter' ? 'bg-emerald-900 text-emerald-300 border border-emerald-500 font-black animate-bounce' :
                           b.status === 'Called' || b.status === 'In Progress' ? 'bg-amber-950 text-amber-400 border border-amber-800 animate-pulse' :
                           b.status === 'Cancelled' ? 'bg-red-950 text-red-400 border border-red-800' :
                           'bg-slate-900 text-slate-400 border border-slate-800'
                         }`}>
-                          {b.status}
+                          {b.status === 'Approaching Counter' ? '🚶 Approaching Counter' : b.status}
                         </span>
                       </td>
                       <td className="p-4 text-center">
@@ -343,12 +344,12 @@ export const AdminDashboard: React.FC = () => {
                           {b.status === 'Pending' && (
                             <button
                               onClick={() => handleStatusChange(b.id, 'Called')}
-                              className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-[10px] shadow transition-all"
+                              className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-lg text-[10px] shadow transition-all flex items-center gap-1"
                             >
-                              Call Token
+                              <span>Call & SMS Alert</span>
                             </button>
                           )}
-                          {(b.status === 'Called' || b.status === 'Pending' || b.status === 'In Progress') && (
+                          {(b.status === 'Called' || b.status === 'Pending' || b.status === 'In Progress' || b.status === 'Approaching Counter') && (
                             <button
                               onClick={() => handleStatusChange(b.id, 'Completed')}
                               className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-lg text-[10px] shadow transition-all"

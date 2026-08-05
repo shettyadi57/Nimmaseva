@@ -50,7 +50,7 @@ export interface Booking {
   booking_date: string;
   visit_date: string;
   visit_time: string;
-  status: 'Pending' | 'Called' | 'In Progress' | 'Completed' | 'Cancelled' | 'Skipped' | 'Transferred';
+  status: 'Pending' | 'Called' | 'In Progress' | 'Completed' | 'Cancelled' | 'Skipped' | 'Transferred' | 'Approaching Counter';
   counter_number?: number;
   amount_paid: number;
   tatkal_probability: number;
@@ -59,6 +59,9 @@ export interface Booking {
   service_name?: string;
   people_ahead?: number;
   avg_wait_mins?: number;
+  reminder_sent?: boolean;
+  reminder_time?: string;
+  acknowledged?: boolean;
 }
 
 export interface QueueState {

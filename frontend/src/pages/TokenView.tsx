@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchBookingByToken, downloadPDFUrl } from '../services/api';
+import { fetchBookingByToken, downloadPDFUrl, acknowledgeReminder, sendCitizenReminderSMS } from '../services/api';
 import { Booking } from '../types';
-import { Ticket, Download, Printer, Share2, Sparkles, Clock, CheckCircle2, Shield, QrCode, ArrowRight, User } from 'lucide-react';
+import { 
+  Ticket, Download, Printer, Share2, Sparkles, Clock, CheckCircle2, Shield, 
+  QrCode, ArrowRight, User, BellRing, Navigation, Check, Volume2, AlertTriangle, Smartphone 
+} from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
 
 export const TokenView: React.FC = () => {
   const { tokenNumber } = useParams<{ tokenNumber: string }>();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ackLoading, setAckLoading] = useState(false);
+  const [acknowledgedState, setAcknowledgedState] = useState(false);
 
   useEffect(() => {
     if (tokenNumber) {
@@ -16,15 +21,56 @@ export const TokenView: React.FC = () => {
     }
   }, [tokenNumber]);
 
-  const loadToken = async (tok: string) => {
+  // Live Auto-polling every 3 seconds to receive instant Queue Call Reminders
+  useEffect(() => {
+    if (!tokenNumber) return;
+    const interval = setInterval(() => {
+      loadToken(tokenNumber, false);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [tokenNumber]);
+
+  const loadToken = async (tok: string, showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     try {
       const data = await fetchBookingByToken(tok);
       setBooking(data);
+      if (data.acknowledged || data.status === 'Approaching Counter') {
+        setAcknowledgedState(true);
+      }
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
+  };
+
+  const handleAcknowledge = async () => {
+    if (!tokenNumber) return;
+    setAckLoading(true);
+    try {
+      const updated = await acknowledgeReminder(tokenNumber);
+      if (updated) {
+        setBooking(updated);
+        setAcknowledgedState(true);
+      }
+
+      // Optional Web Audio feedback chime
+      if ('speechSynthesis' in window) {
+        const utter = new SpeechSynthesisUtterance("Reminder collected. Please proceed directly to counter number " + (booking?.counter_number || 1));
+        window.speechSynthesis.speak(utter);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAckLoading(false);
+    }
+  };
+
+  const handleManualTestReminder = async () => {
+    if (!booking) return;
+    await sendCitizenReminderSMS(booking.token_number);
+    loadToken(booking.token_number, false);
   };
 
   const handlePrint = () => {
@@ -51,9 +97,11 @@ export const TokenView: React.FC = () => {
     );
   }
 
+  const isCalledOrReminder = booking.reminder_sent || booking.status === 'Called' || booking.status === 'Approaching Counter';
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl mx-auto space-y-6">
         
         {/* Actions Bar */}
         <div className="flex items-center justify-between glass-panel p-4 rounded-2xl border border-slate-800">
@@ -63,21 +111,81 @@ export const TokenView: React.FC = () => {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-xs rounded-xl border border-slate-800 transition-all"
+              onClick={handleManualTestReminder}
+              className="px-3 py-1.5 bg-amber-950/80 text-amber-400 hover:bg-amber-900 border border-amber-800 font-bold text-[11px] rounded-xl flex items-center gap-1.5"
+              title="Test Automated SMS Notification"
             >
-              <Printer className="w-4 h-4 text-amber-400" /> Print Pass
+              <Smartphone className="w-3.5 h-3.5" /> Test SMS Reminder
+            </button>
+
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 font-bold text-xs rounded-xl border border-slate-800 transition-all"
+            >
+              <Printer className="w-4 h-4 text-amber-400" /> Print
             </button>
             
             <a
               href={downloadPDFUrl(booking.token_number)}
               download
-              className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all"
+              className="flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all"
             >
-              <Download className="w-4 h-4" /> Download Official PDF
+              <Download className="w-4 h-4" /> PDF Pass
             </a>
           </div>
         </div>
+
+        {/* AUTOMATED REMINDER NOTIFICATION BANNER */}
+        {isCalledOrReminder && (
+          <div className="p-6 bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 border-2 border-amber-500 rounded-3xl space-y-4 shadow-2xl animate-pulse">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-slate-950 shadow-lg">
+                  <BellRing className="w-7 h-7 animate-bounce" />
+                </div>
+                <div>
+                  <span className="px-2.5 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-full uppercase tracking-wider">
+                    AUTOMATED COUNTER REMINDER DISPATCHED
+                  </span>
+                  <h3 className="text-xl font-black text-white tracking-tight mt-1">
+                    YOUR TOKEN IS UP NEXT AT COUNTER 0{booking.counter_number || 1}!
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-amber-100 font-medium">
+              ⚡ SMS reminder sent to mobile <span className="font-mono font-bold text-white">XXXX-XX{booking.phone.slice(-4)}</span>. Please approach the counter immediately with your verification code: <span className="font-mono font-black text-amber-300">{booking.verification_code}</span>.
+            </p>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-amber-800/80">
+              <div className="text-[11px] text-amber-300 font-mono">
+                {acknowledgedState ? (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4" /> Reminder Collected - Operator Notified (Approaching Counter)
+                  </span>
+                ) : (
+                  <span>Status: Awaiting Citizen Acknowledgement</span>
+                )}
+              </div>
+
+              {!acknowledgedState ? (
+                <button
+                  onClick={handleAcknowledge}
+                  disabled={ackLoading}
+                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                >
+                  <Navigation className="w-4 h-4" />
+                  {ackLoading ? 'Notifying Operator...' : 'I AM HEADING TO COUNTER NOW'}
+                </button>
+              ) : (
+                <div className="px-4 py-2 bg-emerald-950 border border-emerald-700 text-emerald-300 font-black text-xs rounded-xl flex items-center gap-2">
+                  <Check className="w-4 h-4 text-emerald-400" /> Heading to Counter 0{booking.counter_number || 1}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Boarding Pass Style Digital Ticket Card */}
         <div className="glass-panel rounded-3xl overflow-hidden shadow-2xl border border-slate-800 print:shadow-none print:border-none relative">
@@ -95,8 +203,20 @@ export const TokenView: React.FC = () => {
             <div className="text-6xl sm:text-7xl font-black tracking-tight text-amber-400 font-mono drop-shadow-[0_0_25px_rgba(245,158,11,0.3)]">
               {booking.token_number}
             </div>
-            <div className="inline-block px-4 py-1.5 bg-emerald-950 text-emerald-400 rounded-full font-mono text-xs font-bold border border-emerald-800">
-              Verification Code: {booking.verification_code}
+            
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+              <div className="inline-block px-4 py-1.5 bg-emerald-950 text-emerald-400 rounded-full font-mono text-xs font-bold border border-emerald-800">
+                Verification Code: {booking.verification_code}
+              </div>
+
+              <div className={`inline-block px-4 py-1.5 rounded-full font-extrabold text-xs ${
+                booking.status === 'Completed' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' :
+                booking.status === 'Approaching Counter' ? 'bg-emerald-900 text-emerald-300 border border-emerald-600' :
+                booking.status === 'Called' ? 'bg-amber-950 text-amber-400 border border-amber-800 animate-pulse' :
+                'bg-slate-900 text-slate-400 border border-slate-800'
+              }`}>
+                Current Status: {booking.status}
+              </div>
             </div>
           </div>
 
