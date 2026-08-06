@@ -1,11 +1,26 @@
 {
   "name": "Nimma Seva Token System",
   "short_name": "Nimma Seva",
+  "description": "GramOne & Seva Sindhu Token Management System Shivamogga",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#065f46",
+  "orientation": "portrait",
+  "background_color": "#020617",
   "theme_color": "#065f46",
   "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",

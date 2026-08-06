@@ -1,0 +1,10 @@
+{
+  "name": "nimmaseva-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Nimma Seva - GramOne & Seva Sindhu Token Management System Shivamogga",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "dev": "cd frontend && npm run dev"
+  }
+}
