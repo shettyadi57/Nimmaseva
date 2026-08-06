@@ -871,6 +871,20 @@ export const adminRegister = async (data: any) => {
   };
 };
 
+export const submitRating = async (tokenNumber: string, rating: number, comment?: string) => {
+  try {
+    const res = await api.post(`/bookings/${tokenNumber}/rate`, { rating, comment: comment || '' });
+    if (res.data) return res.data;
+  } catch (err) {
+    // Fallback: store locally
+    console.warn('API submitRating unreachable, storing locally');
+  }
+  // Store locally so the UI doesn't show the widget again
+  const key = `nimmaseva_rating_${tokenNumber}`;
+  localStorage.setItem(key, JSON.stringify({ rating, comment, submitted_at: new Date().toISOString() }));
+  return { success: true };
+};
+
 export const fetchAdminSummary = async (officeId?: number): Promise<AnalyticsSummary> => {
   try {
     const params = officeId ? { office_id: officeId } : {};
@@ -999,15 +1013,40 @@ export const createWalkinBooking = async (data: any): Promise<Booking> => {
 export const fetchAnalyticsCharts = async (period: string = 'daily') => {
   try {
     const res = await api.get('/analytics/charts', { params: { period } });
-    if (res.data) return res.data;
+    if (res.data && res.data.hourly_traffic) return res.data;
   } catch (err) {
     console.warn('API fetchAnalyticsCharts unreachable, using fallback');
   }
 
+  // Fallback shape matches backend /analytics/charts exactly
   return {
-    labels: ['09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'],
-    tokenCounts: [5, 12, 18, 8, 4, 14, 11, 6],
-    avgWaitTimes: [8, 12, 15, 10, 5, 14, 12, 9]
+    period,
+    hourly_traffic: [
+      { hour: '09:00 AM', online: 18, walkin: 10 },
+      { hour: '10:00 AM', online: 32, walkin: 15 },
+      { hour: '11:00 AM', online: 28, walkin: 20 },
+      { hour: '12:00 PM', online: 12, walkin: 5 },
+      { hour: '01:00 PM', online: 5,  walkin: 2 },
+      { hour: '02:00 PM', online: 25, walkin: 18 },
+      { hour: '03:00 PM', online: 30, walkin: 12 },
+      { hour: '04:00 PM', online: 15, walkin: 8 },
+    ],
+    weekly_trends: [
+      { day: 'Mon', total: 145, revenue: 3625 },
+      { day: 'Tue', total: 180, revenue: 4500 },
+      { day: 'Wed', total: 195, revenue: 4875 },
+      { day: 'Thu', total: 160, revenue: 4000 },
+      { day: 'Fri', total: 210, revenue: 5250 },
+      { day: 'Sat', total: 130, revenue: 3250 },
+    ],
+    service_demand: [
+      { name: 'Income & Caste Certificate', bookings: 52 },
+      { name: 'Ration Card Services', bookings: 45 },
+      { name: 'RTC / Pahani Extract', bookings: 38 },
+      { name: 'Gruha Lakshmi Verification', bookings: 30 },
+      { name: 'Senior Citizen ID', bookings: 22 },
+      { name: 'Yuva Nidhi Enrollment', bookings: 18 },
+    ],
   };
 };
 
@@ -1047,7 +1086,48 @@ export const toggleServiceStatus = async (serviceId: number, serverStatus: strin
   return { success: true, message: 'Status updated (Mock)' };
 };
 
+export const fetchBookingsByPhone = async (phone: string): Promise<Booking[]> => {
+  try {
+    const res = await api.get(`/bookings/by-phone/${phone}`);
+    if (Array.isArray(res.data)) return res.data;
+  } catch (err) {
+    console.warn('API fetchBookingsByPhone unreachable, falling back to local storage');
+  }
+  return getStoredBookings().filter(b => b.phone === phone);
+};
+
+export const cancelBooking = async (bookingId: number, phone: string, reason?: string): Promise<void> => {
+  try {
+    await api.post(`/bookings/${bookingId}/cancel`, null, {
+      params: { phone, reason: reason || '' }
+    });
+    updateStoredBookingStatus(bookingId, 'Cancelled');
+  } catch (err: any) {
+    const detail = err?.response?.data?.detail || 'Failed to cancel booking';
+    // If backend offline, still cancel locally
+    if (err?.code === 'ERR_NETWORK' || err?.code === 'ECONNABORTED') {
+      updateStoredBookingStatus(bookingId, 'Cancelled');
+      return;
+    }
+    throw new Error(detail);
+  }
+};
+
+export const fetchPublicStats = async () => {
+  try {
+    const res = await api.get('/public/stats');
+    if (res.data && res.data.total_tokens_issued !== undefined) return res.data;
+  } catch (err) {
+    console.warn('API fetchPublicStats unreachable, using fallback');
+  }
+  // Fallback — shown when backend is offline (e.g. Vercel static deploy)
+  return {
+    total_tokens_issued: null,
+    avg_wait_time_mins: null,
+    completion_rate_pct: null,
+  };
+};
+
 export const getExportCsvUrl = (): string => `${API_BASE}/admin/export/csv`;
 
 export default api;
-

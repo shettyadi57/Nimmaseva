@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Building2, Ticket, Search, LayoutDashboard, ShieldCheck,
-  Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight, User
+  Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight, User, History
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useTheme } from '../context/ThemeContext';
@@ -39,6 +39,7 @@ export const Header: React.FC = () => {
     { path: '/book', label: t.navBook, icon: Ticket },
     { path: '/queue', label: t.navQueue, icon: Landmark },
     { path: '/schemes', label: t.navSchemes, icon: Search },
+    ...(citizenProfile ? [{ path: '/my-bookings', label: 'My Bookings', icon: History }] : []),
   ];
 
   const currentLang = LANG_OPTIONS.find(l => l.code === lang)!;

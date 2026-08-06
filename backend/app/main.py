@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import auth, offices, services, bookings, queue, admin, analytics, schemes, notifications
+from app.api import auth, offices, services, bookings, queue, admin, analytics, schemes, notifications, public
 from app.seed import seed_database
 from app.core.database import engine, Base
 
@@ -53,3 +53,4 @@ app.include_router(admin.router, prefix=settings.API_V1_STR)
 app.include_router(analytics.router, prefix=settings.API_V1_STR)
 app.include_router(schemes.router, prefix=settings.API_V1_STR)
 app.include_router(notifications.router, prefix=settings.API_V1_STR)
+app.include_router(public.router, prefix=settings.API_V1_STR)

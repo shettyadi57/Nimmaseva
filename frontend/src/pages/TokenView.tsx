@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchBookingByToken, downloadPDFUrl, acknowledgeReminder, sendCitizenReminderSMS } from '../services/api';
+import { fetchBookingByToken, downloadPDFUrl, acknowledgeReminder, sendCitizenReminderSMS, submitRating } from '../services/api';
 import { Booking } from '../types';
 import { 
   Ticket, Download, Printer, Share2, Sparkles, Clock, CheckCircle2, Shield, 
-  QrCode, ArrowRight, User, BellRing, Navigation, Check, Volume2, AlertTriangle, Smartphone 
+  QrCode, ArrowRight, User, BellRing, Navigation, Check, Volume2, AlertTriangle, Smartphone, Star
 } from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
 
@@ -14,10 +14,18 @@ export const TokenView: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [ackLoading, setAckLoading] = useState(false);
   const [acknowledgedState, setAcknowledgedState] = useState(false);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [ratingHover, setRatingHover] = useState(0);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
+  const [ratingLoading, setRatingLoading] = useState(false);
 
   useEffect(() => {
     if (tokenNumber) {
       loadToken(tokenNumber);
+      // Check if already rated (localStorage fallback)
+      const stored = localStorage.getItem(`nimmaseva_rating_${tokenNumber}`);
+      if (stored) setRatingSubmitted(true);
     }
   }, [tokenNumber]);
 
@@ -278,6 +286,63 @@ export const TokenView: React.FC = () => {
               <span className="text-[10px] text-slate-400 font-mono">Present QR code at Shivamogga office counter</span>
             </div>
           </div>
+
+          {/* Post-service star rating widget */}
+          {booking.status === 'Completed' && !ratingSubmitted && (
+            <div className="mx-6 mb-4 bg-gradient-to-br from-amber-950/40 to-slate-900 rounded-2xl p-5 border border-amber-800/30 space-y-4">
+              <p className="text-sm font-extrabold text-white">How was your experience?</p>
+              <div className="flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <button
+                    key={s}
+                    onMouseEnter={() => setRatingHover(s)}
+                    onMouseLeave={() => setRatingHover(0)}
+                    onClick={() => setRatingValue(s)}
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Star
+                      className={`w-8 h-8 transition-colors ${
+                        s <= (ratingHover || ratingValue)
+                          ? 'text-amber-400 fill-amber-400'
+                          : 'text-slate-600'
+                      }`}
+                    />
+                  </button>
+                ))}
+                {ratingValue > 0 && (
+                  <span className="ml-2 text-xs font-bold text-amber-400">
+                    {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][ratingValue]}
+                  </span>
+                )}
+              </div>
+              <textarea
+                rows={2}
+                value={ratingComment}
+                onChange={e => setRatingComment(e.target.value)}
+                placeholder="Any comments? (optional)"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs resize-none focus:border-amber-500 focus:outline-none"
+              />
+              <button
+                onClick={async () => {
+                  if (!ratingValue || !tokenNumber) return;
+                  setRatingLoading(true);
+                  await submitRating(tokenNumber, ratingValue, ratingComment);
+                  setRatingSubmitted(true);
+                  setRatingLoading(false);
+                }}
+                disabled={!ratingValue || ratingLoading}
+                className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-extrabold text-xs transition-all flex items-center gap-2"
+              >
+                <Star className="w-4 h-4" />
+                {ratingLoading ? 'Submitting…' : 'Submit Rating'}
+              </button>
+            </div>
+          )}
+          {booking.status === 'Completed' && ratingSubmitted && (
+            <div className="mx-6 mb-4 flex items-center gap-2 text-emerald-400 text-xs font-bold">
+              <CheckCircle2 className="w-4 h-4" /> Thank you for your feedback!
+            </div>
+          )}
 
           {/* Footer instructions */}
           <div className="bg-slate-900 p-5 border-t border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">

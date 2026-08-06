@@ -62,6 +62,9 @@ export interface Booking {
   reminder_sent?: boolean;
   reminder_time?: string;
   acknowledged?: boolean;
+  rating?: number;           // 1–5 star rating (null until submitted)
+  rating_comment?: string;
+  rated_at?: string;
 }
 
 export interface QueueState {
@@ -121,3 +124,26 @@ export interface CitizenProfile {
   createdAt?: string;
 }
 
+/** Shared type for /analytics/charts response — matches backend and api.ts fallback exactly */
+export interface AnalyticsChartData {
+  period: string;
+  hourly_traffic: { hour: string; online: number; walkin: number }[];
+  weekly_trends: { day: string; total: number; revenue: number }[];
+  service_demand: { name: string; bookings: number }[];
+}
+
+/** Public (unauthenticated) aggregate stats for the home hero */
+export interface PublicStats {
+  total_tokens_issued: number;
+  avg_wait_time_mins: number;
+  completion_rate_pct: number;
+}
+
+/** Audit log entry */
+export interface AuditLogEntry {
+  id: number;
+  user_name: string;
+  action: string;
+  details?: string;
+  timestamp: string;
+}

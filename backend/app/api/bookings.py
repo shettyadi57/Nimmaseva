@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List, Optional
 from app.core.database import get_db
-from app.models.models import Booking, Office, Service
+from app.models.models import Booking, Office, Service, AuditLog
 from app.schemas.schemas import BookingCreate, BookingOut
 from app.services.token_service import get_next_token_number, get_next_available_visit_date, generate_verification_code
 from app.services.prediction_service import calculate_tatkal_probability
@@ -98,6 +98,14 @@ def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db)):
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
+
+    # Audit log: new citizen booking created
+    db.add(AuditLog(
+        user_name=f"Citizen:{booking_in.phone}",
+        action="booking_created",
+        details=f"Token {token_num} | Service: {service.name} | Office: {office.name} | Visit: {visit_date_str}"
+    ))
+    db.commit()
 
     # Prepare response
     people_ahead = db.query(Booking).filter(
@@ -210,3 +218,81 @@ def download_token_pdf(token_number: str, db: Session = Depends(get_db)):
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename=Token_{token_number}.pdf"}
     )
+
+
+@router.get("/by-phone/{phone}", response_model=List[BookingOut])
+def get_bookings_by_phone(phone: str, db: Session = Depends(get_db)):
+    """Get all bookings for a citizen by phone number, newest first."""
+    bookings = (
+        db.query(Booking)
+        .filter(Booking.phone == phone)
+        .order_by(Booking.id.desc())
+        .limit(50)
+        .all()
+    )
+    result = []
+    for b in bookings:
+        off = db.query(Office).filter(Office.id == b.office_id).first()
+        srv = db.query(Service).filter(Service.id == b.service_id).first()
+        result.append(BookingOut(
+            id=b.id,
+            token_number=b.token_number,
+            verification_code=b.verification_code,
+            citizen_name=b.citizen_name,
+            phone=b.phone,
+            aadhaar=f"XXXX XXXX {b.aadhaar[-4:]}" if b.aadhaar and len(b.aadhaar) >= 4 else "XXXX",
+            age=b.age,
+            gender=b.gender,
+            is_priority=b.is_priority,
+            priority_reason=b.priority_reason,
+            booking_type=b.booking_type,
+            office_id=b.office_id,
+            service_id=b.service_id,
+            booking_date=b.booking_date,
+            visit_date=b.visit_date,
+            visit_time=b.visit_time,
+            status=b.status,
+            counter_number=b.counter_number,
+            amount_paid=b.amount_paid,
+            tatkal_probability=b.tatkal_probability,
+            created_at=b.created_at,
+            office_name=off.name if off else "",
+            service_name=srv.name if srv else "",
+            people_ahead=0,
+            avg_wait_mins=0
+        ))
+    return result
+
+
+@router.post("/{booking_id}/cancel")
+def cancel_booking_citizen(booking_id: int, phone: str, reason: Optional[str] = None, db: Session = Depends(get_db)):
+    """
+    Citizen-initiated cancellation.
+    Validates that the phone matches the booking owner.
+    Cannot cancel tokens that are Called, In Progress, or Completed.
+    """
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+
+    if booking.phone != phone:
+        raise HTTPException(status_code=403, detail="Phone number does not match this booking")
+
+    NON_CANCELLABLE = ["Called", "In Progress", "Completed", "Cancelled"]
+    if booking.status in NON_CANCELLABLE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot cancel a booking with status '{booking.status}'"
+        )
+
+    prev_status = booking.status
+    booking.status = "Cancelled"
+
+    db.add(AuditLog(
+        user_name=f"Citizen:{phone}",
+        action="citizen_cancel",
+        details=f"Token {booking.token_number} cancelled by citizen. Previous status: {prev_status}. Reason: {reason or 'Not specified'}"
+    ))
+    db.commit()
+
+    return {"status": "success", "message": f"Token {booking.token_number} cancelled successfully"}

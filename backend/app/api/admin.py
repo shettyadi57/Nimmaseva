@@ -11,6 +11,49 @@ from app.services.token_service import get_next_token_number
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
+@router.get("/audit-logs")
+def get_audit_logs(
+    page: int = 1,
+    limit: int = 50,
+    actor: Optional[str] = None,
+    action_type: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Paginated audit log viewer with filters."""
+    query = db.query(AuditLog).order_by(AuditLog.timestamp.desc())
+
+    if actor:
+        query = query.filter(AuditLog.user_name.ilike(f"%{actor}%"))
+    if action_type:
+        query = query.filter(AuditLog.action.ilike(f"%{action_type}%"))
+    if date_from:
+        query = query.filter(AuditLog.timestamp >= date_from)
+    if date_to:
+        query = query.filter(AuditLog.timestamp <= f"{date_to} 23:59:59")
+
+    total = query.count()
+    logs = query.offset((page - 1) * limit).limit(limit).all()
+
+    return {
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": (total + limit - 1) // limit,
+        "logs": [
+            {
+                "id": log.id,
+                "user_name": log.user_name,
+                "action": log.action,
+                "details": log.details,
+                "timestamp": str(log.timestamp),
+            }
+            for log in logs
+        ]
+    }
+
+
 @router.get("/summary", response_model=AnalyticsSummary)
 def get_admin_summary(office_id: Optional[int] = None, db: Session = Depends(get_db)):
     today_str = datetime.now().strftime("%Y-%m-%d")

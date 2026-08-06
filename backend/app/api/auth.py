@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import random
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, verify_aadhaar
-from app.models.models import User
+from app.models.models import User, AuditLog
 from app.schemas.schemas import Token, LoginRequest, RegisterRequest, OTPRequest, OTPVerifyRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -24,6 +24,15 @@ def login(login_req: LoginRequest, db: Session = Depends(get_db)):
         )
     
     access_token = create_access_token(subject=user.email or user.phone)
+
+    # Audit log: admin login event
+    db.add(AuditLog(
+        user_name=user.full_name,
+        action="admin_login",
+        details=f"Admin '{user.full_name}' logged in (role: {user.role})"
+    ))
+    db.commit()
+
     return {
         "access_token": access_token,
         "token_type": "bearer",

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { fetchOffices, fetchServices } from '../services/api';
-import { Office, Service } from '../types';
+import { fetchOffices, fetchServices, fetchPublicStats } from '../services/api';
+import { Office, Service, PublicStats } from '../types';
 import { useStore } from '../store/useStore';
 import { OfficeMap } from '../components/map/OfficeMap';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
@@ -19,6 +19,8 @@ export const Home: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [locationStatus, setLocationStatus] = useState<string>('Detecting location...');
+  const [heroStats, setHeroStats] = useState<PublicStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -58,6 +60,14 @@ export const Home: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Fetch public hero stats independently (non-blocking)
+  useEffect(() => {
+    fetchPublicStats()
+      .then(stats => setHeroStats(stats))
+      .catch(() => setHeroStats(null))
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   const handleBookAtOffice = (office: Office) => {
     setSelectedOffice(office);
@@ -136,18 +146,42 @@ export const Home: React.FC = () => {
               </Link>
             </div>
 
-            {/* Metric Counters Bar */}
+            {/* Metric Counters Bar — live data from /public/stats */}
             <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-900 max-w-lg">
               <div>
-                <span className="text-2xl font-black text-white font-mono block">12,480+</span>
+                {statsLoading ? (
+                  <span className="text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
+                ) : (
+                  <span className="text-2xl font-black text-white font-mono block">
+                    {heroStats?.total_tokens_issued != null
+                      ? `${heroStats.total_tokens_issued.toLocaleString()}+`
+                      : '—'}
+                  </span>
+                )}
                 <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tokensIssued}</span>
               </div>
               <div>
-                <span className="text-2xl font-black text-emerald-400 font-mono block">~12 Mins</span>
+                {statsLoading ? (
+                  <span className="text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
+                ) : (
+                  <span className="text-2xl font-black text-emerald-400 font-mono block">
+                    {heroStats?.avg_wait_time_mins != null
+                      ? `~${heroStats.avg_wait_time_mins} Mins`
+                      : '—'}
+                  </span>
+                )}
                 <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.avgProcessing}</span>
               </div>
               <div>
-                <span className="text-2xl font-black text-amber-400 font-mono block">99.4%</span>
+                {statsLoading ? (
+                  <span className="text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
+                ) : (
+                  <span className="text-2xl font-black text-amber-400 font-mono block">
+                    {heroStats?.completion_rate_pct != null
+                      ? `${heroStats.completion_rate_pct}%`
+                      : '—'}
+                  </span>
+                )}
                 <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tatkalAccuracy}</span>
               </div>
             </div>

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
-from app.models.models import Service
+from app.models.models import Service, AuditLog
 from app.schemas.schemas import ServiceOut, ServiceCreate
 
 router = APIRouter(prefix="/services", tags=["Services"])
@@ -45,7 +45,14 @@ def toggle_service_status(service_id: int, server_status: str, is_active: bool =
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
     
+    prev_status = service.server_status
     service.server_status = server_status
     service.is_active = is_active
+
+    db.add(AuditLog(
+        user_name="Admin Staff",
+        action="service_status_change",
+        details=f"Service '{service.name}' (#{service_id}): {prev_status} → {server_status}, active={is_active}"
+    ))
     db.commit()
     return {"message": "Service status updated successfully", "server_status": service.server_status}
