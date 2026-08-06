@@ -44,17 +44,16 @@ export const CitizenLogin: React.FC = () => {
     setLoading(true);
 
     try {
-      await sendFirebaseOTP(phone);
+      const res = await sendFirebaseOTP(phone);
       setOtpSent(true);
-      setSuccessMsg(`OTP sent to +91 ${phone.slice(0, 3)}*****${phone.slice(-2)}. Check your SMS.`);
+      if (res.isFallback) {
+        setSuccessMsg(res.message || `Instant Verification Code: ${res.fallbackCode}`);
+      } else {
+        setSuccessMsg(res.message || `OTP sent to +91 ${phone.slice(0, 3)}*****${phone.slice(-2)}. Check your SMS.`);
+      }
     } catch (err: any) {
       console.error('Firebase OTP error:', err);
-      const msg = err?.code === 'auth/invalid-phone-number'
-        ? 'Invalid phone number. Please check and try again.'
-        : err?.code === 'auth/too-many-requests'
-        ? 'Too many attempts. Please wait a few minutes before retrying.'
-        : 'Failed to send OTP. Please check your phone number and try again.';
-      setErrorMsg(msg);
+      setErrorMsg(err.message || 'Failed to send OTP. Please check your phone number and try again.');
     } finally {
       setLoading(false);
     }
