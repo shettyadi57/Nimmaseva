@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { fetchOffices, fetchServices, sendOTP, verifyOTP, createBooking } from '../services/api';
+import { fetchOffices, fetchServices, createBooking } from '../services/api';
+import { sendFirebaseOTP, verifyFirebaseOTP, clearRecaptcha } from '../lib/firebase';
 import { Office, Service, Booking } from '../types';
 import { useStore } from '../store/useStore';
 import { useLang } from '../context/LanguageContext';
@@ -27,7 +28,6 @@ export const BookingForm: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(!!citizenProfile);
-  const [mockOtpCode, setMockOtpCode] = useState('');
 
 
   // Priority & Service state
@@ -87,28 +87,44 @@ export const BookingForm: React.FC = () => {
     setErrorMsg('');
     setLoading(true);
     try {
-      const res = await sendOTP(phone);
+      await sendFirebaseOTP(phone);
       setOtpSent(true);
-      setMockOtpCode(res.mock_otp || '123456');
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || 'Failed to send Phone OTP');
+      const msg = err?.code === 'auth/invalid-phone-number'
+        ? 'Invalid phone number. Please check and try again.'
+        : err?.code === 'auth/too-many-requests'
+        ? 'Too many attempts. Please wait a few minutes.'
+        : 'Failed to send OTP. Please try again.';
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetryOTP = () => {
+    clearRecaptcha();
+    setOtpSent(false);
+    setOtp('');
+    setErrorMsg('');
+  };
+
   const handleVerifyOTP = async () => {
-    if (!otp || otp.length < 4) {
-      setErrorMsg('Please enter the verification code sent to your mobile');
+    if (!otp || otp.length < 6) {
+      setErrorMsg('Please enter the 6-digit code sent to your mobile');
       return;
     }
     setErrorMsg('');
     setLoading(true);
     try {
-      await verifyOTP(phone, otp, aadhaar || 'OPTIONAL');
+      await verifyFirebaseOTP(otp);
       setPhoneVerified(true);
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || 'Invalid OTP code');
+      const msg = err?.code === 'auth/invalid-verification-code'
+        ? 'Incorrect OTP. Please check the SMS and try again.'
+        : err?.code === 'auth/code-expired'
+        ? 'OTP expired. Please request a new one.'
+        : 'Verification failed. Please try again.';
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
@@ -340,26 +356,40 @@ export const BookingForm: React.FC = () => {
                 </div>
               </div>
 
+              {/* Firebase reCAPTCHA container — required for signInWithPhoneNumber */}
+              <div id="firebase-recaptcha-container" />
+
               {otpSent && !phoneVerified && (
                 <div className="pt-3 space-y-3 border-t border-slate-800">
-                  <div className="flex items-center justify-between text-xs text-amber-300">
-                    <span>SMS OTP Code sent to +91 {phone}: <b className="font-mono text-white bg-slate-900 px-2 py-0.5 rounded">{mockOtpCode}</b></span>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">
+                      OTP sent to <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>. Check your SMS.
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRetryOTP}
+                      className="text-slate-400 hover:text-white text-[11px] font-semibold underline underline-offset-2"
+                    >
+                      Resend OTP
+                    </button>
                   </div>
                   <div className="flex items-center gap-3">
                     <input
                       type="text"
+                      inputMode="numeric"
                       maxLength={6}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                       placeholder="Enter 6-digit SMS OTP"
-                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono focus:border-amber-400 focus:outline-none"
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono tracking-[0.3em] focus:border-amber-400 focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={handleVerifyOTP}
-                      className="py-2.5 px-6 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl"
+                      disabled={loading || otp.length < 6}
+                      className="py-2.5 px-6 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl"
                     >
-                      Verify Phone OTP
+                      {loading ? 'Verifying...' : 'Verify OTP'}
                     </button>
                   </div>
                 </div>

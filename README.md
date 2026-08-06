@@ -18,7 +18,7 @@ A production-ready **Progressive Web Application (PWA)** built for GramOne and S
 - **Hybrid Token Engine**: Intelligent split ranges for Online vs Walk-in vs Priority & Emergency citizens.
 - **AI-Inspired Tatkal Prediction Engine**: Real-time completion probability estimation (Low, Medium, High, Very High) based on queue size, active counters, server status, and processing time.
 - **Official Digital Token Pass & PDF Generator**: ReportLab PDF token downloading, print support, base64 QR code generation, and verification code.
-- **Live Queue Tracking**: Real-time WebSocket token board displaying currently called token, next token, people ahead, and counter numbers.
+- **Live Queue Tracking**: Real-time WebSocket token board displaying currently called token, next token, people ahead, and counter numbers.    
 - **Karnataka Government Scheme Search**: Search eligible schemes (Gruha Lakshmi, Yuva Nidhi, Raita Vidya Nidhi, Sandhya Suraksha Pension) based on age, gender, income, and occupation.
 
 ### 🛡️ Staff / Admin Operator Panel

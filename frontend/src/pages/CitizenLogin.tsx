@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { useLang } from '../context/LanguageContext';
-import { sendOTP, verifyOTP } from '../services/api';
+import { sendFirebaseOTP, verifyFirebaseOTP, clearRecaptcha } from '../lib/firebase';
 import { 
   User, Phone, ShieldCheck, Ticket, CheckCircle2, ArrowRight, 
-  Sparkles, MapPin, Hash, LogOut, Edit3, UserCheck, AlertCircle, KeyRound, Clock
+  Sparkles, MapPin, Hash, LogOut, Edit3, UserCheck, AlertCircle, KeyRound, Clock, Check, RefreshCw
 } from 'lucide-react';
 import { CitizenProfile } from '../types';
 
@@ -28,7 +28,6 @@ export const CitizenLogin: React.FC = () => {
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(citizenProfile?.isVerified || false);
-  const [mockOtpCode, setMockOtpCode] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -45,39 +44,50 @@ export const CitizenLogin: React.FC = () => {
     setLoading(true);
 
     try {
-      const res = await sendOTP(phone);
+      await sendFirebaseOTP(phone);
       setOtpSent(true);
-      setMockOtpCode(res.mock_otp || '123456');
-      setSuccessMsg(`OTP sent successfully! Use code ${res.mock_otp || '123456'} for quick verification.`);
+      setSuccessMsg(`OTP sent to +91 ${phone.slice(0, 3)}*****${phone.slice(-2)}. Check your SMS.`);
     } catch (err: any) {
-      // Fallback for demo if backend is offline
-      setOtpSent(true);
-      setMockOtpCode('123456');
-      setSuccessMsg('Demo Mode: OTP sent! Use code 123456 to verify.');
+      console.error('Firebase OTP error:', err);
+      const msg = err?.code === 'auth/invalid-phone-number'
+        ? 'Invalid phone number. Please check and try again.'
+        : err?.code === 'auth/too-many-requests'
+        ? 'Too many attempts. Please wait a few minutes before retrying.'
+        : 'Failed to send OTP. Please check your phone number and try again.';
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRetryOTP = () => {
+    clearRecaptcha();
+    setOtpSent(false);
+    setOtp('');
+    setErrorMsg('');
+    setSuccessMsg('');
+  };
+
   const handleVerifyOTP = async () => {
-    if (!otp || otp.length < 4) {
-      setErrorMsg('Please enter the OTP sent to your phone');
+    if (!otp || otp.length < 6) {
+      setErrorMsg('Please enter the 6-digit OTP sent to your phone');
       return;
     }
     setErrorMsg('');
     setLoading(true);
 
     try {
-      await verifyOTP(phone, otp, aadhaar || 'OPTIONAL');
+      await verifyFirebaseOTP(otp);
       setPhoneVerified(true);
-      setSuccessMsg('Phone number verified successfully!');
+      setSuccessMsg('✓ Phone number verified successfully via Firebase!');
     } catch (err: any) {
-      if (otp === '123456' || otp === mockOtpCode) {
-        setPhoneVerified(true);
-        setSuccessMsg('Phone number verified successfully!');
-      } else {
-        setErrorMsg('Invalid OTP code. Please check and try again.');
-      }
+      console.error('Firebase verify error:', err);
+      const msg = err?.code === 'auth/invalid-verification-code'
+        ? 'Incorrect OTP. Please check the code and try again.'
+        : err?.code === 'auth/code-expired'
+        ? 'OTP has expired. Please request a new one.'
+        : 'Verification failed. Please try again.';
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
@@ -316,7 +326,10 @@ export const CitizenLogin: React.FC = () => {
                 </div>
               </div>
 
-              {/* OTP Verification Section (Optional fast verify) */}
+              {/* Firebase reCAPTCHA container — must exist in DOM before OTP is sent */}
+              <div id="firebase-recaptcha-container" />
+
+              {/* OTP Verification Section — uses real Firebase SMS */}
               {!phoneVerified ? (
                 <div className="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 space-y-3">
                   <div className="flex items-center justify-between">
@@ -328,38 +341,55 @@ export const CitizenLogin: React.FC = () => {
                         type="button"
                         onClick={handleSendOTP}
                         disabled={loading || phone.length < 10}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold disabled:opacity-50 transition-all"
+                        className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold disabled:opacity-50 transition-all flex items-center gap-1.5"
                       >
-                        {loading ? 'Sending...' : 'Send OTP'}
+                        {loading ? (
+                          <><RefreshCw className="w-3 h-3 animate-spin" /> Sending...</>
+                        ) : 'Send OTP via SMS'}
                       </button>
-                    ) : null}
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleRetryOTP}
+                        className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white text-[10px] font-semibold flex items-center gap-1 transition-all"
+                      >
+                        <RefreshCw className="w-3 h-3" /> Resend
+                      </button>
+                    )}
                   </div>
 
                   {otpSent && (
-                    <div className="flex items-center gap-2 pt-1">
-                      <input
-                        type="text"
-                        maxLength={6}
-                        placeholder="Enter OTP (123456)"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs tracking-wider"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyOTP}
-                        disabled={loading || otp.length < 4}
-                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs transition-all disabled:opacity-50"
-                      >
-                        Verify Code
-                      </button>
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-slate-400">
+                        Enter the 6-digit code sent to <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          placeholder="6-digit OTP"
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                          className="flex-1 px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm tracking-[0.3em] font-mono focus:border-emerald-500 focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleVerifyOTP}
+                          disabled={loading || otp.length < 6}
+                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5"
+                        >
+                          {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                          Verify
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
               ) : (
                 <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-xl flex items-center gap-2 text-emerald-300 text-xs font-medium">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Mobile number verified via OTP pass!</span>
+                  <span>Mobile number verified via Firebase SMS OTP ✓</span>
                 </div>
               )}
 
