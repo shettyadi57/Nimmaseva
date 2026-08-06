@@ -8,26 +8,36 @@
  *  - clearRecaptcha()             → resets reCAPTCHA widget (for retry)
  */
 
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import {
   getAuth,
   RecaptchaVerifier,
   signInWithPhoneNumber,
   ConfirmationResult,
+  Auth,
 } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBoxvI8h0tpMk-YHNq7LaGgqiBjU7yVQlA",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "nimmaseva-73159.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "nimmaseva-73159",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "nimmaseva-73159.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "239897408131",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:239897408131:web:010086dfeba6d07c6961b6",
 };
 
-// Initialize only once (Vite HMR safe)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-export const auth = getAuth(app);
+// Safe initialization (prevents blank screen crash if env vars are missing or firebase fails)
+let app: FirebaseApp | null = null;
+let authInstance: Auth | null = null;
+
+try {
+  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+  authInstance = getAuth(app);
+} catch (e) {
+  console.warn('Firebase init warning:', e);
+}
+
+export const auth = authInstance;
 
 // Holds the confirmation result returned after OTP is sent
 let confirmationResult: ConfirmationResult | null = null;
@@ -41,11 +51,14 @@ let recaptchaVerifier: RecaptchaVerifier | null = null;
  */
 export const setupRecaptcha = (elementId: string): RecaptchaVerifier => {
   if (recaptchaVerifier) return recaptchaVerifier;
+  if (!authInstance) {
+    throw new Error('Firebase Auth is not initialized');
+  }
 
-  recaptchaVerifier = new RecaptchaVerifier(auth, elementId, {
+  recaptchaVerifier = new RecaptchaVerifier(authInstance, elementId, {
     size: 'invisible',
     callback: () => {
-      // reCAPTCHA solved automatically — do nothing
+      // reCAPTCHA solved automatically
     },
     'expired-callback': () => {
       clearRecaptcha();
@@ -60,17 +73,19 @@ export const setupRecaptcha = (elementId: string): RecaptchaVerifier => {
  * Automatically prepends +91 if user enters a 10-digit local number.
  */
 export const sendFirebaseOTP = async (phone: string): Promise<void> => {
-  // Normalise: strip spaces/dashes, prepend +91 for Indian numbers
+  if (!authInstance) {
+    throw new Error('Firebase Auth is not available.');
+  }
+
   const cleaned = phone.replace(/\D/g, '');
   const e164Phone = cleaned.startsWith('91') ? `+${cleaned}` : `+91${cleaned}`;
 
   const verifier = setupRecaptcha('firebase-recaptcha-container');
-  confirmationResult = await signInWithPhoneNumber(auth, e164Phone, verifier);
+  confirmationResult = await signInWithPhoneNumber(authInstance, e164Phone, verifier);
 };
 
 /**
  * Verifies the OTP the user entered.
- * Returns true on success, throws an Error with a user-friendly message on failure.
  */
 export const verifyFirebaseOTP = async (otp: string): Promise<boolean> => {
   if (!confirmationResult) {
@@ -81,11 +96,13 @@ export const verifyFirebaseOTP = async (otp: string): Promise<boolean> => {
 };
 
 /**
- * Clears the reCAPTCHA verifier — call this when retrying after an error.
+ * Clears the reCAPTCHA verifier.
  */
 export const clearRecaptcha = (): void => {
   if (recaptchaVerifier) {
-    recaptchaVerifier.clear();
+    try {
+      recaptchaVerifier.clear();
+    } catch (_) {}
     recaptchaVerifier = null;
   }
   confirmationResult = null;
