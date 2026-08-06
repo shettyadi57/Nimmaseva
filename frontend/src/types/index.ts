@@ -106,3 +106,18 @@ export interface AnalyticsSummary {
   most_requested_service: string;
   peak_hour: string;
 }
+
+export interface CitizenProfile {
+  fullName: string;
+  phone: string;
+  aadhaar: string;
+  age: number | '';
+  gender: string;
+  district: string;
+  taluk: string;
+  villageOrAddress: string;
+  email?: string;
+  isVerified?: boolean;
+  createdAt?: string;
+}
+

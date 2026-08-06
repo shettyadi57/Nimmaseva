@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { fetchOffices, fetchServices, sendOTP, verifyOTP, createBooking } from '../services/api';
 import { Office, Service, Booking } from '../types';
 import { useStore } from '../store/useStore';
@@ -12,22 +12,23 @@ import {
 export const BookingForm: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLang();
-  const { selectedOffice, selectedService, setCurrentBooking } = useStore();
+  const { selectedOffice, selectedService, setCurrentBooking, citizenProfile } = useStore();
 
   const [step, setStep] = useState<number>(1);
   const [offices, setOffices] = useState<Office[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   
-  // Form State
-  const [fullName, setFullName] = useState('');
-  const [age, setAge] = useState<number | ''>('');
-  const [gender, setGender] = useState('Male');
-  const [phone, setPhone] = useState('');
-  const [aadhaar, setAadhaar] = useState(''); // Optional reference number
+  // Form State (Auto-filled if citizen logged in)
+  const [fullName, setFullName] = useState(citizenProfile?.fullName || '');
+  const [age, setAge] = useState<number | ''>(citizenProfile?.age ?? '');
+  const [gender, setGender] = useState(citizenProfile?.gender || 'Male');
+  const [phone, setPhone] = useState(citizenProfile?.phone || '');
+  const [aadhaar, setAadhaar] = useState(citizenProfile?.aadhaar || ''); 
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [phoneVerified, setPhoneVerified] = useState(!!citizenProfile);
   const [mockOtpCode, setMockOtpCode] = useState('');
+
 
   // Priority & Service state
   const [officeId, setOfficeId] = useState<number>(selectedOffice?.id || 1);
@@ -42,6 +43,18 @@ export const BookingForm: React.FC = () => {
   useEffect(() => {
     loadOptions();
   }, []);
+
+  useEffect(() => {
+    if (citizenProfile) {
+      if (citizenProfile.fullName) setFullName(citizenProfile.fullName);
+      if (citizenProfile.phone) setPhone(citizenProfile.phone);
+      if (citizenProfile.aadhaar) setAadhaar(citizenProfile.aadhaar);
+      if (citizenProfile.age) setAge(citizenProfile.age);
+      if (citizenProfile.gender) setGender(citizenProfile.gender);
+      setPhoneVerified(true);
+    }
+  }, [citizenProfile]);
+
 
   const loadOptions = async () => {
     try {
@@ -197,6 +210,41 @@ export const BookingForm: React.FC = () => {
                 <Smartphone className="w-3.5 h-3.5 text-emerald-400" /> Firebase Phone SMS Auth
               </span>
             </div>
+
+            {/* Express Auto-Fill Banner */}
+            {citizenProfile ? (
+              <div className="bg-emerald-950/40 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-lg flex-shrink-0">
+                    ⚡
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold text-emerald-300">
+                      Express Auto-Fill Active! Logged in as {citizenProfile.fullName}
+                    </div>
+                    <div className="text-xs text-slate-400">
+                      Your phone (+91 {citizenProfile.phone}) & profile details have been automatically filled to save your time.
+                    </div>
+                  </div>
+                </div>
+                <Link to="/login" className="text-xs text-amber-400 font-semibold hover:underline flex-shrink-0 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
+                  Edit Profile
+                </Link>
+              </div>
+            ) : (
+              <div className="bg-amber-950/30 border border-amber-500/30 p-4 rounded-2xl flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                  <div className="text-xs text-slate-300">
+                    <span className="font-bold text-amber-400">Save time next time!</span> Log in or set up your citizen profile once to auto-fill details on every ticket booking.
+                  </div>
+                </div>
+                <Link to="/login" className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow transition-all flex-shrink-0">
+                  Citizen Login
+                </Link>
+              </div>
+            )}
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>

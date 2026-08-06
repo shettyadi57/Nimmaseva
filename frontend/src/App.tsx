@@ -8,6 +8,7 @@ import { BookingForm } from './pages/BookingForm';
 import { TokenView } from './pages/TokenView';
 import { QueueTracker } from './pages/QueueTracker';
 import { SchemeSearch } from './pages/SchemeSearch';
+import { CitizenLogin } from './pages/CitizenLogin';
 import { AdminLogin } from './pages/admin/Login';
 import { AdminDashboard } from './pages/admin/Dashboard';
 import { QueueManagement } from './pages/admin/QueueManagement';
@@ -33,7 +34,9 @@ export const App: React.FC = () => {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/login" element={<CitizenLogin />} />
             <Route path="/book" element={<BookingForm />} />
+
             <Route path="/token/:tokenNumber" element={<TokenView />} />
             <Route path="/queue" element={<QueueTracker />} />
             <Route path="/schemes" element={<SchemeSearch />} />

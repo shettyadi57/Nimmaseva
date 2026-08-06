@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Office, Service, Booking } from '../types';
+import { Office, Service, Booking, CitizenProfile } from '../types';
 
 interface AppState {
   userLocation: { lat: number; lng: number } | null;
@@ -15,10 +15,24 @@ interface AppState {
   currentBooking: Booking | null;
   setCurrentBooking: (booking: Booking | null) => void;
 
+  // Citizen Authentication & Auto-Fill Profile State
+  citizenProfile: CitizenProfile | null;
+  setCitizenProfile: (profile: CitizenProfile | null) => void;
+  logoutCitizen: () => void;
+
   adminToken: string | null;
   adminUser: { name: string; role: string } | null;
   setAdminAuth: (token: string | null, user: { name: string; role: string } | null) => void;
 }
+
+const getStoredCitizenProfile = (): CitizenProfile | null => {
+  try {
+    const data = localStorage.getItem('nimmaseva_citizen_profile');
+    return data ? JSON.parse(data) : null;
+  } catch (e) {
+    return null;
+  }
+};
 
 export const useStore = create<AppState>((set) => ({
   userLocation: null,
@@ -34,6 +48,20 @@ export const useStore = create<AppState>((set) => ({
   currentBooking: null,
   setCurrentBooking: (booking) => set({ currentBooking: booking }),
 
+  citizenProfile: getStoredCitizenProfile(),
+  setCitizenProfile: (profile) => {
+    if (profile) {
+      localStorage.setItem('nimmaseva_citizen_profile', JSON.stringify(profile));
+    } else {
+      localStorage.removeItem('nimmaseva_citizen_profile');
+    }
+    set({ citizenProfile: profile });
+  },
+  logoutCitizen: () => {
+    localStorage.removeItem('nimmaseva_citizen_profile');
+    set({ citizenProfile: null });
+  },
+
   adminToken: localStorage.getItem('adminToken') || null,
   adminUser: localStorage.getItem('adminUser') ? JSON.parse(localStorage.getItem('adminUser')!) : null,
   setAdminAuth: (token, user) => {
@@ -47,3 +75,4 @@ export const useStore = create<AppState>((set) => ({
     set({ adminToken: token, adminUser: user });
   },
 }));
+

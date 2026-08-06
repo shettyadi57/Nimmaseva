@@ -10,10 +10,12 @@ export interface Translations {
   navBook: string;
   navQueue: string;
   navSchemes: string;
+  navLogin: string;
   allSystems: string;
   installPwa: string;
   staffLogin: string;
   adminPanel: string;
+
 
   // Home Hero
   heroTitle: string;
@@ -77,6 +79,7 @@ const translations: Record<Language, Translations> = {
     navBook: 'Book Token',
     navQueue: 'Live Queue',
     navSchemes: 'Govt Schemes',
+    navLogin: 'Citizen Login',
     allSystems: 'All Systems Operational',
     installPwa: 'Install PWA',
     staffLogin: 'Staff Login',
@@ -138,6 +141,7 @@ const translations: Record<Language, Translations> = {
     navBook: 'ಟೋಕನ್ ಬುಕ್ ಮಾಡಿ',
     navQueue: 'ನೇರ ಸರದಿ',
     navSchemes: 'ಸರ್ಕಾರಿ ಯೋಜನೆ',
+    navLogin: 'ನಾಗರಿಕ ಲಾಗಿನ್',
     allSystems: 'ಎಲ್ಲಾ ವ್ಯವಸ್ಥೆಗಳು ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿವೆ',
     installPwa: 'ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ',
     staffLogin: 'ಸಿಬ್ಬಂದಿ ಲಾಗಿನ್',
@@ -199,6 +203,7 @@ const translations: Record<Language, Translations> = {
     navBook: 'टोकन बुक करें',
     navQueue: 'लाइव कतार',
     navSchemes: 'सरकारी योजनाएं',
+    navLogin: 'नागरिक लॉगिन',
     allSystems: 'सभी सिस्टम चालू हैं',
     installPwa: 'ऐप इंस्टॉल करें',
     staffLogin: 'स्टाफ लॉगिन',

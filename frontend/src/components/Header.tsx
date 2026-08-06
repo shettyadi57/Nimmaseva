@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Building2, Ticket, Search, LayoutDashboard, ShieldCheck,
-  Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight
+  Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight, User
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useTheme } from '../context/ThemeContext';
@@ -16,7 +16,8 @@ const LANG_OPTIONS: { code: Language; label: string; native: string; flag: strin
 
 export const Header: React.FC = () => {
   const location = useLocation();
-  const { adminToken } = useStore();
+  const { adminToken, citizenProfile } = useStore();
+
   const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLang();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -154,6 +155,19 @@ export const Header: React.FC = () => {
               </span>
             </button>
 
+            {/* Citizen Profile / Login button */}
+            <Link
+              to="/login"
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                citizenProfile
+                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  : 'bg-slate-900/90 hover:bg-slate-800 text-slate-200 border-slate-700/80'
+              }`}
+            >
+              <User className={`w-4 h-4 ${citizenProfile ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span>{citizenProfile ? citizenProfile.fullName.split(' ')[0] : (t.navLogin || 'Login')}</span>
+            </Link>
+
             {adminToken ? (
               <Link
                 to="/admin/dashboard"
@@ -171,6 +185,7 @@ export const Header: React.FC = () => {
                 <span>{t.staffLogin}</span>
               </Link>
             )}
+
           </div>
 
           {/* ===== MOBILE: Only hamburger button ===== */}
@@ -261,13 +276,29 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
+          {/* Citizen Login / Profile Link */}
+          <div className="px-4 pt-2">
+            <Link
+              to="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold text-sm"
+            >
+              <div className="flex items-center gap-2.5">
+                <User className="w-5 h-5 text-emerald-400" />
+                <span>{citizenProfile ? `Logged as ${citizenProfile.fullName}` : (t.navLogin || 'Citizen Login')}</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-emerald-400" />
+            </Link>
+          </div>
+
           {/* Admin / Staff link */}
-          <div className="px-4 pb-5">
+          <div className="px-4 pb-5 pt-2">
             <Link
               to={adminToken ? '/admin/dashboard' : '/admin/login'}
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-extrabold text-sm shadow-lg shadow-amber-500/20 active:scale-98 transition-all"
             >
+
               <ShieldCheck className="w-4 h-4" />
               <span>{adminToken ? t.adminPanel : t.staffLogin}</span>
             </Link>
