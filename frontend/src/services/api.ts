@@ -502,11 +502,19 @@ export const getStoredBookings = (): Booking[] => {
   return seeds;
 };
 
+const setStoredBookings = (bookings: Booking[]): Booking[] => {
+  try {
+    localStorage.setItem('nimmaseva_bookings', JSON.stringify(bookings));
+  } catch (e) {
+    console.warn('Failed to save bookings to localStorage:', e);
+  }
+  return bookings;
+};
+
 export const saveStoredBooking = (booking: Booking): Booking[] => {
   const current = getStoredBookings();
   const updated = [booking, ...current.filter(b => b.id !== booking.id)];
-  localStorage.setItem('nimmaseva_bookings', JSON.stringify(updated));
-  return updated;
+  return setStoredBookings(updated);
 };
 
 export const updateStoredBookingStatus = (id: number, status: string, counterNumber?: number): Booking[] => {
@@ -521,8 +529,7 @@ export const updateStoredBookingStatus = (id: number, status: string, counterNum
     }
     return b;
   });
-  localStorage.setItem('nimmaseva_bookings', JSON.stringify(updated));
-  return updated;
+  return setStoredBookings(updated);
 };
 
 export const sendCitizenReminderSMS = async (tokenOrId: string | number) => {
@@ -538,7 +545,7 @@ export const sendCitizenReminderSMS = async (tokenOrId: string | number) => {
     }
     return b;
   });
-  localStorage.setItem('nimmaseva_bookings', JSON.stringify(updated));
+  setStoredBookings(updated);
 
   try {
     const target = current.find(b => b.id === Number(tokenOrId) || b.token_number === String(tokenOrId));

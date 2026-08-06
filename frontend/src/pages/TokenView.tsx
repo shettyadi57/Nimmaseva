@@ -4,7 +4,7 @@ import { fetchBookingByToken, downloadPDFUrl, acknowledgeReminder, sendCitizenRe
 import { Booking } from '../types';
 import { 
   Ticket, Download, Printer, Share2, Sparkles, Clock, CheckCircle2, Shield, 
-  QrCode, ArrowRight, User, BellRing, Navigation, Check, Volume2, AlertTriangle, Smartphone, Star
+  QrCode, ArrowRight, User, BellRing, Navigation, Check, AlertTriangle, Smartphone, Star
 } from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
 

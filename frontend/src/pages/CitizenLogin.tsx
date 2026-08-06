@@ -5,7 +5,7 @@ import { useLang } from '../context/LanguageContext';
 import { sendFirebaseOTP, verifyFirebaseOTP, clearRecaptcha } from '../lib/firebase';
 import { 
   User, Phone, ShieldCheck, Ticket, CheckCircle2, ArrowRight, 
-  Sparkles, MapPin, Hash, LogOut, Edit3, UserCheck, AlertCircle, KeyRound, Clock, Check, RefreshCw
+  Sparkles, LogOut, Edit3, UserCheck, AlertCircle, KeyRound, Check, RefreshCw
 } from 'lucide-react';
 import { CitizenProfile } from '../types';
 

@@ -8,7 +8,7 @@ import { KarnatakaBadge } from '../components/KarnatakaBadge';
 import { useLang } from '../context/LanguageContext';
 import { 
   MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
-  Ticket, Users, CheckCircle2, RefreshCw, Zap, Sparkles, Activity, FileText, CheckCircle
+  Ticket, Users, CheckCircle2, RefreshCw, Sparkles, Activity, FileText
 } from 'lucide-react';
 
 export const Home: React.FC = () => {
