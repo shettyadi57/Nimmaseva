@@ -47,6 +47,7 @@ export interface Translations {
   pregnant: string;
   emergency: string;
   general: string;
+  normalCitizen: string;
 
   // Queue
   queueTitle: string;
@@ -157,6 +158,7 @@ const translations: Record<Language, Translations> = {
     pregnant: 'Pregnant / New Mother',
     emergency: 'Emergency',
     general: 'General',
+    normalCitizen: 'General / Normal Citizen',
 
     queueTitle: 'Live Token Queue',
     nowServing: 'Now Serving',
@@ -260,6 +262,7 @@ const translations: Record<Language, Translations> = {
     pregnant: 'ಗರ್ಭಿಣಿ / ನವ ತಾಯಿ',
     emergency: 'ತುರ್ತು ಪರಿಸ್ಥಿತಿ',
     general: 'ಸಾಮಾನ್ಯ',
+    normalCitizen: 'ಸಾಮಾನ್ಯ ನಾಗರಿಕ (General Citizen)',
 
     queueTitle: 'ನೇರ ಟೋಕನ್ ಸರದಿ',
     nowServing: 'ಈಗ ಸೇವೆ ನೀಡಲಾಗುತ್ತಿದೆ',
@@ -363,6 +366,7 @@ const translations: Record<Language, Translations> = {
     pregnant: 'गर्भवती / नई माँ',
     emergency: 'आपातकाल',
     general: 'सामान्य',
+    normalCitizen: 'सामान्य नागरिक (General Citizen)',
 
     queueTitle: 'लाइव टोकन कतार',
     nowServing: 'अभी सेवा',

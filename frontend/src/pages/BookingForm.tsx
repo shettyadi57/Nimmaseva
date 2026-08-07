@@ -34,8 +34,53 @@ export const BookingForm: React.FC = () => {
   const [officeId, setOfficeId] = useState<number>(selectedOffice?.id || 1);
   const [serviceId, setServiceId] = useState<number>(selectedService?.id || 1);
   const [isPriority, setIsPriority] = useState(false);
-  const [priorityReason, setPriorityReason] = useState('None');
+  const [priorityReason, setPriorityReason] = useState('General / Normal Citizen');
+  const [selectedCategory, setSelectedCategory] = useState<string>('General / Normal Citizen');
   const [bookingType, setBookingType] = useState('Online');
+
+  const citizenCategories = [
+    {
+      id: 'normal',
+      title: '🧑 General / Normal Citizen',
+      desc: 'Standard Token Pass for all general citizens (Regular Queue)',
+      reason: 'General / Normal Citizen',
+      isPriority: false,
+    },
+    {
+      id: 'senior',
+      title: '👴 Senior Citizen (60+)',
+      desc: 'Express Priority slot for elderly citizens aged 60 and above',
+      reason: 'Senior Citizen (60+)',
+      isPriority: true,
+    },
+    {
+      id: 'pwd',
+      title: '♿ Person with Disability (PWD)',
+      desc: 'Dedicated queue counter access & priority assistance',
+      reason: 'Person with Disability',
+      isPriority: true,
+    },
+    {
+      id: 'pregnant',
+      title: '🤰 Pregnant Woman / New Mother',
+      desc: 'Fast-track priority token for expectant & nursing mothers',
+      reason: 'Pregnant / New Mother',
+      isPriority: true,
+    },
+    {
+      id: 'emergency',
+      title: '🚨 Emergency / Urgent Case',
+      desc: 'Immediate Tatkal counter allocation for urgent administrative cases',
+      reason: 'Emergency',
+      isPriority: true,
+    },
+  ];
+
+  const handleCategorySelect = (cat: typeof citizenCategories[0]) => {
+    setSelectedCategory(cat.reason);
+    setIsPriority(cat.isPriority);
+    setPriorityReason(cat.isPriority ? cat.reason : 'General / Normal Citizen');
+  };
 
   // Server Outage Modal state
   const [serverDownModalOpen, setServerDownModalOpen] = useState(false);
@@ -529,42 +574,48 @@ export const BookingForm: React.FC = () => {
                 </select>
               </div>
 
-              {/* Priority Pass Allocation Box */}
-              <div className="bg-slate-950/80 border border-amber-500/30 rounded-2xl p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-                    <Sparkles className="w-5 h-5 text-amber-400" />
-                    <span>Priority Pass Allocation</span>
+              {/* Citizen Category & Queue Pass Allocation Box */}
+              <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                  <div className="flex items-center gap-2 text-white font-extrabold text-sm">
+                    <User className="w-5 h-5 text-amber-400" />
+                    <span>Select Citizen Category / Queue Pass Type</span>
                   </div>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isPriority}
-                      onChange={(e) => setIsPriority(e.target.checked)}
-                      className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400"
-                    />
-                    <span className="text-xs font-bold text-slate-200">Request Priority Token</span>
-                  </label>
+                  <span className="text-[11px] text-emerald-400 font-mono font-bold bg-emerald-950 px-2.5 py-1 rounded-full border border-emerald-800">
+                    {isPriority ? '⚡ Priority Pass Active' : '🧑 General Pass Active'}
+                  </span>
                 </div>
 
-                {isPriority && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    {priorityOptions.map((opt, idx) => (
+                <p className="text-xs text-slate-400">
+                  Select your citizen category to ensure proper queue counter allocation. Regular citizens select <strong className="text-white">General / Normal Citizen</strong>.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {citizenCategories.map((cat) => {
+                    const isSelected = selectedCategory === cat.reason;
+                    return (
                       <div
-                        key={idx}
-                        onClick={() => setPriorityReason(opt.reason)}
-                        className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                          priorityReason === opt.reason
-                            ? 'bg-amber-500/20 border-amber-400 text-white'
-                            : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700'
+                        key={cat.id}
+                        onClick={() => handleCategorySelect(cat)}
+                        className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                          isSelected
+                            ? cat.isPriority
+                              ? 'bg-amber-500/20 border-amber-400 text-white shadow-lg shadow-amber-950/40'
+                              : 'bg-emerald-500/20 border-emerald-400 text-white shadow-lg shadow-emerald-950/40'
+                            : 'bg-slate-900/90 border-slate-800/80 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                         }`}
                       >
-                        <div className="text-xs font-bold">{opt.title}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{opt.desc}</div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-extrabold text-white">{cat.title}</span>
+                          {isSelected && (
+                            <CheckCircle2 className={`w-4 h-4 ${cat.isPriority ? 'text-amber-400' : 'text-emerald-400'}`} />
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed">{cat.desc}</p>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -633,12 +684,19 @@ export const BookingForm: React.FC = () => {
                 </div>
               </div>
 
-              {isPriority && (
-                <div className="p-3 bg-amber-950/60 border border-amber-800 rounded-xl text-xs text-amber-300 font-bold flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                  <span>Priority Token Pass Assigned: {priorityReason}</span>
+              <div className={`p-3.5 rounded-2xl border text-xs font-bold flex items-center justify-between ${
+                isPriority
+                  ? 'bg-amber-950/60 border-amber-800 text-amber-300'
+                  : 'bg-emerald-950/60 border-emerald-800 text-emerald-300'
+              }`}>
+                <div className="flex items-center gap-2">
+                  {isPriority ? <Sparkles className="w-4 h-4 text-amber-400 shrink-0" /> : <User className="w-4 h-4 text-emerald-400 shrink-0" />}
+                  <span>Citizen Category Pass Assigned: <strong className="text-white font-extrabold">{priorityReason}</strong></span>
                 </div>
-              )}
+                <span className="text-[10px] font-mono font-black uppercase bg-slate-900 px-2.5 py-1 rounded-full border border-slate-800">
+                  {isPriority ? '⚡ PRIORITY SLOT' : '🧑 GENERAL REGULAR SLOT'}
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-2">
