@@ -97,6 +97,17 @@ export interface Translations {
   installAppLabel: string;
   legalReviewFlagText: string;
   copyrightGovt: string;
+
+  // Server Outage Alert Modal
+  serverDownTitle: string;
+  serviceMaintenanceTitle: string;
+  serverDownNoticeMsg: string;
+  notifyMeWhenBackOnline: string;
+  chooseAlternativeService: string;
+  serviceStatusActive: string;
+  serviceStatusDown: string;
+  serviceStatusMaintenance: string;
+  alertRegisteredMsg: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -187,6 +198,16 @@ const translations: Record<Language, Translations> = {
     installAppLabel: 'Install App',
     legalReviewFlagText: 'Note: Needs legal review before production launch.',
     copyrightGovt: 'Government of Karnataka • Shivamogga District Administration',
+
+    serverDownTitle: 'Service Server Currently Down',
+    serviceMaintenanceTitle: 'Service Under Scheduled Maintenance',
+    serverDownNoticeMsg: 'The state data center server for this service is temporarily offline or undergoing maintenance. Online token booking is paused to prevent token loss.',
+    notifyMeWhenBackOnline: 'Notify Me When Server Is Back Online',
+    chooseAlternativeService: 'Choose Another Active Service',
+    serviceStatusActive: 'Active',
+    serviceStatusDown: 'Server Down',
+    serviceStatusMaintenance: 'Maintenance',
+    alertRegisteredMsg: 'Alert Registered! We will notify your mobile when the server returns online.',
   },
 
   kn: {
@@ -276,6 +297,16 @@ const translations: Record<Language, Translations> = {
     installAppLabel: 'ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ',
     legalReviewFlagText: 'ಸೂಚನೆ: ಉತ್ಪಾದನೆಗೆ ಪ್ರಾರಂಭಿಸುವ ಮೊದಲು ಕಾನೂನು ಪರಿಶೀಲನೆ ಅಗತ್ಯವಿದೆ.',
     copyrightGovt: 'ಕರ್ನಾಟಕ ಸರ್ಕಾರ • ಶಿವಮೊಗ್ಗ ಜಿಲ್ಲಾಡಳಿತ',
+
+    serverDownTitle: 'ಸೇವೆ ಸರ್ವರ್ ತಾತ್ಕಾಲಿಕವಾಗಿ ಸ್ಥಗಿತಗೊಂಡಿದೆ',
+    serviceMaintenanceTitle: 'ಸೇವೆ ನಿಗದಿತ ನಿರ್ವಹಣೆಯಲ್ಲಿದೆ',
+    serverDownNoticeMsg: 'ಈ ಸೇವೆಗಾಗಿ ರಾಜ್ಯ ಡೇಟಾ ಸೆಂಟರ್ ಸರ್ವರ್ ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದೆ. ಟೋಕನ್ ನಷ್ಟವನ್ನು ತಡೆಯಲು ಆನ್‌ಲೈನ್ ಟೋಕನ್ ಕಾಯ್ದಿರಿಸುವಿಕೆಯನ್ನು ತಾತ್ಕಾಲಿಕವಾಗಿ ನಿಲ್ಲಿಸಲಾಗಿದೆ.',
+    notifyMeWhenBackOnline: 'ಸರ್ವರ್ ಆನ್‌ಲೈನ್‌ಗೆ ಬಂದಾಗ ನನಗೆ ತಿಳಿಸಿ',
+    chooseAlternativeService: 'ಮತ್ತೊಂದು ಸಕ್ರಿಯ ಸೇವೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+    serviceStatusActive: 'ಸಕ್ರಿಯ',
+    serviceStatusDown: 'ಸರ್ವರ್ ಡೌನ್',
+    serviceStatusMaintenance: 'ನಿರ್ವಹಣೆಯಲ್ಲಿದೆ',
+    alertRegisteredMsg: 'ಎಚ್ಚರಿಕೆಯನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ! ಸರ್ವರ್ ಆನ್‌ಲೈನ್‌ಗೆ ಬಂದಾಗ ನಿಮ್ಮ ಮೊಬೈಲ್‌ಗೆ ತಿಳಿಸುತ್ತೇವೆ.',
   },
 
   hi: {
@@ -365,6 +396,16 @@ const translations: Record<Language, Translations> = {
     installAppLabel: 'ऐप इंस्टॉल करें',
     legalReviewFlagText: 'नोट: लॉन्च से पहले कानूनी समीक्षा आवश्यक है।',
     copyrightGovt: 'कर्नाटक सरकार • शिवमोग्गा जिला प्रशासन',
+
+    serverDownTitle: 'सेवा सर्वर वर्तमान में डाउन है',
+    serviceMaintenanceTitle: 'सेवा निर्धारित रखरखाव के तहत है',
+    serverDownNoticeMsg: 'इस सेवा के लिए राज्य डेटा सेंटर सर्वर अस्थायी रूप से ऑफ़लाइन है। टोकन क्षति को रोकने के लिए ऑनलाइन टोकन बुकिंग रोक दी गई है।',
+    notifyMeWhenBackOnline: 'सर्वर ऑनलाइन आने पर मुझे सूचित करें',
+    chooseAlternativeService: 'अन्य सक्रिय सेवा चुनें',
+    serviceStatusActive: 'सक्रिय',
+    serviceStatusDown: 'सर्वर डाउन',
+    serviceStatusMaintenance: 'रखरखाव में',
+    alertRegisteredMsg: 'अलर्ट पंजीकृत! सर्वर ऑनलाइन आने पर हम आपको सूचित करेंगे।',
   },
 };
 

@@ -7,8 +7,9 @@ import { useStore } from '../store/useStore';
 import { useLang } from '../context/LanguageContext';
 import { 
   Ticket, CheckCircle2, AlertCircle, ShieldCheck, User, Phone, Calendar, Clock, 
-  ArrowRight, ArrowLeft, FileText, Sparkles, AlertTriangle, HeartHandshake, Zap, Shield, Check, Smartphone
+  ArrowRight, ArrowLeft, FileText, Sparkles, AlertTriangle, HeartHandshake, Zap, Shield, Check, Smartphone, AlertOctagon
 } from 'lucide-react';
+import { ServerDownModal } from '../components/ServerDownModal';
 
 export const BookingForm: React.FC = () => {
   const navigate = useNavigate();
@@ -29,13 +30,16 @@ export const BookingForm: React.FC = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [phoneVerified, setPhoneVerified] = useState(!!citizenProfile);
 
-
   // Priority & Service state
   const [officeId, setOfficeId] = useState<number>(selectedOffice?.id || 1);
   const [serviceId, setServiceId] = useState<number>(selectedService?.id || 1);
   const [isPriority, setIsPriority] = useState(false);
   const [priorityReason, setPriorityReason] = useState('None');
   const [bookingType, setBookingType] = useState('Online');
+
+  // Server Outage Modal state
+  const [serverDownModalOpen, setServerDownModalOpen] = useState(false);
+  const [outageService, setOutageService] = useState<Service | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -70,6 +74,32 @@ export const BookingForm: React.FC = () => {
 
   const currentService = services.find((s) => s.id === Number(serviceId));
   const currentOffice = offices.find((o) => o.id === Number(officeId));
+
+  useEffect(() => {
+    if (services.length > 0) {
+      const current = services.find((s) => s.id === Number(serviceId));
+      if (current && (current.server_status === 'Down' || current.server_status === 'Maintenance' || !current.is_active)) {
+        setOutageService(current);
+        setServerDownModalOpen(true);
+      }
+    }
+  }, [services, serviceId]);
+
+  const handleServiceSelectChange = (newId: number) => {
+    setServiceId(newId);
+    const target = services.find((s) => s.id === newId);
+    if (target && (target.server_status === 'Down' || target.server_status === 'Maintenance' || !target.is_active)) {
+      setOutageService(target);
+      setServerDownModalOpen(true);
+    }
+  };
+
+  const selectFirstActiveService = () => {
+    const active = services.find((s) => s.server_status === 'Active' && s.is_active);
+    if (active) {
+      setServiceId(active.id);
+    }
+  };
 
   useEffect(() => {
     if (typeof age === 'number' && age >= 60) {
@@ -134,6 +164,13 @@ export const BookingForm: React.FC = () => {
     e.preventDefault();
     if (!phoneVerified) {
       setErrorMsg('Please verify your mobile number with Phone OTP before submitting');
+      return;
+    }
+
+    if (currentService && (currentService.server_status === 'Down' || currentService.server_status === 'Maintenance' || !currentService.is_active)) {
+      setOutageService(currentService);
+      setServerDownModalOpen(true);
+      setErrorMsg(`Service '${currentService.name}' server is currently ${currentService.server_status.toUpperCase()}. Online booking is temporarily suspended.`);
       return;
     }
 
@@ -433,14 +470,19 @@ export const BookingForm: React.FC = () => {
                 <label className="block text-xs font-bold text-slate-300 mb-2">Select Service Required</label>
                 <select
                   value={serviceId}
-                  onChange={(e) => setServiceId(Number(e.target.value))}
+                  onChange={(e) => handleServiceSelectChange(Number(e.target.value))}
                   className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 text-sm font-semibold focus:border-amber-500 focus:outline-none"
                 >
-                  {services.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.category}) - ₹{s.fee}
-                    </option>
-                  ))}
+                  {services.map((s) => {
+                    const isDown = s.server_status === 'Down' || !s.is_active;
+                    const isMaint = s.server_status === 'Maintenance';
+                    const tag = isDown ? ' [🔴 SERVER DOWN]' : isMaint ? ' [🟡 MAINTENANCE]' : '';
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {tag} {s.name} ({s.category}) - ₹{s.fee}
+                      </option>
+                    );
+                  })}
                 </select>
                 {currentService && (
                   <div className="mt-2 p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
@@ -449,6 +491,25 @@ export const BookingForm: React.FC = () => {
                       <span>Est. Duration: {currentService.avg_processing_time_mins} Mins</span>
                       <span>Daily Cap: {currentService.daily_capacity} Tokens</span>
                     </div>
+
+                    {(currentService.server_status === 'Down' || currentService.server_status === 'Maintenance' || !currentService.is_active) && (
+                      <div className="p-3 rounded-xl bg-red-950/80 border border-red-800 text-xs text-red-200 flex items-center justify-between gap-2 mt-2">
+                        <div className="flex items-center gap-2 font-bold">
+                          <AlertOctagon className="w-4 h-4 text-red-400 shrink-0" />
+                          <span>Server status: {currentService.server_status.toUpperCase()}. Online booking paused.</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOutageService(currentService);
+                            setServerDownModalOpen(true);
+                          }}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-500 text-white font-extrabold text-[10px] rounded-lg shrink-0 shadow"
+                        >
+                          View Outage Notice
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -602,6 +663,13 @@ export const BookingForm: React.FC = () => {
           </form>
         )}
       </div>
+
+      <ServerDownModal
+        service={outageService}
+        isOpen={serverDownModalOpen}
+        onClose={() => setServerDownModalOpen(false)}
+        onSelectAlternative={() => selectFirstActiveService()}
+      />
     </div>
   );
 };

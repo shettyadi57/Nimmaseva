@@ -7,6 +7,7 @@ import { KarnatakaBadge } from '../../components/KarnatakaBadge';
 export const ServicesControl: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
     loadServices();
@@ -25,8 +26,11 @@ export const ServicesControl: React.FC = () => {
   };
 
   const handleStatusChange = async (serviceId: number, newServerStatus: string, isActive: boolean) => {
+    const srv = services.find((s) => s.id === serviceId);
     try {
       await toggleServiceStatus(serviceId, newServerStatus, isActive);
+      setToastMsg(`Server status for '${srv?.name || 'Service'}' updated to '${newServerStatus.toUpperCase()}'. Citizens selecting this service will now see the outage popup notice.`);
+      setTimeout(() => setToastMsg(null), 5000);
       loadServices();
     } catch (e) {
       console.error(e);
@@ -43,6 +47,17 @@ export const ServicesControl: React.FC = () => {
           <h1 className="text-3xl font-black text-white mt-1">SERVICE SERVER STATUS CONTROL CENTER</h1>
           <p className="text-xs text-slate-400">Toggle individual service availability (Active, Maintenance, Server Down) to instantly control citizen booking slots</p>
         </div>
+
+        {/* Action Toast Feedback Banner */}
+        {toastMsg && (
+          <div className="p-4 rounded-2xl bg-amber-950/80 border border-amber-500/50 text-amber-200 text-xs font-bold flex items-center justify-between gap-3 shadow-xl animate-fadeIn">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+              <span>{toastMsg}</span>
+            </div>
+            <button onClick={() => setToastMsg(null)} className="text-slate-400 hover:text-white">✕</button>
+          </div>
+        )}
 
         {/* Services Table */}
         <div className="glass-panel rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">

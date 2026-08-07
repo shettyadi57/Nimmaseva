@@ -5,10 +5,11 @@ import { Office, Service, PublicStats } from '../types';
 import { useStore } from '../store/useStore';
 import { OfficeMap } from '../components/map/OfficeMap';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
+import { ServerDownModal } from '../components/ServerDownModal';
 import { useLang } from '../context/LanguageContext';
 import { 
   MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
-  Ticket, Users, CheckCircle2, RefreshCw, Sparkles, Activity, FileText
+  Ticket, Users, CheckCircle2, RefreshCw, Sparkles, Activity, FileText, AlertOctagon
 } from 'lucide-react';
 
 export const Home: React.FC = () => {
@@ -21,6 +22,10 @@ export const Home: React.FC = () => {
   const [locationStatus, setLocationStatus] = useState<string>('Detecting location...');
   const [heroStats, setHeroStats] = useState<PublicStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+
+  // Outage modal state
+  const [outageModalOpen, setOutageModalOpen] = useState(false);
+  const [outageService, setOutageService] = useState<Service | null>(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -76,6 +81,11 @@ export const Home: React.FC = () => {
 
   const handleSelectService = (service: Service) => {
     setSelectedService(service);
+    if (service.server_status === 'Down' || service.server_status === 'Maintenance' || !service.is_active) {
+      setOutageService(service);
+      setOutageModalOpen(true);
+      return;
+    }
     navigate('/book');
   };
 
@@ -328,45 +338,73 @@ export const Home: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {services.map((service) => (
-              <div
-                key={service.id}
-                onClick={() => handleSelectService(service)}
-                className="glass-panel rounded-2xl p-5 border border-slate-800 hover:border-emerald-500/60 hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
-                    {service.category}
-                  </span>
-                  <span className="text-xs font-black text-amber-400 font-mono">
-                    {service.fee === 0 ? 'FREE' : `₹${service.fee}`}
-                  </span>
-                </div>
+            {services.map((service) => {
+              const isDown = service.server_status === 'Down' || !service.is_active;
+              const isMaint = service.server_status === 'Maintenance';
 
-                <div>
-                  <h4 className="font-extrabold text-base text-white group-hover:text-amber-400 transition-colors leading-snug">
-                    {service.name}
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-slate-500" />
-                    <span>Avg Processing: ~{service.avg_processing_time_mins} mins</span>
-                  </p>
-                </div>
+              return (
+                <div
+                  key={service.id}
+                  onClick={() => handleSelectService(service)}
+                  className={`glass-panel rounded-2xl p-5 border ${
+                    isDown ? 'border-red-900/60 bg-red-950/10 hover:border-red-600' :
+                    isMaint ? 'border-amber-900/60 bg-amber-950/10 hover:border-amber-500' :
+                    'border-slate-800 hover:border-emerald-500/60'
+                  } hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group space-y-4 relative`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
+                      {service.category}
+                    </span>
+                    <span className="text-xs font-black text-amber-400 font-mono">
+                      {service.fee === 0 ? 'FREE' : `₹${service.fee}`}
+                    </span>
+                  </div>
 
-                <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-900 text-slate-400">
-                  <span className="flex items-center gap-1 text-[11px]">
-                    <FileText className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Docs: {service.required_documents?.length || 3} required</span>
-                  </span>
-                  <span className="text-emerald-400 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                    Book <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
+                  <div>
+                    <h4 className="font-extrabold text-base text-white group-hover:text-amber-400 transition-colors leading-snug">
+                      {service.name}
+                    </h4>
+                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-slate-500" />
+                      <span>Avg Processing: ~{service.avg_processing_time_mins} mins</span>
+                    </p>
+                  </div>
+
+                  {/* Status Indicator Badge */}
+                  {(isDown || isMaint) && (
+                    <div className={`p-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 ${
+                      isDown ? 'bg-red-950/90 text-red-300 border border-red-800' : 'bg-amber-950/90 text-amber-300 border border-amber-800'
+                    }`}>
+                      <AlertOctagon className="w-3.5 h-3.5 shrink-0" />
+                      <span>{isDown ? '🔴 SERVER DOWN' : '🟡 MAINTENANCE'}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-900 text-slate-400">
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <FileText className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Docs: {service.required_documents?.length || 3} required</span>
+                    </span>
+                    <span className={`font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform ${
+                      isDown ? 'text-red-400' : isMaint ? 'text-amber-400' : 'text-emerald-400'
+                    }`}>
+                      {isDown ? 'Outage Alert' : 'Book'} <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       </div>
+
+      <ServerDownModal
+        service={outageService}
+        isOpen={outageModalOpen}
+        onClose={() => setOutageModalOpen(false)}
+        onSelectAlternative={() => navigate('/book')}
+      />
     </div>
   );
 };
