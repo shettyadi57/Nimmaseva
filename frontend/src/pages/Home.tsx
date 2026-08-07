@@ -81,12 +81,8 @@ export const Home: React.FC = () => {
 
   const handleSelectService = (service: Service) => {
     setSelectedService(service);
-    if (service.server_status === 'Down' || service.server_status === 'Maintenance' || !service.is_active) {
-      setOutageService(service);
-      setOutageModalOpen(true);
-      return;
-    }
-    navigate('/book');
+    setOutageService(service);
+    setOutageModalOpen(true);
   };
 
   const currentHour = new Date().getHours();
@@ -372,14 +368,20 @@ export const Home: React.FC = () => {
                   </div>
 
                   {/* Status Indicator Badge */}
-                  {(isDown || isMaint) && (
-                    <div className={`p-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 ${
-                      isDown ? 'bg-red-950/90 text-red-300 border border-red-800' : 'bg-amber-950/90 text-amber-300 border border-amber-800'
-                    }`}>
-                      <AlertOctagon className="w-3.5 h-3.5 shrink-0" />
-                      <span>{isDown ? '🔴 SERVER DOWN' : '🟡 MAINTENANCE'}</span>
-                    </div>
-                  )}
+                  <div className={`p-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 ${
+                    isDown ? 'bg-red-950/90 text-red-300 border border-red-800' :
+                    isMaint ? 'bg-amber-950/90 text-amber-300 border border-amber-800' :
+                    'bg-emerald-950/90 text-emerald-300 border border-emerald-800'
+                  }`}>
+                    {isDown ? (
+                      <AlertOctagon className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                    ) : isMaint ? (
+                      <AlertOctagon className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                    )}
+                    <span>{isDown ? '🔴 SERVER DOWN' : isMaint ? '🟡 MAINTENANCE' : '🟢 SERVER ONLINE'}</span>
+                  </div>
 
                   <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-900 text-slate-400">
                     <span className="flex items-center gap-1 text-[11px]">
@@ -389,7 +391,7 @@ export const Home: React.FC = () => {
                     <span className={`font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform ${
                       isDown ? 'text-red-400' : isMaint ? 'text-amber-400' : 'text-emerald-400'
                     }`}>
-                      {isDown ? 'Outage Alert' : 'Book'} <ArrowRight className="w-3.5 h-3.5" />
+                      {isDown ? 'Outage Alert' : isMaint ? 'Maintenance' : 'Book'} <ArrowRight className="w-3.5 h-3.5" />
                     </span>
                   </div>
                 </div>
@@ -404,6 +406,7 @@ export const Home: React.FC = () => {
         isOpen={outageModalOpen}
         onClose={() => setOutageModalOpen(false)}
         onSelectAlternative={() => navigate('/book')}
+        onProceedBooking={() => navigate('/book')}
       />
     </div>
   );

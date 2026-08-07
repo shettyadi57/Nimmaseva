@@ -669,6 +669,7 @@ export const BookingForm: React.FC = () => {
         isOpen={serverDownModalOpen}
         onClose={() => setServerDownModalOpen(false)}
         onSelectAlternative={() => selectFirstActiveService()}
+        onProceedBooking={() => setServerDownModalOpen(false)}
       />
     </div>
   );

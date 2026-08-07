@@ -108,6 +108,11 @@ export interface Translations {
   serviceStatusDown: string;
   serviceStatusMaintenance: string;
   alertRegisteredMsg: string;
+
+  // Active Server Popup Modal
+  serverActiveTitle: string;
+  serverActiveNoticeMsg: string;
+  bookServiceNowLabel: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -208,6 +213,10 @@ const translations: Record<Language, Translations> = {
     serviceStatusDown: 'Server Down',
     serviceStatusMaintenance: 'Maintenance',
     alertRegisteredMsg: 'Alert Registered! We will notify your mobile when the server returns online.',
+
+    serverActiveTitle: 'Server Online & Service Fully Active',
+    serverActiveNoticeMsg: 'Great news! The State Data Center server for this service is online, healthy, and operational. You can book digital token passes without delay.',
+    bookServiceNowLabel: 'Proceed & Book Token Pass',
   },
 
   kn: {
@@ -307,6 +316,10 @@ const translations: Record<Language, Translations> = {
     serviceStatusDown: 'ಸರ್ವರ್ ಡೌನ್',
     serviceStatusMaintenance: 'ನಿರ್ವಹಣೆಯಲ್ಲಿದೆ',
     alertRegisteredMsg: 'ಎಚ್ಚರಿಕೆಯನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ! ಸರ್ವರ್ ಆನ್‌ಲೈನ್‌ಗೆ ಬಂದಾಗ ನಿಮ್ಮ ಮೊಬೈಲ್‌ಗೆ ತಿಳಿಸುತ್ತೇವೆ.',
+
+    serverActiveTitle: 'ಸರ್ವರ್ ಆನ್‌ಲೈನ್ ಮತ್ತು ಸೇವೆ ಸಂಪೂರ್ಣ ಸಕ್ರಿಯವಾಗಿದೆ',
+    serverActiveNoticeMsg: 'ಉತ್ತಮ ಸುದ್ದಿ! ಈ ಸೇವೆಗಾಗಿ ರಾಜ್ಯ ಡೇಟಾ ಸೆಂಟರ್ ಸರ್ವರ್ ಆನ್‌ಲೈನ್‌ನಲ್ಲಿದೆ ಮತ್ತು ಉತ್ತಮವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿದೆ. ನೀವು ತಕ್ಷಣವೇ ಡಿಜಿಟಲ್ ಟೋಕನ್ ಪಾಸ್ ಬುಕ್ ಮಾಡಬಹುದು.',
+    bookServiceNowLabel: 'ಮುಂದುವರಿಯಿರಿ ಮತ್ತು ಟೋಕನ್ ಪಾಸ್ ಬುಕ್ ಮಾಡಿ',
   },
 
   hi: {
@@ -406,6 +419,10 @@ const translations: Record<Language, Translations> = {
     serviceStatusDown: 'सर्वर डाउन',
     serviceStatusMaintenance: 'रखरखाव में',
     alertRegisteredMsg: 'अलर्ट पंजीकृत! सर्वर ऑनलाइन आने पर हम आपको सूचित करेंगे।',
+
+    serverActiveTitle: 'सर्वर ऑनलाइन और सेवा पूरी तरह से सक्रिय है',
+    serverActiveNoticeMsg: 'बढ़ी खबर! इस सेवा के लिए राज्य डेटा सेंटर सर्वर ऑनलाइन है और सुचारू रूप से काम कर रहा है। आप बिना किसी देरी के डिजिटल टोकन पास बुक कर सकते हैं।',
+    bookServiceNowLabel: 'आगे बढ़ें और टोकन पास बुक करें',
   },
 };
 

@@ -29,8 +29,14 @@ export const ServicesControl: React.FC = () => {
     const srv = services.find((s) => s.id === serviceId);
     try {
       await toggleServiceStatus(serviceId, newServerStatus, isActive);
-      setToastMsg(`Server status for '${srv?.name || 'Service'}' updated to '${newServerStatus.toUpperCase()}'. Citizens selecting this service will now see the outage popup notice.`);
-      setTimeout(() => setToastMsg(null), 5000);
+      const actionNotice = newServerStatus === 'Active' 
+        ? `🟢 Server status for '${srv?.name}' updated to ACTIVE. Citizens will now see the Server Online & Service Restored popup notification.`
+        : newServerStatus === 'Maintenance'
+        ? `🟡 Server status for '${srv?.name}' updated to MAINTENANCE. Citizens will now see the Service Maintenance notice popup.`
+        : `🔴 Server status for '${srv?.name}' updated to SERVER DOWN. Citizens will now see the Outage notice popup.`;
+
+      setToastMsg(actionNotice);
+      setTimeout(() => setToastMsg(null), 6000);
       loadServices();
     } catch (e) {
       console.error(e);
