@@ -69,6 +69,34 @@ export interface Translations {
   helpline: string;
   footerEmergency: string;
   copyright: string;
+
+  // Footer & Compliance Section
+  aboutBrandingTitle: string;
+  portalDescription: string;
+  quickLinksTitle: string;
+  navBookToken: string;
+  navTrackQueue: string;
+  navSchemeSearch: string;
+  navMyBookings: string;
+  navGrievance: string;
+  policiesTitle: string;
+  termsOfService: string;
+  privacyPolicy: string;
+  accessibilityStatement: string;
+  hyperlinkingPolicy: string;
+  sitemap: string;
+  contactSupportTitle: string;
+  districtAddress: string;
+  supportEmail: string;
+  supportPhone: string;
+  officeHoursTitle: string;
+  officeHoursSchedule: string;
+  lunchBreakSchedule: string;
+  closedHolidays: string;
+  viewOfficeMap: string;
+  installAppLabel: string;
+  legalReviewFlagText: string;
+  copyrightGovt: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -132,6 +160,33 @@ const translations: Record<Language, Translations> = {
     helpline: 'Helpline',
     footerEmergency: 'Emergency',
     copyright: '© 2026 Nimma Seva — Shivamogga Smart Governance. All rights reserved.',
+
+    aboutBrandingTitle: 'About Portal',
+    portalDescription: 'Official Progressive Web Application for GramOne and Seva Sindhu centers across Shivamogga District, Government of Karnataka.',
+    quickLinksTitle: 'Quick Links',
+    navBookToken: 'Book a Token',
+    navTrackQueue: 'Track Queue',
+    navSchemeSearch: 'Scheme Search',
+    navMyBookings: 'My Bookings',
+    navGrievance: 'Grievance Redressal',
+    policiesTitle: 'Policies & Compliance',
+    termsOfService: 'Terms of Service',
+    privacyPolicy: 'Privacy Policy',
+    accessibilityStatement: 'Accessibility Statement',
+    hyperlinkingPolicy: 'Hyperlinking Policy',
+    sitemap: 'Sitemap',
+    contactSupportTitle: 'Contact & Support',
+    districtAddress: 'Shivamogga District Administration, Mini Vidhana Soudha, Shivamogga, Karnataka - 577201',
+    supportEmail: 'support@shivamogga.gov.in',
+    supportPhone: '08182-271234 (Toll Free)',
+    officeHoursTitle: 'Office Hours',
+    officeHoursSchedule: 'Mon - Sat: 09:00 AM - 05:00 PM',
+    lunchBreakSchedule: 'Lunch Break: 12:00 PM - 01:00 PM',
+    closedHolidays: 'Sundays & Govt Holidays Closed',
+    viewOfficeMap: 'View Office Map',
+    installAppLabel: 'Install App',
+    legalReviewFlagText: 'Note: Needs legal review before production launch.',
+    copyrightGovt: 'Government of Karnataka • Shivamogga District Administration',
   },
 
   kn: {
@@ -194,6 +249,33 @@ const translations: Record<Language, Translations> = {
     helpline: 'ಸಹಾಯವಾಣಿ',
     footerEmergency: 'ತುರ್ತು',
     copyright: '© 2026 ನಿಮ್ಮ ಸೇವಾ — ಶಿವಮೊಗ್ಗ ಸ್ಮಾರ್ಟ್ ಆಡಳಿತ. ಎಲ್ಲ ಹಕ್ಕುಗಳನ್ನು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ.',
+
+    aboutBrandingTitle: 'ಪೋರ್ಟಲ್ ಬಗ್ಗೆ',
+    portalDescription: 'ಕರ್ನಾಟಕ ಸರ್ಕಾರದ ಶಿವಮೊಗ್ಗ ಜಿಲ್ಲೆಯ ಗ್ರಾಮ್‌ಒನ್ ಮತ್ತು ಸೇವಾ ಸಿಂಧು ಕೇಂದ್ರಗಳ ಅಧಿಕೃತ ಪ್ರೋಗ್ರೆಸಿವ್ ವೆಬ್ ಅಪ್ಲಿಕೇಶನ್.',
+    quickLinksTitle: 'ತ್ವರಿತ ಲಿಂಕ್‌ಗಳು',
+    navBookToken: 'ಟೋಕನ್ ಬುಕ್ ಮಾಡಿ',
+    navTrackQueue: 'ಸರದಿ ವೀಕ್ಷಿಸಿ',
+    navSchemeSearch: 'ಯೋಜನೆ ಹುಡುಕಾಟ',
+    navMyBookings: 'ನನ್ನ ಬುಕಿಂಗ್‌ಗಳು',
+    navGrievance: 'ಕುಂದುಕೊರತೆ ಪರಿಹಾರ',
+    policiesTitle: 'ನೀತಿಗಳು & ನಿಯಮಗಳು',
+    termsOfService: 'ಸೇವೆಯ ನಿಯಮಗಳು',
+    privacyPolicy: 'ಗೌಪ್ಯತಾ ನೀತಿ',
+    accessibilityStatement: 'ಪ್ರವೇಶಿಸುವಿಕೆ ಹೇಳಿಕೆ',
+    hyperlinkingPolicy: 'ಹೈಪರ್‌ಲಿಂಕಿಂಗ್ ನೀತಿ',
+    sitemap: 'ಸೈಟ್‌ಮ್ಯಾಪ್',
+    contactSupportTitle: 'ಸಂಪರ್ಕ & ಬೆಂಬಲ',
+    districtAddress: 'ಶಿವಮೊಗ್ಗ ಜಿಲ್ಲಾಡಳಿತ, ಮಿನಿ ವಿಧಾನ ಸೌಧ, ಶಿವಮೊಗ್ಗ, ಕರ್ನಾಟಕ - 577201',
+    supportEmail: 'support@shivamogga.gov.in',
+    supportPhone: '08182-271234 (ಉಚಿತ ಸಹಾಯವಾಣಿ)',
+    officeHoursTitle: 'ಕಚೇರಿ ಸಮಯ',
+    officeHoursSchedule: 'ಸೋಮ - ಶನಿ: ಬೆಳಿಗ್ಗೆ 09:00 - ಸಂಜೆ 05:00',
+    lunchBreakSchedule: 'ಊಟದ ವಿರಾಮ: ಮಧ್ಯಾಹ್ನ 12:00 - 01:00',
+    closedHolidays: 'ಭಾನುವಾರ & ಸರ್ಕಾರಿ ರಜಾದಿನಗಳಲ್ಲಿ ಮುಚ್ಚಿರುತ್ತದೆ',
+    viewOfficeMap: 'ಕಚೇರಿ ನಕ್ಷೆ ವೀಕ್ಷಿಸಿ',
+    installAppLabel: 'ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ',
+    legalReviewFlagText: 'ಸೂಚನೆ: ಉತ್ಪಾದನೆಗೆ ಪ್ರಾರಂಭಿಸುವ ಮೊದಲು ಕಾನೂನು ಪರಿಶೀಲನೆ ಅಗತ್ಯವಿದೆ.',
+    copyrightGovt: 'ಕರ್ನಾಟಕ ಸರ್ಕಾರ • ಶಿವಮೊಗ್ಗ ಜಿಲ್ಲಾಡಳಿತ',
   },
 
   hi: {
@@ -256,6 +338,33 @@ const translations: Record<Language, Translations> = {
     helpline: 'हेल्पलाइन',
     footerEmergency: 'आपातकाल',
     copyright: '© 2026 निम्म सेवा — शिवमोग्गा स्मार्ट शासन। सर्वाधिकार सुरक्षित।',
+
+    aboutBrandingTitle: 'पोर्टल के बारे में',
+    portalDescription: 'कर्नाटक सरकार के शिवमोग्गा जिले के ग्रामवन और सेवा सिंधु केंद्रों के लिए आधिकारिक प्रोग्रेसिव वेब एप्लीकेशन।',
+    quickLinksTitle: 'त्वरित लिंक',
+    navBookToken: 'टोकन बुक करें',
+    navTrackQueue: 'कतार ट्रैक करें',
+    navSchemeSearch: 'योजना खोजें',
+    navMyBookings: 'मेरी बुकिंग्स',
+    navGrievance: 'शिकायत निवारण',
+    policiesTitle: 'नीतियां और अनुपालन',
+    termsOfService: 'सेवा की शर्तें',
+    privacyPolicy: 'गोपनीयता नीति',
+    accessibilityStatement: 'सुलभता विवरण',
+    hyperlinkingPolicy: 'हाइपरलिंकिंग नीति',
+    sitemap: 'साइटमैप',
+    contactSupportTitle: 'संपर्क और सहायता',
+    districtAddress: 'शिवमोग्गा जिला प्रशासन, मिनी विधान सौध, शिवमोग्गा, कर्नाटक - 577201',
+    supportEmail: 'support@shivamogga.gov.in',
+    supportPhone: '08182-271234 (टोल फ्री)',
+    officeHoursTitle: 'कार्यालय का समय',
+    officeHoursSchedule: 'सोम - शनि: सुबह 09:00 - शाम 05:00',
+    lunchBreakSchedule: 'भोजन अवकाश: दोपहर 12:00 - 01:00',
+    closedHolidays: 'रविवार और सरकारी छुट्टियों में बंद',
+    viewOfficeMap: 'कार्यालय मानचित्र देखें',
+    installAppLabel: 'ऐप इंस्टॉल करें',
+    legalReviewFlagText: 'नोट: लॉन्च से पहले कानूनी समीक्षा आवश्यक है।',
+    copyrightGovt: 'कर्नाटक सरकार • शिवमोग्गा जिला प्रशासन',
   },
 };
 

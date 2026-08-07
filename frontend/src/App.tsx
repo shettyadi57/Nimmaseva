@@ -20,6 +20,12 @@ import { useStore } from './store/useStore';
 import { AdminLayout } from './components/AdminLayout';
 import { AuditLogViewer } from './pages/admin/AuditLog';
 import { DisplayBoard } from './pages/DisplayBoard';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
+import { Accessibility } from './pages/Accessibility';
+import { Hyperlinking } from './pages/Hyperlinking';
+import { Sitemap } from './pages/Sitemap';
+import { Grievance } from './pages/Grievance';
 
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { adminToken } = useStore();
@@ -45,6 +51,14 @@ export const App: React.FC = () => {
             <Route path="/token/:tokenNumber" element={<TokenView />} />
             <Route path="/queue" element={<QueueTracker />} />
             <Route path="/schemes" element={<SchemeSearch />} />
+            <Route path="/grievance" element={<Grievance />} />
+
+            {/* Policies & Compliance */}
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/accessibility" element={<Accessibility />} />
+            <Route path="/hyperlinking" element={<Hyperlinking />} />
+            <Route path="/sitemap" element={<Sitemap />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />

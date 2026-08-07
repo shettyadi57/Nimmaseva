@@ -58,6 +58,9 @@ export const PWAInstallBanner: React.FC = () => {
     // HTTP, or browser doesn't support it) still show after 4s
     const fallback = setTimeout(() => setVisible(true), 4000);
 
+    const onTrigger = () => setVisible(true);
+    window.addEventListener('trigger-pwa-install', onTrigger);
+
     window.addEventListener('appinstalled', () => {
       setInstalled(true);
       setTimeout(() => setVisible(false), 2500);
@@ -65,6 +68,7 @@ export const PWAInstallBanner: React.FC = () => {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', onPrompt as EventListener);
+      window.removeEventListener('trigger-pwa-install', onTrigger);
       clearTimeout(fallback);
     };
   }, []);
