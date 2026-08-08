@@ -80,7 +80,7 @@ export const OfficeMap: React.FC<MapProps> = ({
   };
 
   return (
-    <div className="relative w-full h-[480px] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 glass-panel group">
+    <div className="relative w-full h-[520px] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 glass-panel group">
       <MapContainer center={defaultCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -99,20 +99,33 @@ export const OfficeMap: React.FC<MapProps> = ({
           </Marker>
         )}
 
-        {/* Active Route Line */}
+        {/* Active Route Lines on Map (Glowing Emerald dual stroke) */}
         {userLocation && selectedRouteOffice && (
-          <Polyline
-            positions={[
-              [userLocation.lat, userLocation.lng],
-              [selectedRouteOffice.latitude, selectedRouteOffice.longitude]
-            ]}
-            pathOptions={{
-              color: '#3b82f6',
-              weight: 5,
-              opacity: 0.8,
-              dashArray: '8, 8'
-            }}
-          />
+          <>
+            <Polyline
+              positions={[
+                [userLocation.lat, userLocation.lng],
+                [selectedRouteOffice.latitude, selectedRouteOffice.longitude]
+              ]}
+              pathOptions={{
+                color: '#059669',
+                weight: 8,
+                opacity: 0.5,
+              }}
+            />
+            <Polyline
+              positions={[
+                [userLocation.lat, userLocation.lng],
+                [selectedRouteOffice.latitude, selectedRouteOffice.longitude]
+              ]}
+              pathOptions={{
+                color: '#10b981',
+                weight: 4,
+                opacity: 1.0,
+                dashArray: '8, 8'
+              }}
+            />
+          </>
         )}
 
         {offices.map((office) => {
@@ -153,18 +166,22 @@ export const OfficeMap: React.FC<MapProps> = ({
                   <div className="pt-1 space-y-1.5">
                     <button
                       onClick={() => onShowRoute ? onShowRoute(office) : window.open(getGoogleMapsUrl(office), '_blank')}
-                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5"
+                      className={`w-full py-2 font-extrabold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-1.5 ${
+                        isSelected 
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border border-slate-700'
+                      }`}
                     >
-                      <Compass className="w-3.5 h-3.5 text-white" />
-                      <span>{isSelected ? 'Viewing Active Route' : '🗺️ Show Best Route (Google Maps)'}</span>
+                      <Navigation className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{isSelected ? 'Viewing Active Route ✓' : '🗺️ Show Best Route'}</span>
                     </button>
 
                     {onSelectOffice && (
                       <button
                         onClick={() => onSelectOffice(office)}
-                        className="w-full py-1.5 bg-slate-900 hover:bg-emerald-700 text-white font-bold rounded-xl text-[11px] transition-all flex items-center justify-center gap-1.5"
+                        className="w-full py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-[11px] transition-all flex items-center justify-center gap-1.5"
                       >
-                        <span>Book Token at this Center</span>
+                        <span>Book Token Pass</span>
                         <ExternalLink className="w-3 h-3" />
                       </button>
                     )}
@@ -175,6 +192,54 @@ export const OfficeMap: React.FC<MapProps> = ({
           );
         })}
       </MapContainer>
+
+      {/* Floating In-Map Route Information Card Overlay */}
+      {selectedRouteOffice && (
+        <div className="absolute top-4 right-4 z-[1000] bg-slate-950/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-4 shadow-2xl max-w-xs w-full space-y-3 animate-fadeIn text-white">
+          <div className="flex items-start justify-between">
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                Active Map Route
+              </span>
+              <h4 className="font-extrabold text-sm text-white mt-1 leading-snug">{selectedRouteOffice.name}</h4>
+            </div>
+            <button
+              onClick={() => onShowRoute && onShowRoute(null as any)}
+              className="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors shrink-0"
+              title="Clear Route"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between text-xs bg-slate-900 p-2.5 rounded-xl border border-slate-800 font-mono">
+            <span>Distance: <strong className="text-amber-400">{selectedRouteOffice.distance_km || 2.4} km</strong></span>
+            <span>ETA: <strong className="text-emerald-400">~{selectedRouteOffice.est_travel_time_mins || 10} mins</strong></span>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <a
+              href={getGoogleMapsUrl(selectedRouteOffice)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2 px-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-[11px] rounded-xl flex items-center justify-center gap-1.5 shadow transition-all"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Google Maps</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+
+            {onSelectOffice && (
+              <button
+                onClick={() => onSelectOffice(selectedRouteOffice)}
+                className="py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded-xl transition-all"
+              >
+                Book Pass
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

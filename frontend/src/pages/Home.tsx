@@ -325,26 +325,30 @@ export const Home: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Live Navigation & Route Button */}
-                <div className="flex items-center gap-3.5 pt-1">
+                {/* Live Navigation & Route Button Pair (Matched UI) */}
+                <div className="flex items-center gap-3 pt-2 border-t border-slate-900">
                   <button
                     onClick={() => {
                       setSelectedRouteOffice(office);
                       const mapElem = document.getElementById('office-map');
                       if (mapElem) mapElem.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-900/30 transition-all group active:scale-95"
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all border shadow-md active:scale-95 ${
+                      selectedRouteOffice?.id === office.id
+                        ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500 shadow-emerald-950/40 ring-1 ring-emerald-500/50'
+                        : 'bg-slate-900 hover:bg-slate-800 text-slate-100 border-slate-700 hover:border-emerald-500/60'
+                    }`}
                   >
-                    <Compass className="w-4 h-4 text-amber-300 animate-spin-slow" />
-                    <span>🗺️ Show Best Route</span>
+                    <Navigation className={`w-3.5 h-3.5 ${selectedRouteOffice?.id === office.id ? 'text-emerald-400' : 'text-amber-400'}`} />
+                    <span>{selectedRouteOffice?.id === office.id ? 'Viewing Route on Map ✓' : 'Show Route on Map'}</span>
                   </button>
 
                   <button
                     onClick={() => handleBookAtOffice(office)}
-                    className="py-2.5 px-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-lg transition-all shrink-0"
+                    className="py-2.5 px-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-lg transition-all shrink-0"
                   >
                     <span>Book Pass</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
