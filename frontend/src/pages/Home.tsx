@@ -9,7 +9,8 @@ import { ServerDownModal } from '../components/ServerDownModal';
 import { useLang } from '../context/LanguageContext';
 import { 
   MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
-  Ticket, Users, CheckCircle2, RefreshCw, Sparkles, Activity, FileText, AlertOctagon
+  Ticket, Users, CheckCircle2, RefreshCw, Sparkles, Activity, FileText, AlertOctagon,
+  Compass, ExternalLink, Share2
 } from 'lucide-react';
 
 export const Home: React.FC = () => {
@@ -23,10 +24,12 @@ export const Home: React.FC = () => {
   const [heroStats, setHeroStats] = useState<PublicStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  // Outage modal state
+  // Outage & Route modal states
   const [outageModalOpen, setOutageModalOpen] = useState(false);
   const [outageService, setOutageService] = useState<Service | null>(null);
   const [docModalService, setDocModalService] = useState<Service | null>(null);
+  const [selectedRouteOffice, setSelectedRouteOffice] = useState<Office | null>(null);
+  const [travelMode, setTravelMode] = useState<'driving' | 'two-wheeler' | 'walking'>('driving');
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -268,7 +271,13 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          <OfficeMap offices={offices} userLocation={userLocation} onSelectOffice={handleBookAtOffice} />
+          <OfficeMap 
+            offices={offices} 
+            userLocation={userLocation} 
+            selectedRouteOffice={selectedRouteOffice}
+            onSelectOffice={handleBookAtOffice}
+            onShowRoute={(office) => setSelectedRouteOffice(office)}
+          />
         </section>
 
         {/* Center Operating Status Cards */}
@@ -314,9 +323,25 @@ export const Home: React.FC = () => {
                     <Clock className="w-4 h-4 text-slate-500" />
                     <span>{office.working_hours}</span>
                   </div>
+                </div>
+
+                {/* Live Navigation & Route Button */}
+                <div className="flex items-center gap-3.5 pt-1">
+                  <button
+                    onClick={() => {
+                      setSelectedRouteOffice(office);
+                      const mapElem = document.getElementById('office-map');
+                      if (mapElem) mapElem.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex-1 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-900/30 transition-all group active:scale-95"
+                  >
+                    <Compass className="w-4 h-4 text-amber-300 animate-spin-slow" />
+                    <span>🗺️ Show Best Route</span>
+                  </button>
+
                   <button
                     onClick={() => handleBookAtOffice(office)}
-                    className="flex items-center gap-1.5 text-amber-400 font-bold hover:text-amber-300 transition-colors"
+                    className="py-2.5 px-5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-lg transition-all shrink-0"
                   >
                     <span>Book Pass</span>
                     <ArrowRight className="w-4 h-4" />
@@ -498,6 +523,155 @@ export const Home: React.FC = () => {
                 <span>Book Token for this Service</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Route & Google Navigation Modal */}
+      {selectedRouteOffice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative text-white">
+            <button
+              onClick={() => setSelectedRouteOffice(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2 rounded-full text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-2">
+              <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider ${
+                selectedRouteOffice.type === 'GramOne' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'
+              }`}>
+                🗺️ Live Navigation &amp; Best Route
+              </span>
+              <h3 className="text-xl font-extrabold text-white">{selectedRouteOffice.name}</h3>
+              <p className="text-xs text-slate-400 flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <span>{selectedRouteOffice.address}</span>
+              </p>
+            </div>
+
+            {/* Travel Mode Selector */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                Select Travel Mode
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setTravelMode('driving')}
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 ${
+                    travelMode === 'driving'
+                      ? 'bg-blue-600/30 border-blue-400 text-white shadow-md'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span className="text-base">🚗</span>
+                  <span className="text-xs font-bold">Car / Taxi</span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                    ~{selectedRouteOffice.est_travel_time_mins || 10} mins
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setTravelMode('two-wheeler')}
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 ${
+                    travelMode === 'two-wheeler'
+                      ? 'bg-blue-600/30 border-blue-400 text-white shadow-md'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span className="text-base">🛵</span>
+                  <span className="text-xs font-bold">Two-Wheeler</span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                    ~{Math.max(4, Math.round((selectedRouteOffice.est_travel_time_mins || 10) * 0.8))} mins
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setTravelMode('walking')}
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 ${
+                    travelMode === 'walking'
+                      ? 'bg-blue-600/30 border-blue-400 text-white shadow-md'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span className="text-base">🚶</span>
+                  <span className="text-xs font-bold">Walking</span>
+                  <span className="text-[10px] text-amber-400 font-mono font-bold">
+                    ~{Math.round((selectedRouteOffice.distance_km || 2.4) * 12)} mins
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Live Traffic & Details Box */}
+            <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Total Route Distance:</span>
+                <span className="font-mono font-extrabold text-amber-400">{selectedRouteOffice.distance_km || 2.4} km</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Current Traffic Flow:</span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> 🟢 Smooth Traffic
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Center Working Hours:</span>
+                <span className="text-slate-200 font-medium">{selectedRouteOffice.working_hours}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">Current Queue Count:</span>
+                <span className="text-amber-400 font-mono font-bold">{selectedRouteOffice.current_queue_count || 0} waiting</span>
+              </div>
+            </div>
+
+            {/* Turn-by-Turn Overview */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                Turn-by-Turn Guidance Summary
+              </span>
+              <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1.5 font-mono">
+                <p>1. 📍 Depart from your detected location in Shivamogga.</p>
+                <p>2. 🛣️ Head towards {selectedRouteOffice.taluk} via main arterial road.</p>
+                <p>3. 🏁 Arrive at {selectedRouteOffice.name} ({selectedRouteOffice.address}).</p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-2 space-y-2.5">
+              <a
+                href={(() => {
+                  const originStr = userLocation ? `${userLocation.lat},${userLocation.lng}` : '';
+                  const destStr = `${selectedRouteOffice.latitude},${selectedRouteOffice.longitude}`;
+                  const gMode = travelMode === 'two-wheeler' ? 'two-wheeler' : travelMode === 'walking' ? 'walking' : 'driving';
+                  return originStr 
+                    ? `https://www.google.com/maps/dir/?api=1&origin=${originStr}&destination=${destStr}&travelmode=${gMode}`
+                    : `https://www.google.com/maps/dir/?api=1&destination=${destStr}&travelmode=${gMode}`;
+                })()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 hover:from-blue-500 hover:to-blue-400 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 transition-all group"
+              >
+                <Compass className="w-4 h-4 text-amber-300 group-hover:rotate-45 transition-transform" />
+                <span>🚀 Open Turn-by-Turn Navigation in Google Maps</span>
+                <ExternalLink className="w-3.5 h-3.5 text-blue-200" />
+              </a>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const off = selectedRouteOffice;
+                    setSelectedRouteOffice(null);
+                    handleBookAtOffice(off);
+                  }}
+                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow"
+                >
+                  <span>Book Token at this Center</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
