@@ -67,20 +67,30 @@ export const OfficeMap: React.FC<MapProps> = ({
   onSelectOffice,
   onShowRoute
 }) => {
+  const [travelMode, setTravelMode] = React.useState<'driving' | 'two-wheeler' | 'walking'>('driving');
+
   const defaultCenter: [number, number] = userLocation 
     ? [userLocation.lat, userLocation.lng] 
     : [13.9299, 75.5681];
 
-  const getGoogleMapsUrl = (office: Office) => {
+  const getGoogleMapsUrl = (office: Office, mode: string = travelMode) => {
     const origin = userLocation ? `${userLocation.lat},${userLocation.lng}` : '';
     const dest = `${office.latitude},${office.longitude}`;
+    const gMode = mode === 'two-wheeler' ? 'two-wheeler' : mode === 'walking' ? 'walking' : 'driving';
     return origin 
-      ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=driving`
-      : `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=driving`;
+      ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=${gMode}`
+      : `https://www.google.com/maps/dir/?api=1&destination=${dest}&travelmode=${gMode}`;
+  };
+
+  const getEstTime = (office: Office) => {
+    const baseMins = office.est_travel_time_mins || 10;
+    if (travelMode === 'two-wheeler') return Math.max(4, Math.round(baseMins * 0.8));
+    if (travelMode === 'walking') return Math.round((office.distance_km || 2.4) * 12);
+    return baseMins;
   };
 
   return (
-    <div className="relative w-full h-[520px] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 glass-panel group">
+    <div className="relative w-full h-[560px] rounded-3xl overflow-hidden shadow-2xl border border-slate-800 glass-panel group">
       <MapContainer center={defaultCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -109,7 +119,7 @@ export const OfficeMap: React.FC<MapProps> = ({
               ]}
               pathOptions={{
                 color: '#059669',
-                weight: 8,
+                weight: 9,
                 opacity: 0.5,
               }}
             />
@@ -193,48 +203,112 @@ export const OfficeMap: React.FC<MapProps> = ({
         })}
       </MapContainer>
 
-      {/* Floating In-Map Route Information Card Overlay */}
+      {/* Luxury Floating In-Map Live Navigation HUD Overlay */}
       {selectedRouteOffice && (
-        <div className="absolute top-4 right-4 z-[1000] bg-slate-950/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-4 shadow-2xl max-w-xs w-full space-y-3 animate-fadeIn text-white">
+        <div className="absolute top-4 right-4 z-[1000] bg-slate-950/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-5 shadow-2xl max-w-sm w-full space-y-4 animate-fadeIn text-white">
           <div className="flex items-start justify-between">
-            <div>
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
-                Active Map Route
-              </span>
-              <h4 className="font-extrabold text-sm text-white mt-1 leading-snug">{selectedRouteOffice.name}</h4>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-950/80 px-2.5 py-0.5 rounded-full border border-emerald-800/80">
+                  Live Route HUD
+                </span>
+              </div>
+              <h4 className="font-extrabold text-base text-white leading-snug">{selectedRouteOffice.name}</h4>
+              <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                <MapPin className="w-3 h-3 text-red-400 shrink-0" />
+                <span className="truncate">{selectedRouteOffice.address}</span>
+              </p>
             </div>
+
             <button
               onClick={() => onShowRoute && onShowRoute(null as any)}
-              className="text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-6 h-6 rounded-full flex items-center justify-center text-xs transition-colors shrink-0"
-              title="Clear Route"
+              className="text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shrink-0"
+              title="Clear Active Route"
             >
               ✕
             </button>
           </div>
 
-          <div className="flex items-center justify-between text-xs bg-slate-900 p-2.5 rounded-xl border border-slate-800 font-mono">
-            <span>Distance: <strong className="text-amber-400">{selectedRouteOffice.distance_km || 2.4} km</strong></span>
-            <span>ETA: <strong className="text-emerald-400">~{selectedRouteOffice.est_travel_time_mins || 10} mins</strong></span>
+          {/* Travel Mode Pills Switcher */}
+          <div className="grid grid-cols-3 gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+            <button
+              onClick={() => setTravelMode('driving')}
+              className={`py-1.5 px-2 rounded-xl text-center transition-all flex flex-col items-center gap-0.5 ${
+                travelMode === 'driving'
+                  ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <span className="text-xs">🚗 Car</span>
+              <span className={`text-[10px] font-mono ${travelMode === 'driving' ? 'text-slate-950 font-bold' : 'text-emerald-400'}`}>
+                ~{selectedRouteOffice.est_travel_time_mins || 10}m
+              </span>
+            </button>
+
+            <button
+              onClick={() => setTravelMode('two-wheeler')}
+              className={`py-1.5 px-2 rounded-xl text-center transition-all flex flex-col items-center gap-0.5 ${
+                travelMode === 'two-wheeler'
+                  ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <span className="text-xs">🛵 Bike</span>
+              <span className={`text-[10px] font-mono ${travelMode === 'two-wheeler' ? 'text-slate-950 font-bold' : 'text-emerald-400'}`}>
+                ~{Math.max(4, Math.round((selectedRouteOffice.est_travel_time_mins || 10) * 0.8))}m
+              </span>
+            </button>
+
+            <button
+              onClick={() => setTravelMode('walking')}
+              className={`py-1.5 px-2 rounded-xl text-center transition-all flex flex-col items-center gap-0.5 ${
+                travelMode === 'walking'
+                  ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <span className="text-xs">🚶 Walk</span>
+              <span className={`text-[10px] font-mono ${travelMode === 'walking' ? 'text-slate-950 font-bold' : 'text-amber-400'}`}>
+                ~{Math.round((selectedRouteOffice.distance_km || 2.4) * 12)}m
+              </span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
+          {/* Intel Metrics Strip */}
+          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+            <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800/80">
+              <span className="text-[10px] text-slate-500 uppercase font-bold block">Distance &amp; ETA</span>
+              <span className="font-extrabold text-amber-300">{selectedRouteOffice.distance_km || 2.4} km • ~{getEstTime(selectedRouteOffice)} mins</span>
+            </div>
+            <div className="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800/80">
+              <span className="text-[10px] text-slate-500 uppercase font-bold block">Queue Count</span>
+              <span className="font-extrabold text-emerald-400">{selectedRouteOffice.current_queue_count || 0} waiting</span>
+            </div>
+          </div>
+
+          {/* Action CTAs */}
+          <div className="space-y-2 pt-1">
             <a
-              href={getGoogleMapsUrl(selectedRouteOffice)}
+              href={getGoogleMapsUrl(selectedRouteOffice, travelMode)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 py-2 px-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-extrabold text-[11px] rounded-xl flex items-center justify-center gap-1.5 shadow transition-all"
+              className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 transition-all active:scale-95"
             >
-              <Navigation className="w-3.5 h-3.5" />
-              <span>Google Maps</span>
-              <ExternalLink className="w-3 h-3" />
+              <Navigation className="w-4 h-4 fill-slate-950" />
+              <span>🚀 Launch Turn-by-Turn in Google Maps</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
 
             {onSelectOffice && (
               <button
                 onClick={() => onSelectOffice(selectedRouteOffice)}
-                className="py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded-xl transition-all"
+                className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow"
               >
-                Book Pass
+                <span>Book Token Pass at this Center</span>
               </button>
             )}
           </div>

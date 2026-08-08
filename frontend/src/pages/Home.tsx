@@ -532,93 +532,99 @@ export const Home: React.FC = () => {
         </div>
       )}
 
-      {/* Live Route & Google Navigation Modal */}
+      {/* Live Route & Google Navigation Modal (Matched UI) */}
       {selectedRouteOffice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
+          <div className="bg-slate-900/95 border border-slate-700/80 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative text-white backdrop-blur-xl glow-border">
             <button
               onClick={() => setSelectedRouteOffice(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2 rounded-full text-xs font-bold transition-colors"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow"
             >
               ✕
             </button>
 
             <div className="space-y-2">
-              <span className={`inline-block px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider ${
-                selectedRouteOffice.type === 'GramOne' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'
-              }`}>
-                🗺️ Live Navigation &amp; Best Route
-              </span>
-              <h3 className="text-xl font-extrabold text-white">{selectedRouteOffice.name}</h3>
-              <p className="text-xs text-slate-400 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-red-400 shrink-0" />
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                  selectedRouteOffice.type === 'GramOne' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-amber-950 text-amber-400 border border-amber-800'
+                }`}>
+                  🗺️ Live Navigation &amp; Route Intel
+                </span>
+              </div>
+              <h3 className="text-2xl font-black text-white tracking-tight">{selectedRouteOffice.name}</h3>
+              <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-red-400 shrink-0" />
                 <span>{selectedRouteOffice.address}</span>
               </p>
             </div>
 
             {/* Travel Mode Selector */}
-            <div className="space-y-2">
-              <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">
+            <div className="space-y-2.5">
+              <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 block">
                 Select Travel Mode
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2.5">
                 <button
                   onClick={() => setTravelMode('driving')}
-                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 ${
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 active:scale-95 ${
                     travelMode === 'driving'
-                      ? 'bg-blue-600/30 border-blue-400 text-white shadow-md'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-950/50'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
                   }`}
                 >
-                  <span className="text-base">🚗</span>
-                  <span className="text-xs font-bold">Car / Taxi</span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                  <span className="text-xl">🚗</span>
+                  <span className="text-xs font-extrabold">Car / Taxi</span>
+                  <span className={`text-[10px] font-mono font-extrabold ${travelMode === 'driving' ? 'text-amber-300' : 'text-emerald-400'}`}>
                     ~{selectedRouteOffice.est_travel_time_mins || 10} mins
                   </span>
                 </button>
 
                 <button
                   onClick={() => setTravelMode('two-wheeler')}
-                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 ${
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 active:scale-95 ${
                     travelMode === 'two-wheeler'
-                      ? 'bg-blue-600/30 border-blue-400 text-white shadow-md'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-950/50'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
                   }`}
                 >
-                  <span className="text-base">🛵</span>
-                  <span className="text-xs font-bold">Two-Wheeler</span>
-                  <span className="text-[10px] text-emerald-400 font-mono font-bold">
+                  <span className="text-xl">🛵</span>
+                  <span className="text-xs font-extrabold">Two-Wheeler</span>
+                  <span className={`text-[10px] font-mono font-extrabold ${travelMode === 'two-wheeler' ? 'text-amber-300' : 'text-emerald-400'}`}>
                     ~{Math.max(4, Math.round((selectedRouteOffice.est_travel_time_mins || 10) * 0.8))} mins
                   </span>
                 </button>
 
                 <button
                   onClick={() => setTravelMode('walking')}
-                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1 ${
+                  className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 active:scale-95 ${
                     travelMode === 'walking'
-                      ? 'bg-blue-600/30 border-blue-400 text-white shadow-md'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white'
+                      ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-950/50'
+                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
                   }`}
                 >
-                  <span className="text-base">🚶</span>
-                  <span className="text-xs font-bold">Walking</span>
-                  <span className="text-[10px] text-amber-400 font-mono font-bold">
+                  <span className="text-xl">🚶</span>
+                  <span className="text-xs font-extrabold">Walking</span>
+                  <span className={`text-[10px] font-mono font-extrabold ${travelMode === 'walking' ? 'text-amber-300' : 'text-amber-400'}`}>
                     ~{Math.round((selectedRouteOffice.distance_km || 2.4) * 12)} mins
                   </span>
                 </button>
               </div>
             </div>
 
-            {/* Live Traffic & Details Box */}
+            {/* Live Intel Card */}
             <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Total Route Distance:</span>
-                <span className="font-mono font-extrabold text-amber-400">{selectedRouteOffice.distance_km || 2.4} km</span>
+                <span className="font-mono font-extrabold text-amber-400 text-sm">{selectedRouteOffice.distance_km || 2.4} km</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-slate-400">Current Traffic Flow:</span>
                 <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> 🟢 Smooth Traffic
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> 🟢 Smooth Traffic
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -631,20 +637,35 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Turn-by-Turn Overview */}
+            {/* Turn-by-Turn Guidance Timeline */}
             <div className="space-y-2">
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                Turn-by-Turn Guidance Summary
+                Step-by-Step Route Guidance
               </span>
-              <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1.5 font-mono">
-                <p>1. 📍 Depart from your detected location in Shivamogga.</p>
-                <p>2. 🛣️ Head towards {selectedRouteOffice.taluk} via main arterial road.</p>
-                <p>3. 🏁 Arrive at {selectedRouteOffice.name} ({selectedRouteOffice.address}).</p>
+              <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-xs text-slate-300 space-y-2.5 font-mono">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0 ring-4 ring-red-500/20" />
+                  <span>Depart from Detected Location in Shivamogga</span>
+                </div>
+                <div className="flex items-center gap-2.5 pl-1">
+                  <div className="w-0.5 h-4 bg-slate-700 ml-0.5" />
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 ring-4 ring-amber-400/20" />
+                  <span>Follow {selectedRouteOffice.taluk} Artery Road</span>
+                </div>
+                <div className="flex items-center gap-2.5 pl-1">
+                  <div className="w-0.5 h-4 bg-slate-700 ml-0.5" />
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 ring-4 ring-emerald-400/20" />
+                  <span className="font-bold text-white">Arrive at {selectedRouteOffice.name}</span>
+                </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-2 space-y-2.5">
+            <div className="pt-2 space-y-3">
               <a
                 href={(() => {
                   const originStr = userLocation ? `${userLocation.lat},${userLocation.lng}` : '';
@@ -656,26 +677,24 @@ export const Home: React.FC = () => {
                 })()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 hover:from-blue-500 hover:to-blue-400 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-950/50 transition-all group"
+                className="w-full py-3.5 px-5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/70 transition-all active:scale-95 group"
               >
-                <Compass className="w-4 h-4 text-amber-300 group-hover:rotate-45 transition-transform" />
-                <span>🚀 Open Turn-by-Turn Navigation in Google Maps</span>
-                <ExternalLink className="w-3.5 h-3.5 text-blue-200" />
+                <Navigation className="w-4 h-4 fill-slate-950 group-hover:rotate-45 transition-transform" />
+                <span>🚀 Launch Turn-by-Turn in Google Maps</span>
+                <ExternalLink className="w-3.5 h-3.5" />
               </a>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const off = selectedRouteOffice;
-                    setSelectedRouteOffice(null);
-                    handleBookAtOffice(off);
-                  }}
-                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow"
-                >
-                  <span>Book Token at this Center</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  const off = selectedRouteOffice;
+                  setSelectedRouteOffice(null);
+                  handleBookAtOffice(off);
+                }}
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-2xl flex items-center justify-center gap-2 shadow-lg transition-all active:scale-95"
+              >
+                <span>🎟️ Book Token Pass at this Center</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
