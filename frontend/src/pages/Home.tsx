@@ -26,6 +26,7 @@ export const Home: React.FC = () => {
   // Outage modal state
   const [outageModalOpen, setOutageModalOpen] = useState(false);
   const [outageService, setOutageService] = useState<Service | null>(null);
+  const [docModalService, setDocModalService] = useState<Service | null>(null);
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -327,10 +328,21 @@ export const Home: React.FC = () => {
         </section>
 
         {/* Available Government Services Grid */}
+        {/* Citizen Services Section */}
         <section className="space-y-6">
-          <div>
-            <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">Karnataka Public Services</span>
-            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Available Citizen Services</h3>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+            <div>
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">Karnataka Public Services</span>
+              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Available Citizen Services</h3>
+            </div>
+            <Link
+              to="/services"
+              className="text-xs font-extrabold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 bg-amber-950/60 hover:bg-amber-900/80 px-4 py-2 rounded-xl border border-amber-800/80 transition-all self-start sm:self-auto"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>{t.navServices || 'Services & Documents Directory'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
@@ -341,58 +353,74 @@ export const Home: React.FC = () => {
               return (
                 <div
                   key={service.id}
-                  onClick={() => handleSelectService(service)}
                   className={`glass-panel rounded-2xl p-5 border ${
                     isDown ? 'border-red-900/60 bg-red-950/10 hover:border-red-600' :
                     isMaint ? 'border-amber-900/60 bg-amber-950/10 hover:border-amber-500' :
                     'border-slate-800 hover:border-emerald-500/60'
-                  } hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group space-y-4 relative`}
+                  } hover:shadow-xl hover:-translate-y-1 transition-all group space-y-4 relative flex flex-col justify-between`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
-                      {service.category}
-                    </span>
-                    <span className="text-xs font-black text-amber-400 font-mono">
-                      {service.fee === 0 ? 'FREE' : `₹${service.fee}`}
-                    </span>
-                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
+                        {service.category}
+                      </span>
+                      <span className="text-xs font-black text-amber-400 font-mono">
+                        {service.fee === 0 ? 'FREE' : `₹${service.fee}`}
+                      </span>
+                    </div>
 
-                  <div>
-                    <h4 className="font-extrabold text-base text-white group-hover:text-amber-400 transition-colors leading-snug">
-                      {service.name}
-                    </h4>
-                    <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-slate-500" />
-                      <span>Avg Processing: ~{service.avg_processing_time_mins} mins</span>
-                    </p>
-                  </div>
+                    <div>
+                      <h4 className="font-extrabold text-base text-white group-hover:text-amber-400 transition-colors leading-snug">
+                        {service.name}
+                      </h4>
+                      <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-500" />
+                        <span>Avg Processing: ~{service.avg_processing_time_mins} mins</span>
+                      </p>
+                    </div>
 
-                  {/* Status Indicator Badge */}
-                  <div className={`p-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 ${
-                    isDown ? 'bg-red-950/90 text-red-300 border border-red-800' :
-                    isMaint ? 'bg-amber-950/90 text-amber-300 border border-amber-800' :
-                    'bg-emerald-950/90 text-emerald-300 border border-emerald-800'
-                  }`}>
-                    {isDown ? (
-                      <AlertOctagon className="w-3.5 h-3.5 shrink-0 text-red-400" />
-                    ) : isMaint ? (
-                      <AlertOctagon className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-                    ) : (
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
-                    )}
-                    <span>{isDown ? '🔴 SERVER DOWN' : isMaint ? '🟡 MAINTENANCE' : '🟢 SERVER ONLINE'}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs pt-3 border-t border-slate-900 text-slate-400">
-                    <span className="flex items-center gap-1 text-[11px]">
-                      <FileText className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Docs: {service.required_documents?.length || 3} required</span>
-                    </span>
-                    <span className={`font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform ${
-                      isDown ? 'text-red-400' : isMaint ? 'text-amber-400' : 'text-emerald-400'
+                    {/* Status Indicator Badge */}
+                    <div className={`p-2 rounded-xl text-[11px] font-bold flex items-center gap-1.5 ${
+                      isDown ? 'bg-red-950/90 text-red-300 border border-red-800' :
+                      isMaint ? 'bg-amber-950/90 text-amber-300 border border-amber-800' :
+                      'bg-emerald-950/90 text-emerald-300 border border-emerald-800'
                     }`}>
-                      {isDown ? 'Outage Alert' : isMaint ? 'Maintenance' : 'Book'} <ArrowRight className="w-3.5 h-3.5" />
-                    </span>
+                      {isDown ? (
+                        <AlertOctagon className="w-3.5 h-3.5 shrink-0 text-red-400" />
+                      ) : isMaint ? (
+                        <AlertOctagon className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+                      ) : (
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+                      )}
+                      <span>{isDown ? '🔴 SERVER DOWN' : isMaint ? '🟡 MAINTENANCE' : '🟢 SERVER ONLINE'}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-3 border-t border-slate-900">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDocModalService(service);
+                      }}
+                      className="w-full py-1.5 px-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{service.required_documents?.length || 3} Required Documents</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleSelectService(service)}
+                      className={`w-full py-2 px-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-colors ${
+                        isDown
+                          ? 'bg-red-950 text-red-300 border border-red-800 hover:bg-red-900'
+                          : isMaint
+                          ? 'bg-amber-950 text-amber-300 border border-amber-800 hover:bg-amber-900'
+                          : 'bg-emerald-500 text-slate-950 hover:bg-emerald-400'
+                      }`}
+                    >
+                      <span>{isDown ? 'Outage Alert' : isMaint ? 'Maintenance' : 'Book Token Pass'}</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               );
@@ -408,6 +436,72 @@ export const Home: React.FC = () => {
         onSelectAlternative={() => navigate('/book')}
         onProceedBooking={() => navigate('/book')}
       />
+
+      {/* Service Document Requirements Quick View Modal */}
+      {docModalService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative text-white">
+            <button
+              onClick={() => setDocModalService(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 p-2 rounded-full text-xs font-bold transition-colors"
+            >
+              ✕
+            </button>
+
+            <div className="space-y-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
+                {docModalService.category}
+              </span>
+              <h3 className="text-xl font-extrabold text-white">{docModalService.name}</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                {docModalService.description || 'Government certified service issued at GramOne & Seva Sindhu centers.'}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
+              <div>
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">Government Fee</span>
+                <span className="font-extrabold text-amber-400 font-mono text-sm">
+                  {docModalService.fee === 0 ? 'FREE' : `₹${docModalService.fee}`}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">Processing Time</span>
+                <span className="font-extrabold text-emerald-400 text-sm">~{docModalService.avg_processing_time_mins} mins</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-xs font-extrabold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span>Mandatory Documents Required Checklist</span>
+              </h4>
+              <ul className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {docModalService.required_documents?.map((doc, idx) => (
+                  <li key={idx} className="bg-slate-800/80 p-2.5 rounded-xl text-xs text-slate-200 flex items-start gap-2.5 border border-slate-700/60">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{doc}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="pt-2 flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const s = docModalService;
+                  setDocModalService(null);
+                  handleSelectService(s);
+                }}
+                className="flex-1 py-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all"
+              >
+                <span>Book Token for this Service</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

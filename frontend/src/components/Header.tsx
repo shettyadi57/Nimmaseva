@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Building2, Ticket, Search, LayoutDashboard, ShieldCheck,
+  Building2, Ticket, Search, LayoutDashboard, ShieldCheck, FileText,
   Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight, User, History
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
@@ -36,6 +36,7 @@ export const Header: React.FC = () => {
 
   const navLinks = [
     { path: '/', label: t.navHome, icon: Building2 },
+    { path: '/services', label: t.navServices || 'Services & Docs', icon: FileText },
     { path: '/book', label: t.navBook, icon: Ticket },
     { path: '/queue', label: t.navQueue, icon: Landmark },
     { path: '/schemes', label: t.navSchemes, icon: Search },

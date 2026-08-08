@@ -98,6 +98,14 @@ export const Footer: React.FC = () => {
               <ul className="space-y-2.5 transition-all duration-200">
                 <li>
                   <Link 
+                    to="/services" 
+                    className={`${linkHover} transition-colors inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-md font-semibold text-amber-300`}
+                  >
+                    {t.navServices || 'Services & Documents Directory'}
+                  </Link>
+                </li>
+                <li>
+                  <Link 
                     to="/book" 
                     className={`${linkHover} transition-colors inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 rounded-md`}
                   >

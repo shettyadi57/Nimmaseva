@@ -61,7 +61,7 @@ def seed_database():
 
         db.commit()
 
-        # 3. Services
+        # 3. Services (20 Comprehensive Services with Document Requirements)
         services_data = [
             {
                 "name": "Income Certificate",
@@ -71,7 +71,14 @@ def seed_database():
                 "avg_processing_time_mins": 15,
                 "daily_capacity": 60,
                 "server_status": "Active",
-                "required_documents": ["Aadhaar Card", "Ration Card / Voter ID", "Salary Slip / Self Declaration", "Passport Photo"]
+                "required_documents": [
+                    "Aadhaar Card of Applicant",
+                    "Ration Card / Voter ID Card",
+                    "Salary Slip / Form 16 or Self Declaration of Annual Income",
+                    "Passport Size Photograph",
+                    "Land Revenue Receipt or Building Tax Receipt (if applicable)"
+                ],
+                "description": "Official government income certificate issued by Nadakacheri/Revenue Department for education scholarships, fee concessions, and government welfare benefits."
             },
             {
                 "name": "Caste Certificate",
@@ -81,107 +88,313 @@ def seed_database():
                 "avg_processing_time_mins": 15,
                 "daily_capacity": 60,
                 "server_status": "Active",
-                "required_documents": ["Aadhaar Card", "School Transfer Certificate", "Father Caste Certificate / TC", "Affidavit"]
+                "required_documents": [
+                    "Aadhaar Card of Applicant",
+                    "School Transfer Certificate (TC) showing Caste/Category",
+                    "Father or Paternal Relative Caste Certificate / School TC",
+                    "Self Declaration / Notarized Affidavit",
+                    "Ration Card / Address Proof"
+                ],
+                "description": "Caste status verification certificate (SC/ST/OBC/Category 1, 2A, 2B, 3A, 3B) required for reservations and welfare programs."
             },
             {
-                "name": "Residence Certificate",
-                "code": "RES-003",
+                "name": "Income & Caste Combined Certificate",
+                "code": "ICC-003",
+                "category": "Revenue",
+                "fee": 40.0,
+                "avg_processing_time_mins": 15,
+                "daily_capacity": 80,
+                "server_status": "Active",
+                "required_documents": [
+                    "Aadhaar Card",
+                    "BPL / APL Ration Card",
+                    "School Leaving / Transfer Certificate (TC)",
+                    "Income Proof (Salary Slip / Revenue Officer Report)",
+                    "Family Tree / Genealogic Chart (if requested)"
+                ],
+                "description": "Combined Income & Caste certificate widely accepted for college admissions (CET/NEET) and Karnataka Govt recruitments."
+            },
+            {
+                "name": "Residence / Domicile Certificate",
+                "code": "RES-004",
                 "category": "Revenue",
                 "fee": 40.0,
                 "avg_processing_time_mins": 10,
                 "daily_capacity": 80,
                 "server_status": "Active",
-                "required_documents": ["Aadhaar Card", "Electricity Bill / Gas Bill", "Ration Card", "Property Tax Receipt"]
+                "required_documents": [
+                    "Aadhaar Card",
+                    "Electricity Bill / Water Bill / Gas Connection Receipt",
+                    "Registered Rent Agreement / Property Tax Receipt",
+                    "Voter ID Card",
+                    "Passport Photo"
+                ],
+                "description": "Proof of continuous residency in Karnataka state for educational, recruitment, and legal requirements."
             },
             {
-                "name": "Birth Certificate",
-                "code": "BRT-004",
-                "category": "Civil Registration",
+                "name": "Solvency Certificate",
+                "code": "SLV-005",
+                "category": "Revenue",
                 "fee": 50.0,
                 "avg_processing_time_mins": 20,
                 "daily_capacity": 40,
                 "server_status": "Active",
-                "required_documents": ["Hospital Discharge Summary", "Parents Aadhaar Cards", "Marriage Certificate"]
+                "required_documents": [
+                    "Aadhaar Card",
+                    "Encumbrance Certificate (EC) of Property",
+                    "Property Tax Paid Receipt & Valuation Report",
+                    "Bank Balance Certificate / Fixed Deposit Records",
+                    "Self Declaration Affidavit"
+                ],
+                "description": "Certificate establishing financial creditworthiness for bank loans, court bail bonds, and government tenders."
             },
             {
-                "name": "Death Certificate",
-                "code": "DTH-005",
-                "category": "Civil Registration",
+                "name": "New Ration Card Application",
+                "code": "RAT-006",
+                "category": "Food & Civil Supplies",
                 "fee": 50.0,
-                "avg_processing_time_mins": 20,
-                "daily_capacity": 40,
-                "server_status": "Active",
-                "required_documents": ["Doctor Death Report", "Deceased Aadhaar Card", "Applicant Aadhaar Card", "Burial/Cremation receipt"]
-            },
-            {
-                "name": "Land Records (RTC / Pahani)",
-                "code": "LND-006",
-                "category": "Bhoomi Revenue",
-                "fee": 25.0,
-                "avg_processing_time_mins": 10,
-                "daily_capacity": 100,
-                "server_status": "Active",
-                "required_documents": ["Survey Number Details", "Owner Aadhaar Card", "Previous RTC Copy"]
-            },
-            {
-                "name": "Sandhya Suraksha Pension",
-                "code": "PEN-007",
-                "category": "Social Welfare",
-                "fee": 0.0,
                 "avg_processing_time_mins": 25,
-                "daily_capacity": 30,
+                "daily_capacity": 50,
                 "server_status": "Active",
-                "required_documents": ["Aadhaar Card (Age 60+)", "Income Certificate (< Rs. 20,000)", "Bank Passbook", "Passport Photo"]
+                "required_documents": [
+                    "Aadhaar Cards of All Family Members (Mandatory)",
+                    "Passport Photo of Head of Family (Female head preferred)",
+                    "Income Certificate issued by Revenue Dept",
+                    "Electricity Bill / House Rent Agreement / Tax Receipt",
+                    "De-duplication / NOC Certificate (if moving from another district)"
+                ],
+                "description": "Fresh BPL / APL Ration Card issuance for eligible families under Food & Civil Supplies Department."
             },
             {
-                "name": "Ration Card Modification",
-                "code": "RAT-008",
+                "name": "Ration Card Member Addition / Modification",
+                "code": "RAT-007",
                 "category": "Food & Civil Supplies",
                 "fee": 50.0,
                 "avg_processing_time_mins": 20,
                 "daily_capacity": 50,
                 "server_status": "Active",
-                "required_documents": ["Existing Ration Card", "New Member Aadhaar Card", "Birth Certificate (for child)"]
+                "required_documents": [
+                    "Existing Original Ration Card",
+                    "New Member Aadhaar Card",
+                    "Birth Certificate (for adding newborns)",
+                    "Marriage Certificate / Surrender Certificate (for married female member)",
+                    "Head of Family Consent Letter"
+                ],
+                "description": "Update family members, correct names/address, or transfer names on existing Ration Card."
             },
             {
-                "name": "Aadhaar Demographic Update",
-                "code": "ADH-009",
-                "category": "UIDAI",
-                "fee": 50.0,
+                "name": "RTC / Pahani Land Record Copy",
+                "code": "LND-008",
+                "category": "Bhoomi Revenue",
+                "fee": 25.0,
+                "avg_processing_time_mins": 8,
+                "daily_capacity": 150,
+                "server_status": "Active",
+                "required_documents": [
+                    "Survey Number & Hissa Number",
+                    "District, Taluk, Hobli, and Village Name",
+                    "Land Owner Aadhaar Card (for verification)"
+                ],
+                "description": "Certified legal copy of Record of Rights, Tenancy and Crops (RTC/Pahani) from Bhoomi Karnataka portal."
+            },
+            {
+                "name": "Land Mutation / Khata Transfer",
+                "code": "LND-009",
+                "category": "Bhoomi Revenue",
+                "fee": 100.0,
+                "avg_processing_time_mins": 30,
+                "daily_capacity": 30,
+                "server_status": "Active",
+                "required_documents": [
+                    "Registered Sale Deed / Gift Deed / Partition Deed",
+                    "Encumbrance Certificate (EC) for 13+ years",
+                    "Latest RTC / Pahani Copy",
+                    "Death Certificate & Family Tree (in case of inheritance/succession)",
+                    "Aadhaar Cards of Buyer and Seller / Legal Heirs"
+                ],
+                "description": "Official transfer of land title ownership in Revenue records following property purchase or inheritance."
+            },
+            {
+                "name": "Sandhya Suraksha Senior Pension",
+                "code": "PEN-010",
+                "category": "Social Welfare",
+                "fee": 0.0,
+                "avg_processing_time_mins": 20,
+                "daily_capacity": 40,
+                "server_status": "Active",
+                "required_documents": [
+                    "Aadhaar Card proving Age 60+",
+                    "Income Certificate (Annual Income below Rs. 20,000)",
+                    "Aadhaar-seeded Bank Passbook (DBT enabled)",
+                    "Karnataka Domicile Proof",
+                    "Passport Photo & Self Declaration"
+                ],
+                "description": "Monthly pension assistance scheme of ₹1,200/month for senior citizens above 60 years."
+            },
+            {
+                "name": "Disability Pension & UDID Card",
+                "code": "PEN-011",
+                "category": "Social Welfare",
+                "fee": 0.0,
+                "avg_processing_time_mins": 25,
+                "daily_capacity": 30,
+                "server_status": "Active",
+                "required_documents": [
+                    "Disability Certificate issued by Govt Medical Officer (40%+ disability)",
+                    "Aadhaar Card of Applicant",
+                    "Income Certificate",
+                    "Aadhaar-linked Bank Account Passbook",
+                    "Full Length & Passport Photographs showing disability"
+                ],
+                "description": "Financial monthly pension & Unique Disability ID (UDID) card for persons with physical/mental challenges."
+            },
+            {
+                "name": "Widow / Destitute Pension (Indira Gandhi)",
+                "code": "PEN-012",
+                "category": "Social Welfare",
+                "fee": 0.0,
+                "avg_processing_time_mins": 20,
+                "daily_capacity": 35,
+                "server_status": "Active",
+                "required_documents": [
+                    "Death Certificate of Husband",
+                    "Marriage Proof / Ration Card / Voters ID",
+                    "Aadhaar Card of Applicant",
+                    "Income Certificate (Low Income proof)",
+                    "Bank Passbook linked to Aadhaar"
+                ],
+                "description": "Monthly social security pension scheme for widows and destitute women in Karnataka."
+            },
+            {
+                "name": "Senior Citizen ID Card & Pass",
+                "code": "WLF-013",
+                "category": "Social Welfare",
+                "fee": 0.0,
+                "avg_processing_time_mins": 10,
+                "daily_capacity": 60,
+                "server_status": "Active",
+                "required_documents": [
+                    "Proof of Age (60+ years) (Aadhaar / Voter ID / Passport)",
+                    "Karnataka Residence Proof",
+                    "Blood Group Test Report from certified lab",
+                    "2 Recent Passport Photographs"
+                ],
+                "description": "Official Senior Citizen Identification Card providing travel concessions, medical discounts, and priority queue pass."
+            },
+            {
+                "name": "Gruha Lakshmi Guarantee Scheme",
+                "code": "GLK-014",
+                "category": "Karnataka Guarantees",
+                "fee": 0.0,
+                "avg_processing_time_mins": 15,
+                "daily_capacity": 100,
+                "server_status": "Active",
+                "required_documents": [
+                    "Aadhaar Card of Female Head of Family",
+                    "Husband's Aadhaar Card",
+                    "BPL / APL / Antyodaya Ration Card",
+                    "Aadhaar-Seeded Bank Passbook (NPCI mapped)",
+                    "Mobile Phone linked to Aadhaar for OTP"
+                ],
+                "description": "Karnataka Govt guarantee scheme offering ₹2,000 monthly direct bank transfer to eligible female family heads."
+            },
+            {
+                "name": "Yuva Nidhi Graduate Allowance",
+                "code": "YVN-015",
+                "category": "Karnataka Guarantees",
+                "fee": 0.0,
+                "avg_processing_time_mins": 15,
+                "daily_capacity": 90,
+                "server_status": "Active",
+                "required_documents": [
+                    "Degree or Diploma Completion Certificate & All Semester Marksheets",
+                    "Aadhaar Card of Student",
+                    "Karnataka Domicile / SSLC School Study Certificate",
+                    "Unemployment Self-Declaration Affidavit",
+                    "Aadhaar-linked Bank Account Passbook"
+                ],
+                "description": "Unemployment financial stipend (₹3,000/mo for Graduates, ₹1,500/mo for Diploma holders) for up to 2 years."
+            },
+            {
+                "name": "FRUITS Farmer Registration & ID",
+                "code": "FRM-016",
+                "category": "Agriculture",
+                "fee": 0.0,
                 "avg_processing_time_mins": 15,
                 "daily_capacity": 70,
                 "server_status": "Active",
-                "required_documents": ["Current Aadhaar", "Proof of Identity / Address document"]
+                "required_documents": [
+                    "Aadhaar Card of Farmer",
+                    "RTC / Pahani Copy of Land Holding",
+                    "Bank Account Passbook Copy",
+                    "Mobile Number linked with Aadhaar",
+                    "Caste & Income Certificate (for subsidy bonus)"
+                ],
+                "description": "Farmer Registration & Unified Beneficiary Information System (FRUITS) ID for crop loss compensation, fertilizer & seed subsidies."
             },
             {
-                "name": "Farmer Registration (FRUITS ID)",
-                "code": "FRM-010",
+                "name": "PM Kisan Samman Nidhi Enrolment",
+                "code": "PMK-017",
                 "category": "Agriculture",
                 "fee": 0.0,
                 "avg_processing_time_mins": 15,
-                "daily_capacity": 60,
+                "daily_capacity": 70,
                 "server_status": "Active",
-                "required_documents": ["Aadhaar Card", "Pahani / RTC Copy", "Bank Passbook"]
+                "required_documents": [
+                    "Aadhaar Card of Landowning Farmer",
+                    "FRUITS Farmer ID / RTC Pahani Record",
+                    "Aadhaar-Seeded Active Bank Account",
+                    "e-KYC Verification"
+                ],
+                "description": "Central government income support scheme delivering ₹6,000 per year in three equal installments to farmer families."
             },
             {
-                "name": "PM Kisan Samman Nidhi",
-                "code": "PMK-011",
-                "category": "Agriculture",
-                "fee": 0.0,
-                "avg_processing_time_mins": 15,
-                "daily_capacity": 60,
+                "name": "Birth Certificate Issuance",
+                "code": "BRT-018",
+                "category": "Civil Registration",
+                "fee": 50.0,
+                "avg_processing_time_mins": 20,
+                "daily_capacity": 40,
                 "server_status": "Active",
-                "required_documents": ["Aadhaar Card", "Land Holdings Record", "Bank Passbook"]
+                "required_documents": [
+                    "Hospital Birth Discharge Summary / Form-1 Report",
+                    "Mother & Father Aadhaar Cards",
+                    "Parents Marriage Certificate / Ration Card",
+                    "Informant ID Proof"
+                ],
+                "description": "Official birth registration and certified certificate issuance by Municipal Corporation / Panchayat authority."
             },
             {
-                "name": "Gruha Lakshmi Scheme",
-                "code": "GLK-012",
-                "category": "Women & Child Development",
-                "fee": 0.0,
-                "avg_processing_time_mins": 15,
-                "daily_capacity": 80,
+                "name": "Death Certificate Issuance",
+                "code": "DTH-019",
+                "category": "Civil Registration",
+                "fee": 50.0,
+                "avg_processing_time_mins": 20,
+                "daily_capacity": 40,
                 "server_status": "Active",
-                "required_documents": ["Aadhaar Card of Woman Head", "Husband Aadhaar Card", "Bank Account linked with Aadhaar", "Ration Card"]
+                "required_documents": [
+                    "Medical Cause of Death Report from Hospital / Doctor",
+                    "Burial / Cremation Ground Receipt",
+                    "Deceased Person's Aadhaar Card & Voter ID",
+                    "Applicant (Nearest Kin) Aadhaar Card & Relationship Proof"
+                ],
+                "description": "Legal certificate registering the death of a citizen for insurance claims, property succession, and bank account settlement."
+            },
+            {
+                "name": "Aadhaar Demographic & Address Update",
+                "code": "ADH-020",
+                "category": "UIDAI",
+                "fee": 50.0,
+                "avg_processing_time_mins": 15,
+                "daily_capacity": 75,
+                "server_status": "Active",
+                "required_documents": [
+                    "Existing Aadhaar Card / Number",
+                    "Proof of Identity (POI) (Voter ID / Passport / PAN Card / Driving License)",
+                    "Proof of Address (POA) (Electricity Bill / Gas Bill / Bank Statement / Marriage Certificate)",
+                    "Biometric / Mobile OTP verification"
+                ],
+                "description": "Update name, date of birth, address, or mobile number on Aadhaar record at GramOne / Seva Sindhu UIDAI counters."
             }
         ]
 

@@ -114,6 +114,16 @@ export interface Translations {
   serverActiveTitle: string;
   serverActiveNoticeMsg: string;
   bookServiceNowLabel: string;
+
+  // Service & Document Directory
+  navServices: string;
+  servicesTitle: string;
+  servicesSubtitle: string;
+  requiredDocsLabel: string;
+  viewDocsBtn: string;
+  copyChecklistBtn: string;
+  printChecklistBtn: string;
+  checklistCopiedToast: string;
 }
 
 const translations: Record<Language, Translations> = {
@@ -219,6 +229,15 @@ const translations: Record<Language, Translations> = {
     serverActiveTitle: 'Server Online & Service Fully Active',
     serverActiveNoticeMsg: 'Great news! The State Data Center server for this service is online, healthy, and operational. You can book digital token passes without delay.',
     bookServiceNowLabel: 'Proceed & Book Token Pass',
+
+    navServices: 'Services & Documents',
+    servicesTitle: 'Services & Document Directory',
+    servicesSubtitle: 'Explore required documents, eligibility, fees, and processing times for all GramOne & Seva Sindhu services.',
+    requiredDocsLabel: 'Required Documents',
+    viewDocsBtn: 'View Required Documents',
+    copyChecklistBtn: 'Copy Checklist',
+    printChecklistBtn: 'Print Checklist',
+    checklistCopiedToast: 'Checklist copied to clipboard!',
   },
 
   kn: {
@@ -323,6 +342,15 @@ const translations: Record<Language, Translations> = {
     serverActiveTitle: 'ಸರ್ವರ್ ಆನ್‌ಲೈನ್ ಮತ್ತು ಸೇವೆ ಸಂಪೂರ್ಣ ಸಕ್ರಿಯವಾಗಿದೆ',
     serverActiveNoticeMsg: 'ಉತ್ತಮ ಸುದ್ದಿ! ಈ ಸೇವೆಗಾಗಿ ರಾಜ್ಯ ಡೇಟಾ ಸೆಂಟರ್ ಸರ್ವರ್ ಆನ್‌ಲೈನ್‌ನಲ್ಲಿದೆ ಮತ್ತು ಉತ್ತಮವಾಗಿ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿದೆ. ನೀವು ತಕ್ಷಣವೇ ಡಿಜಿಟಲ್ ಟೋಕನ್ ಪಾಸ್ ಬುಕ್ ಮಾಡಬಹುದು.',
     bookServiceNowLabel: 'ಮುಂದುವರಿಯಿರಿ ಮತ್ತು ಟೋಕನ್ ಪಾಸ್ ಬುಕ್ ಮಾಡಿ',
+
+    navServices: 'ಸೇವೆಗಳು ಮತ್ತು ದಾಖಲೆಗಳು',
+    servicesTitle: 'ಸೇವೆಗಳು ಮತ್ತು ಅಗತ್ಯ ದಾಖಲೆಗಳ ಮಾರ್ಗದರ್ಶಿ',
+    servicesSubtitle: 'ಎಲ್ಲಾ ಗ್ರಾಮ್‌ಒನ್ ಮತ್ತು ಸೇವಾ ಸಿಂಧು ಸೇವೆಗಳಿಗೆ ಅಗತ್ಯವಿರುವ ದಾಖಲೆಗಳು, ಶುಲ್ಕ ಮತ್ತು ಸಮಯ ವೀಕ್ಷಿಸಿ.',
+    requiredDocsLabel: 'ಅಗತ್ಯ ದಾಖಲೆಗಳು',
+    viewDocsBtn: 'ಅಗತ್ಯ ದಾಖಲೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ',
+    copyChecklistBtn: 'ಪಟ್ಟಿಯನ್ನು ಕಾಪಿ ಮಾಡಿ',
+    printChecklistBtn: 'ಪಟ್ಟಿ ಪ್ರಿಂಟ್ ಮಾಡಿ',
+    checklistCopiedToast: 'ದಾಖಲೆಗಳ ಪಟ್ಟಿ ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ಕಾಪಿಯಾಗಿದೆ!',
   },
 
   hi: {
@@ -427,6 +455,15 @@ const translations: Record<Language, Translations> = {
     serverActiveTitle: 'सर्वर ऑनलाइन और सेवा पूरी तरह से सक्रिय है',
     serverActiveNoticeMsg: 'बढ़ी खबर! इस सेवा के लिए राज्य डेटा सेंटर सर्वर ऑनलाइन है और सुचारू रूप से काम कर रहा है। आप बिना किसी देरी के डिजिटल टोकन पास बुक कर सकते हैं।',
     bookServiceNowLabel: 'आगे बढ़ें और टोकन पास बुक करें',
+
+    navServices: 'सेवाएं और दस्तावेज',
+    servicesTitle: 'सेवाएं और आवश्यक दस्तावेज निर्देशिका',
+    servicesSubtitle: 'सभी ग्रामवन और सेवा सिंधु सेवाओं के लिए आवश्यक दस्तावेज, शुल्क और प्रसंस्करण समय देखें।',
+    requiredDocsLabel: 'आवश्यक दस्तावेज',
+    viewDocsBtn: 'आवश्यक दस्तावेज देखें',
+    copyChecklistBtn: 'चेकलिस्ट कॉपी करें',
+    printChecklistBtn: 'चेकलिस्ट प्रिंट करें',
+    checklistCopiedToast: 'चेकलिस्ट क्लिपबोर्ड पर कॉपी हो गई है!',
   },
 };
 

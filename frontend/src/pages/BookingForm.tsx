@@ -530,12 +530,39 @@ export const BookingForm: React.FC = () => {
                   })}
                 </select>
                 {currentService && (
-                  <div className="mt-2 p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-1">
-                    <p>{currentService.description}</p>
-                    <div className="flex items-center gap-4 text-emerald-400 font-mono font-bold pt-1">
-                      <span>Est. Duration: {currentService.avg_processing_time_mins} Mins</span>
+                  <div className="mt-3 p-4 bg-slate-950/90 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-3 shadow-inner">
+                    <p className="text-slate-400 text-xs">{currentService.description}</p>
+                    <div className="flex items-center gap-4 text-emerald-400 font-mono font-bold text-xs pt-1 border-t border-slate-900">
+                      <span>Est. Processing: ~{currentService.avg_processing_time_mins} Mins</span>
                       <span>Daily Cap: {currentService.daily_capacity} Tokens</span>
+                      <span>Fee: {currentService.fee === 0 ? 'FREE' : `₹${currentService.fee}`}</span>
                     </div>
+
+                    {/* Mandatory Required Documents Box */}
+                    {currentService.required_documents && currentService.required_documents.length > 0 && (
+                      <div className="bg-slate-900/90 p-3.5 rounded-xl border border-amber-500/30 space-y-2">
+                        <div className="flex items-center justify-between font-bold text-amber-300 text-xs">
+                          <span className="flex items-center gap-1.5">
+                            <FileText className="w-4 h-4 text-amber-400" />
+                            <span>Mandatory Documents Needed for {currentService.name}</span>
+                          </span>
+                          <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
+                            {currentService.required_documents.length} Required
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-400">
+                          Please ensure you bring original and self-attested photocopies of all listed documents:
+                        </p>
+                        <ul className="space-y-1.5 pt-1">
+                          {currentService.required_documents.map((doc, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-xs text-slate-200 bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                              <span>{doc}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {(currentService.server_status === 'Down' || currentService.server_status === 'Maintenance' || !currentService.is_active) && (
                       <div className="p-3 rounded-xl bg-red-950/80 border border-red-800 text-xs text-red-200 flex items-center justify-between gap-2 mt-2">

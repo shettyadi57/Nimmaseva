@@ -26,6 +26,7 @@ import { Accessibility } from './pages/Accessibility';
 import { Hyperlinking } from './pages/Hyperlinking';
 import { Sitemap } from './pages/Sitemap';
 import { Grievance } from './pages/Grievance';
+import { ServiceDocuments } from './pages/ServiceDocuments';
 
 const ProtectedAdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { adminToken } = useStore();
@@ -44,6 +45,7 @@ export const App: React.FC = () => {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/services" element={<ServiceDocuments />} />
             <Route path="/login" element={<CitizenLogin />} />
             <Route path="/my-bookings" element={<MyBookings />} />
             <Route path="/book" element={<BookingForm />} />
