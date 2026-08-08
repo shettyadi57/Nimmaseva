@@ -532,13 +532,13 @@ export const Home: React.FC = () => {
         </div>
       )}
 
-      {/* Live Route & Google Navigation Modal (Matched UI) */}
+      {/* Live Route & Google Navigation Modal (Matched UI & High Contrast) */}
       {selectedRouteOffice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-          <div className="bg-slate-900/95 border border-slate-700/80 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative text-white backdrop-blur-xl glow-border">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative text-white backdrop-blur-xl glow-border max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setSelectedRouteOffice(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow"
             >
               ✕
             </button>
@@ -556,15 +556,15 @@ export const Home: React.FC = () => {
                 </span>
               </div>
               <h3 className="text-2xl font-black text-white tracking-tight">{selectedRouteOffice.name}</h3>
-              <p className="text-xs text-slate-400 flex items-center gap-1.5">
+              <p className="text-xs text-slate-300 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-red-400 shrink-0" />
-                <span>{selectedRouteOffice.address}</span>
+                <span className="font-medium text-slate-300">{selectedRouteOffice.address}</span>
               </p>
             </div>
 
             {/* Travel Mode Selector */}
             <div className="space-y-2.5">
-              <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 block">
+              <label className="text-[11px] font-black uppercase tracking-wider text-slate-300 block">
                 Select Travel Mode
               </label>
               <div className="grid grid-cols-3 gap-2.5">
@@ -573,7 +573,7 @@ export const Home: React.FC = () => {
                   className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 active:scale-95 ${
                     travelMode === 'driving'
                       ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-950/50'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                      : 'bg-slate-950/80 border-slate-700 text-slate-200 hover:text-white hover:border-slate-600'
                   }`}
                 >
                   <span className="text-xl">🚗</span>
@@ -588,7 +588,7 @@ export const Home: React.FC = () => {
                   className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 active:scale-95 ${
                     travelMode === 'two-wheeler'
                       ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-950/50'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                      : 'bg-slate-950/80 border-slate-700 text-slate-200 hover:text-white hover:border-slate-600'
                   }`}
                 >
                   <span className="text-xl">🛵</span>
@@ -603,7 +603,7 @@ export const Home: React.FC = () => {
                   className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center gap-1.5 active:scale-95 ${
                     travelMode === 'walking'
                       ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300 ring-1 ring-emerald-500/40 shadow-lg shadow-emerald-950/50'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                      : 'bg-slate-950/80 border-slate-700 text-slate-200 hover:text-white hover:border-slate-600'
                   }`}
                 >
                   <span className="text-xl">🚶</span>
@@ -616,50 +616,86 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Live Intel Card */}
-            <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2.5 text-xs">
+            <div className="bg-slate-950/90 p-4 rounded-2xl border border-slate-800 space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Total Route Distance:</span>
+                <span className="text-slate-300 font-medium">Total Route Distance:</span>
                 <span className="font-mono font-extrabold text-amber-400 text-sm">{selectedRouteOffice.distance_km || 2.4} km</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Current Traffic Flow:</span>
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                <span className="text-slate-300 font-medium">Current Traffic Flow:</span>
+                <span className="text-emerald-400 font-extrabold flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> 🟢 Smooth Traffic
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Center Working Hours:</span>
-                <span className="text-slate-200 font-medium">{selectedRouteOffice.working_hours}</span>
+                <span className="text-slate-300 font-medium">Center Working Hours:</span>
+                <span className="text-slate-100 font-bold">{selectedRouteOffice.working_hours}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Current Queue Count:</span>
-                <span className="text-amber-400 font-mono font-bold">{selectedRouteOffice.current_queue_count || 0} waiting</span>
+                <span className="text-slate-300 font-medium">Current Queue Count:</span>
+                <span className="text-amber-400 font-mono font-extrabold">{selectedRouteOffice.current_queue_count || 0} waiting</span>
               </div>
             </div>
 
-            {/* Turn-by-Turn Guidance Timeline */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                Step-by-Step Route Guidance
-              </span>
-              <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 text-xs text-slate-300 space-y-2.5 font-mono">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0 ring-4 ring-red-500/20" />
-                  <span>Depart from Detected Location in Shivamogga</span>
+            {/* Turn-by-Turn Guidance Timeline (Stunning & High-Contrast Step Cards) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-emerald-400" />
+                  <span>Turn-by-Turn Guidance Summary</span>
+                </span>
+                <span className="text-[10px] font-mono font-extrabold text-amber-400 bg-amber-950/80 px-2.5 py-0.5 rounded-full border border-amber-800">
+                  {selectedRouteOffice.distance_km || 2.4} km Route
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {/* Step 1 Card */}
+                <div className="bg-slate-950/90 border border-slate-800 p-3.5 rounded-2xl flex items-start gap-3 shadow-md hover:border-slate-700 transition-all">
+                  <div className="w-8 h-8 rounded-xl bg-red-500/20 border border-red-500/40 text-red-400 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                    📍 1
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs text-white">Start: Your Current Location</span>
+                      <span className="text-[10px] font-mono text-slate-400">Point A</span>
+                    </div>
+                    <p className="text-xs text-slate-300 mt-1 font-medium leading-relaxed">
+                      Depart from your detected GPS position in <strong className="text-slate-100 font-extrabold">Shivamogga</strong>.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2.5 pl-1">
-                  <div className="w-0.5 h-4 bg-slate-700 ml-0.5" />
+
+                {/* Step 2 Card */}
+                <div className="bg-slate-950/90 border border-slate-800 p-3.5 rounded-2xl flex items-start gap-3 shadow-md hover:border-slate-700 transition-all">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                    🛣️ 2
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs text-white">Route: Main Arterial Corridor</span>
+                      <span className="text-[10px] font-mono text-amber-400 font-bold">~{selectedRouteOffice.est_travel_time_mins || 10} mins</span>
+                    </div>
+                    <p className="text-xs text-slate-300 mt-1 font-medium leading-relaxed">
+                      Head towards <strong className="text-amber-300 font-extrabold">{selectedRouteOffice.taluk || 'Shivamogga Center'}</strong> via primary road network.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 ring-4 ring-amber-400/20" />
-                  <span>Follow {selectedRouteOffice.taluk} Artery Road</span>
-                </div>
-                <div className="flex items-center gap-2.5 pl-1">
-                  <div className="w-0.5 h-4 bg-slate-700 ml-0.5" />
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0 ring-4 ring-emerald-400/20" />
-                  <span className="font-bold text-white">Arrive at {selectedRouteOffice.name}</span>
+
+                {/* Step 3 Card */}
+                <div className="bg-slate-950/90 border border-slate-800 p-3.5 rounded-2xl flex items-start gap-3 shadow-md hover:border-slate-700 transition-all">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-black text-xs shrink-0 mt-0.5">
+                    🏁 3
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs text-emerald-400">Destination: Center Arrival</span>
+                      <span className="text-[10px] font-mono text-emerald-400 font-bold">Target</span>
+                    </div>
+                    <p className="text-xs text-slate-100 mt-1 font-extrabold leading-relaxed">
+                      Arrive at <strong className="text-white underline underline-offset-2">{selectedRouteOffice.name}</strong> ({selectedRouteOffice.address}).
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -680,7 +716,7 @@ export const Home: React.FC = () => {
                 className="w-full py-3.5 px-5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-950/70 transition-all active:scale-95 group"
               >
                 <Navigation className="w-4 h-4 fill-slate-950 group-hover:rotate-45 transition-transform" />
-                <span>🚀 Launch Turn-by-Turn in Google Maps</span>
+                <span>🚀 Open Turn-by-Turn Navigation in Google Maps</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
 
