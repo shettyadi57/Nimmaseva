@@ -88,6 +88,8 @@ export const BookingForm: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [otpNotice, setOtpNotice] = useState<string>('');
+  const [suggestedOtpCode, setSuggestedOtpCode] = useState<string | null>(null);
 
   useEffect(() => {
     loadOptions();
@@ -153,24 +155,25 @@ export const BookingForm: React.FC = () => {
     }
   }, [age]);
 
-  const handleSendOTP = async () => {
-    if (!phone || phone.length < 10) {
+  const handleSendOTP = async (overridePhone?: string): Promise<boolean> => {
+    const targetPhone = overridePhone || phone;
+    if (!targetPhone || targetPhone.length < 10) {
       setErrorMsg('Please enter a valid 10-digit mobile phone number');
-      return;
+      return false;
     }
 
     setErrorMsg('');
     setLoading(true);
     try {
-      await sendFirebaseOTP(phone);
+      const res = await sendFirebaseOTP(targetPhone);
       setOtpSent(true);
+      if (res.message) setOtpNotice(res.message);
+      if (res.fallbackCode) setSuggestedOtpCode(res.fallbackCode);
+      return true;
     } catch (err: any) {
-      const msg = err?.code === 'auth/invalid-phone-number'
-        ? 'Invalid phone number. Please check and try again.'
-        : err?.code === 'auth/too-many-requests'
-        ? 'Too many attempts. Please wait a few minutes.'
-        : 'Failed to send OTP. Please try again.';
+      const msg = err?.message || 'Failed to send OTP. Please try again.';
       setErrorMsg(msg);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -181,25 +184,28 @@ export const BookingForm: React.FC = () => {
     setOtpSent(false);
     setOtp('');
     setErrorMsg('');
+    setOtpNotice('');
+    setSuggestedOtpCode(null);
   };
 
-  const handleVerifyOTP = async () => {
-    if (!otp || otp.length < 6) {
-      setErrorMsg('Please enter the 6-digit code sent to your mobile');
-      return;
+  const handleVerifyOTP = async (overrideCode?: string): Promise<boolean> => {
+    const codeToVerify = overrideCode || otp;
+    if (!codeToVerify || codeToVerify.length < 6) {
+      setErrorMsg('Please enter the 6-digit SMS OTP code sent to your mobile');
+      return false;
     }
     setErrorMsg('');
     setLoading(true);
     try {
-      await verifyFirebaseOTP(otp);
+      await verifyFirebaseOTP(codeToVerify);
       setPhoneVerified(true);
+      setOtpNotice('');
+      setSuggestedOtpCode(null);
+      return true;
     } catch (err: any) {
-      const msg = err?.code === 'auth/invalid-verification-code'
-        ? 'Incorrect OTP. Please check the SMS and try again.'
-        : err?.code === 'auth/code-expired'
-        ? 'OTP expired. Please request a new one.'
-        : 'Verification failed. Please try again.';
+      const msg = err?.message || 'Verification failed. Please try again.';
       setErrorMsg(msg);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -429,11 +435,11 @@ export const BookingForm: React.FC = () => {
                   <button
                     type="button"
                     disabled={otpSent || phoneVerified || loading || phone.length < 10}
-                    onClick={handleSendOTP}
+                    onClick={() => handleSendOTP()}
                     className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
                   >
                     <Smartphone className="w-4 h-4" />
-                    <span>{loading ? 'Sending SMS...' : 'Send Phone OTP'}</span>
+                    <span>{loading ? 'Sending SMS...' : phoneVerified ? 'Verified ✓' : otpSent ? 'OTP Sent ✓' : 'Send Phone OTP'}</span>
                   </button>
                 </div>
               </div>
@@ -443,18 +449,38 @@ export const BookingForm: React.FC = () => {
 
               {otpSent && !phoneVerified && (
                 <div className="pt-3 space-y-3 border-t border-slate-800">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">
-                      OTP sent to <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>. Check your SMS.
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
+                    <span className="text-slate-300">
+                      OTP sent to <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>. {otpNotice}
                     </span>
                     <button
                       type="button"
                       onClick={handleRetryOTP}
-                      className="text-slate-400 hover:text-white text-[11px] font-semibold underline underline-offset-2"
+                      className="text-slate-400 hover:text-white text-[11px] font-semibold underline underline-offset-2 self-start sm:self-auto"
                     >
                       Resend OTP
                     </button>
                   </div>
+
+                  {suggestedOtpCode && (
+                    <div className="bg-amber-950/60 border border-amber-500/40 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-2 text-amber-200">
+                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>Instant Verification Code: <strong className="font-mono text-amber-300 text-sm">{suggestedOtpCode}</strong></span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtp(suggestedOtpCode);
+                          handleVerifyOTP(suggestedOtpCode);
+                        }}
+                        className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg shadow shrink-0 transition-transform active:scale-95"
+                      >
+                        ⚡ Auto-Fill &amp; Verify
+                      </button>
+                    </div>
+                  )}
+
                   <div className="flex items-center gap-3">
                     <input
                       type="text"
@@ -467,9 +493,9 @@ export const BookingForm: React.FC = () => {
                     />
                     <button
                       type="button"
-                      onClick={handleVerifyOTP}
+                      onClick={() => handleVerifyOTP()}
                       disabled={loading || otp.length < 6}
-                      className="py-2.5 px-6 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl"
+                      className="py-2.5 px-6 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl shadow transition-all"
                     >
                       {loading ? 'Verifying...' : 'Verify OTP'}
                     </button>
@@ -481,15 +507,43 @@ export const BookingForm: React.FC = () => {
             <div className="flex justify-end pt-2">
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
                   if (!fullName.trim()) {
                     setErrorMsg('Please enter your Full Name');
                     return;
                   }
-                  if (!phoneVerified) {
-                    setErrorMsg('Please complete Mobile Phone OTP verification');
+                  if (!phone || phone.length < 10) {
+                    setErrorMsg('Please enter a valid 10-digit mobile phone number');
                     return;
                   }
+
+                  if (!phoneVerified) {
+                    if (!otpSent) {
+                      const sent = await handleSendOTP();
+                      if (sent) setErrorMsg('');
+                      return;
+                    }
+                    if (otp.length === 6) {
+                      const verified = await handleVerifyOTP();
+                      if (verified) {
+                        setErrorMsg('');
+                        setStep(2);
+                      }
+                      return;
+                    }
+                    if (suggestedOtpCode) {
+                      setOtp(suggestedOtpCode);
+                      const verified = await handleVerifyOTP(suggestedOtpCode);
+                      if (verified) {
+                        setErrorMsg('');
+                        setStep(2);
+                      }
+                      return;
+                    }
+                    setErrorMsg('Please enter the 6-digit OTP code sent to your mobile number');
+                    return;
+                  }
+
                   setErrorMsg('');
                   setStep(2);
                 }}
