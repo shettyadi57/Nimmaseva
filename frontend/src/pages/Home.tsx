@@ -71,12 +71,36 @@ export const Home: React.FC = () => {
   };
 
   // Fetch public hero stats independently (non-blocking)
-  useEffect(() => {
+  const refreshHeroStats = () => {
     fetchPublicStats()
       .then(stats => setHeroStats(stats))
       .catch(() => setHeroStats(null))
       .finally(() => setStatsLoading(false));
+  };
+
+  useEffect(() => {
+    refreshHeroStats();
   }, []);
+
+  // Listen for queue updates across the application
+  useEffect(() => {
+    const handleQueueUpdated = () => {
+      if (userLocation) {
+        loadData(userLocation.lat, userLocation.lng);
+      } else {
+        loadData();
+      }
+      refreshHeroStats();
+    };
+
+    window.addEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+    const interval = setInterval(handleQueueUpdated, 6000);
+
+    return () => {
+      window.removeEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+      clearInterval(interval);
+    };
+  }, [userLocation]);
 
   const handleBookAtOffice = (office: Office) => {
     setSelectedOffice(office);

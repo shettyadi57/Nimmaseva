@@ -41,13 +41,27 @@ export const AdminDashboard: React.FC = () => {
     loadOptions();
   }, [statusFilter, officeFilter]);
 
-  // Live Auto-Polling every 4 seconds to reflect citizen bookings in real-time
+  // Live Auto-Polling & Event Listener to reflect citizen bookings in real-time
   useEffect(() => {
-    if (!autoRefresh) return;
+    const handleQueueUpdated = () => {
+      loadDashboardData(false);
+      loadOptions();
+    };
+
+    window.addEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+
+    if (!autoRefresh) {
+      return () => window.removeEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+    }
+
     const interval = setInterval(() => {
       loadDashboardData(false);
     }, 4000);
-    return () => clearInterval(interval);
+
+    return () => {
+      window.removeEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+      clearInterval(interval);
+    };
   }, [autoRefresh, statusFilter, officeFilter]);
 
   const loadOptions = async () => {

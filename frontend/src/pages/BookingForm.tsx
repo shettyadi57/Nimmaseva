@@ -649,10 +649,27 @@ export const BookingForm: React.FC = () => {
                 >
                   {offices.map((o) => (
                     <option key={o.id} value={o.id}>
-                      {o.name} ({o.type}) - {o.address}
+                      {o.name} ({o.type}) - {o.current_queue_count || 0} in queue ({o.remaining_tokens || 0} left)
                     </option>
                   ))}
                 </select>
+
+                {currentOffice && (
+                  <div className="mt-3 p-3.5 bg-slate-950/80 rounded-2xl border border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2.5 h-2.5 rounded-full ${currentOffice.server_status === 'Active' ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}`} />
+                      <span className="font-bold text-white">{currentOffice.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3 font-mono text-[11px]">
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-950/70 text-amber-300 border border-amber-800/60 font-bold">
+                        ⚡ Live Queue: {currentOffice.current_queue_count || 0} Waiting
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-950/70 text-emerald-300 border border-emerald-800/60 font-bold">
+                        🎟️ Remaining: {currentOffice.remaining_tokens || 0} Tokens
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Citizen Category & Queue Pass Allocation Box */}

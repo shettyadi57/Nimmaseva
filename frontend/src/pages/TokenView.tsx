@@ -27,15 +27,24 @@ export const TokenView: React.FC = () => {
       const stored = localStorage.getItem(`nimmaseva_rating_${tokenNumber}`);
       if (stored) setRatingSubmitted(true);
     }
-  }, [tokenNumber]);
 
-  // Live Auto-polling every 3 seconds to receive instant Queue Call Reminders
-  useEffect(() => {
-    if (!tokenNumber) return;
+    const handleQueueUpdated = () => {
+      if (tokenNumber) {
+        loadToken(tokenNumber, false);
+      }
+    };
+
+    window.addEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+
+    // Live Auto-polling every 3 seconds to receive instant Queue Call Reminders
     const interval = setInterval(() => {
-      loadToken(tokenNumber, false);
+      if (tokenNumber) loadToken(tokenNumber, false);
     }, 3000);
-    return () => clearInterval(interval);
+
+    return () => {
+      window.removeEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+      clearInterval(interval);
+    };
   }, [tokenNumber]);
 
   const loadToken = async (tok: string, showSpinner = true) => {
@@ -224,6 +233,28 @@ export const TokenView: React.FC = () => {
                 'bg-slate-900 text-slate-400 border border-slate-800'
               }`}>
                 Current Status: {booking.status}
+              </div>
+            </div>
+
+            {/* Real-time dynamic queue position tracker bar */}
+            <div className="mt-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">People Ahead</span>
+                <span className="text-xl font-black text-amber-400 font-mono">
+                  {booking.status === 'Completed' ? '0' : (booking.status === 'Called' || booking.status === 'In Progress' ? 'NOW SERVING' : `${booking.people_ahead ?? 0} in line`)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">Estimated Wait</span>
+                <span className="text-xl font-black text-emerald-400 font-mono">
+                  {booking.status === 'Completed' ? 'Completed' : (booking.status === 'Called' || booking.status === 'In Progress' ? 'Immediate' : `~${booking.avg_wait_mins ?? 15} Mins`)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] uppercase font-bold text-slate-500 block">Assigned Counter</span>
+                <span className="text-xl font-black text-white font-mono">
+                  Counter 0{booking.counter_number || 1}
+                </span>
               </div>
             </div>
           </div>

@@ -23,10 +23,34 @@ export const DisplayBoard: React.FC = () => {
     return () => clearInterval(id);
   }, []);
 
-  // Initial load
+  const loadQueue = (id: number) => {
+    fetchQueueState(id).then(setQueue).catch(console.error);
+  };
+
+  // Initial load & dynamic event listener
   useEffect(() => {
     if (!officeId) return;
-    fetchQueueState(Number(officeId)).then(setQueue).catch(console.error);
+    const numId = Number(officeId);
+    loadQueue(numId);
+
+    const handleQueueUpdated = (e: any) => {
+      const targetId = e?.detail?.officeId;
+      if (!targetId || targetId === numId) {
+        loadQueue(numId);
+      }
+    };
+
+    window.addEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+
+    // Dynamic auto-poll fallback every 3s
+    const interval = setInterval(() => {
+      loadQueue(numId);
+    }, 3000);
+
+    return () => {
+      window.removeEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+      clearInterval(interval);
+    };
   }, [officeId]);
 
   // WebSocket for live updates — reuses the same /queue/ws/{officeId} channel
@@ -34,20 +58,21 @@ export const DisplayBoard: React.FC = () => {
     if (!officeId) return;
 
     const connect = () => {
-      const ws = new WebSocket(`${WS_BASE}/api/v1/queue/ws/${officeId}`);
-      wsRef.current = ws;
+      try {
+        const ws = new WebSocket(`${WS_BASE}/api/v1/queue/ws/${officeId}`);
+        wsRef.current = ws;
 
-      ws.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          setQueue(prev => ({ ...prev!, ...data }));
-        } catch (_) {}
-      };
+        ws.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+            setQueue(prev => ({ ...prev!, ...data }));
+          } catch (_) {}
+        };
 
-      ws.onclose = () => {
-        // Auto-reconnect after 3 s
-        setTimeout(connect, 3000);
-      };
+        ws.onclose = () => {
+          setTimeout(connect, 3000);
+        };
+      } catch (_) {}
     };
 
     connect();

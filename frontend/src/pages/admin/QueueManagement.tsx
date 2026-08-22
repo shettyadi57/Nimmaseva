@@ -23,6 +23,23 @@ export const QueueManagement: React.FC = () => {
     if (selectedOfficeId) {
       loadQueue(selectedOfficeId);
     }
+
+    const handleQueueUpdated = (e: any) => {
+      const targetId = e?.detail?.officeId;
+      if (!targetId || targetId === selectedOfficeId) {
+        loadQueue(selectedOfficeId);
+      }
+    };
+
+    window.addEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+    const interval = setInterval(() => {
+      if (selectedOfficeId) loadQueue(selectedOfficeId);
+    }, 4000);
+
+    return () => {
+      window.removeEventListener('nimmaseva:queue_updated', handleQueueUpdated);
+      clearInterval(interval);
+    };
   }, [selectedOfficeId]);
 
   const loadInitialData = async () => {
