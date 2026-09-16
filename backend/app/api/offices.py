@@ -81,9 +81,12 @@ def get_offices(
 
 @router.get("/{office_id}", response_model=OfficeOut)
 def get_office_detail(office_id: int, db: Session = Depends(get_db)):
+    from fastapi import HTTPException
     off = db.query(Office).filter(Office.id == office_id).first()
+    if not off:
+        raise HTTPException(status_code=404, detail="Office not found")
     today_str = datetime.now().strftime("%Y-%m-%d")
-    
+
     queue_count = db.query(Booking).filter(
         Booking.office_id == off.id,
         Booking.visit_date == today_str,

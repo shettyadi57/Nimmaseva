@@ -5,7 +5,8 @@ from typing import List, Optional
 import csv
 import io
 from app.core.database import get_db
-from app.models.models import Booking, Office, Service, AuditLog
+from app.core.dependencies import require_admin
+from app.models.models import Booking, Office, Service, AuditLog, User
 from app.schemas.schemas import BookingOut, AnalyticsSummary, BookingStatusUpdate, WalkinBookingCreate
 from app.services.token_service import get_next_token_number
 
@@ -19,7 +20,8 @@ def get_audit_logs(
     action_type: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
 ):
     """Paginated audit log viewer with filters."""
     query = db.query(AuditLog).order_by(AuditLog.timestamp.desc())
@@ -55,7 +57,11 @@ def get_audit_logs(
 
 
 @router.get("/summary", response_model=AnalyticsSummary)
-def get_admin_summary(office_id: Optional[int] = None, db: Session = Depends(get_db)):
+def get_admin_summary(
+    office_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     today_str = datetime.now().strftime("%Y-%m-%d")
     
     query = db.query(Booking).filter(Booking.visit_date == today_str)
@@ -98,7 +104,8 @@ def get_admin_summary(office_id: Optional[int] = None, db: Session = Depends(get
 def get_all_bookings(
     status: Optional[str] = None,
     office_id: Optional[int] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
 ):
     query = db.query(Booking)
     if status:
@@ -145,7 +152,12 @@ def get_all_bookings(
     return result
 
 @router.patch("/bookings/{booking_id}/status")
-def update_booking_status(booking_id: int, update: BookingStatusUpdate, db: Session = Depends(get_db)):
+def update_booking_status(
+    booking_id: int,
+    update: BookingStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     booking = db.query(Booking).filter(Booking.id == booking_id).first()
     if not booking:
         raise HTTPException(status_code=404, detail="Booking record not found")
@@ -159,7 +171,7 @@ def update_booking_status(booking_id: int, update: BookingStatusUpdate, db: Sess
 
     # Add audit log
     audit = AuditLog(
-        user_name="Admin Staff",
+        user_name=current_user.full_name,
         action=f"Updated status for token {booking.token_number} to {update.status}",
         details=f"Counter: {booking.counter_number}"
     )
@@ -169,7 +181,11 @@ def update_booking_status(booking_id: int, update: BookingStatusUpdate, db: Sess
     return {"status": "success", "message": f"Token {booking.token_number} status updated to {update.status}"}
 
 @router.post("/bookings/walk-in", response_model=BookingOut)
-def create_walkin_booking(data: WalkinBookingCreate, db: Session = Depends(get_db)):
+def create_walkin_booking(
+    data: WalkinBookingCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     today_str = datetime.now().strftime("%Y-%m-%d")
     now_str = datetime.now().strftime("%I:%M %p")
 
@@ -241,7 +257,10 @@ def create_walkin_booking(data: WalkinBookingCreate, db: Session = Depends(get_d
     )
 
 @router.get("/export/csv")
-def export_bookings_csv(db: Session = Depends(get_db)):
+def export_bookings_csv(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     bookings = db.query(Booking).all()
     
     output = io.StringIO()

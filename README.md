@@ -58,8 +58,8 @@ Access the application in your browser:
 - **Backend API Documentation**: [http://localhost/docs](http://localhost/docs) or [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ### Demo Admin Credentials
-- **Email**: `admin@nimmaseva.in`
-- **Password**: `Admin@123`
+⚠️ **For first-time setup only**: Use the seed script to create an admin account.  
+Do **not** publish credentials in documentation. Rotate passwords immediately after initial deployment.
 
 ---
 

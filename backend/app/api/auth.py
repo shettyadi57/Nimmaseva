@@ -1,28 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-import random
+import time
 from app.core.database import get_db
-from app.core.security import verify_password, get_password_hash, create_access_token, verify_aadhaar
+from app.core.security import verify_password, get_password_hash, create_access_token, verify_aadhaar, generate_otp
 from app.models.models import User, AuditLog
 from app.schemas.schemas import Token, LoginRequest, RegisterRequest, OTPRequest, OTPVerifyRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-# In-memory store for OTPs
-otp_store = {}
+# In-memory OTP store: phone -> (otp, expires_at_unix)
+# For production: replace with Redis with TTL
+OTP_TTL_SECONDS = 300  # 5 minutes
+otp_store: dict[str, tuple[str, float]] = {}
 
 @router.post("/login", response_model=Token)
 def login(login_req: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(
         (User.email == login_req.email_or_phone) | (User.phone == login_req.email_or_phone)
     ).first()
-    
+
     if not user or not verify_password(login_req.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username/phone or password",
         )
-    
+
     access_token = create_access_token(subject=user.email or user.phone)
 
     # Audit log: admin login event
@@ -46,13 +48,13 @@ def register(reg_req: RegisterRequest, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(
         (User.email == reg_req.email_or_phone) | (User.phone == reg_req.email_or_phone)
     ).first()
-    
+
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="An account with this email/phone already exists"
         )
-    
+
     hashed_pwd = get_password_hash(reg_req.password)
     is_email = "@" in reg_req.email_or_phone
 
@@ -61,7 +63,9 @@ def register(reg_req: RegisterRequest, db: Session = Depends(get_db)):
         email=reg_req.email_or_phone if is_email else None,
         phone=reg_req.email_or_phone if not is_email else "9876543210",
         hashed_password=hashed_pwd,
-        role=reg_req.role or "admin"
+        # S5 fix: role is NOT caller-supplied; all registrations create 'admin' staff accounts.
+        # For production, add a REGISTRATION_CODE env-var check or remove this endpoint entirely.
+        role="admin",
     )
     db.add(new_user)
     db.commit()
@@ -81,12 +85,17 @@ def send_otp(req: OTPRequest):
     if req.aadhaar and not verify_aadhaar(req.aadhaar):
         raise HTTPException(status_code=400, detail="Invalid Aadhaar number (must be 12 digits)")
 
-    otp = str(random.randint(100000, 999999))
-    otp_store[req.phone] = otp
-    
+    # S7 fix: cryptographically secure OTP
+    otp = generate_otp()
+    # S6 fix: store with expiry timestamp; overwrite any previous OTP for this phone
+    otp_store[req.phone] = (otp, time.time() + OTP_TTL_SECONDS)
+
+    # In production: send via real SMS gateway (e.g., Twilio, AWS SNS, or CDAC MSG91)
+    # For demo: OTP is not transmitted; this endpoint only signals readiness.
     return {
         "message": "OTP sent successfully to registered mobile number",
-        "aadhaar_status": "Verified" if req.aadhaar else "Pending"
+        "aadhaar_status": "Verified" if req.aadhaar else "Pending",
+        "expires_in_seconds": OTP_TTL_SECONDS
     }
 
 @router.post("/verify-otp")
@@ -94,9 +103,23 @@ def verify_otp(req: OTPVerifyRequest):
     if not verify_aadhaar(req.aadhaar):
         raise HTTPException(status_code=400, detail="Aadhaar verification failed. Must be 12 numeric digits.")
 
-    saved_otp = otp_store.get(req.phone)
+    entry = otp_store.get(req.phone)
+
+    # S6 fix: reject if OTP was never issued, already used, or expired
+    if not entry:
+        raise HTTPException(status_code=400, detail="No OTP was issued for this phone number or it has already been used.")
+
+    saved_otp, expires_at = entry
+    if time.time() > expires_at:
+        # Clean up expired entry
+        del otp_store[req.phone]
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+
     if req.otp != saved_otp:
         raise HTTPException(status_code=400, detail="Invalid OTP entered")
+
+    # S6 fix: single-use — delete after first successful verification
+    del otp_store[req.phone]
 
     return {
         "status": "success",

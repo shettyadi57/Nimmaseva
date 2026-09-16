@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, ConfigDict
-from typing import Optional, List
+from typing import Optional, List, Literal
 from datetime import datetime
 import re
 import html
@@ -30,14 +30,14 @@ class LoginRequest(BaseModel):
 
 class RegisterRequest(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    
+
     full_name: str = Field(..., min_length=2, max_length=100)
     email_or_phone: str = Field(..., min_length=5, max_length=100)
     password: str = Field(..., min_length=8, max_length=64)
     employee_id: Optional[str] = Field(None, max_length=30)
     department: Optional[str] = Field("Revenue & E-Governance", max_length=100)
     office_id: Optional[int] = Field(1, ge=1)
-    role: Optional[str] = Field("admin", max_length=30)
+    # Note: 'role' is intentionally NOT accepted from callers — see auth.py S5 fix
 
     @field_validator('full_name', 'email_or_phone', 'employee_id', 'department')
     @classmethod
@@ -74,8 +74,12 @@ class OTPVerifyRequest(BaseModel):
 
 class BookingStatusUpdate(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    
-    status: str = Field(..., max_length=30)
+
+    # S11 fix: only valid state-machine transitions are accepted
+    status: Literal[
+        "Pending", "Called", "In Progress", "Completed",
+        "Cancelled", "Transferred", "Skipped", "No-Show"
+    ]
     counter_number: Optional[int] = Field(None, ge=1, le=50)
 
 class WalkinBookingCreate(BaseModel):

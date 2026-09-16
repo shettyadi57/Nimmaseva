@@ -2,7 +2,6 @@ import secrets
 from datetime import datetime, timedelta, time
 from sqlalchemy.orm import Session
 from app.models.models import Booking, Office, Service
-import random
 
 TIME_SLOTS = [
     "09:00 AM", "09:20 AM", "09:40 AM",
@@ -15,8 +14,8 @@ TIME_SLOTS = [
 ]
 
 def generate_verification_code() -> str:
-    """Generates a 6-digit numeric verification code."""
-    return f"{random.randint(100000, 999999)}"
+    """Generates a cryptographically secure 6-digit numeric verification code."""
+    return str(secrets.randbelow(900000) + 100000)
 
 def parse_range(range_str: str) -> list[int]:
     """Parses range string like '1-10,41-50' into a list of integers."""

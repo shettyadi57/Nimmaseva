@@ -22,7 +22,8 @@ services:
     restart: always
     environment:
       - DATABASE_URL=postgresql://nimmaseva:nimmaseva123@db:5432/nimmasevadb
-      - SECRET_KEY=SHIVAMOGGA_SEVA_SECRET_KEY_SUPER_SECURE_2026_KARNATAKA
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     depends_on:

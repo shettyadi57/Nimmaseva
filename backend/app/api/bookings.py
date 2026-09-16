@@ -166,7 +166,8 @@ def get_booking_by_token(token_number: str, db: Session = Depends(get_db)):
         verification_code=booking.verification_code,
         citizen_name=booking.citizen_name,
         phone=booking.phone,
-        aadhaar=booking.aadhaar,
+        # S10 fix: mask Aadhaar — never expose full number on public endpoint
+        aadhaar=f"XXXX XXXX {booking.aadhaar[-4:]}" if booking.aadhaar and len(booking.aadhaar) >= 4 else "XXXX",
         age=booking.age,
         gender=booking.gender,
         is_priority=booking.is_priority,

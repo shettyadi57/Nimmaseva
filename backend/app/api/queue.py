@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, HTTPExce
 from sqlalchemy.orm import Session
 from datetime import datetime
 from app.core.database import get_db
-from app.models.models import Booking, QueueState, Office, AuditLog
+from app.core.dependencies import require_admin
+from app.models.models import Booking, QueueState, Office, AuditLog, User
 from app.schemas.schemas import QueueUpdate, QueueStateOut
 from app.services.queue_service import update_queue_action
 from app.websockets.manager import manager
@@ -47,7 +48,8 @@ def get_queue_state(office_id: int, db: Session = Depends(get_db)):
 async def control_queue(
     office_id: int,
     update_in: QueueUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
 ):
     res_dict = update_queue_action(
         db,
@@ -61,7 +63,7 @@ async def control_queue(
     # Audit: log every queue control action
     target_info = f" token={update_in.target_token}" if update_in.target_token else ""
     db.add(AuditLog(
-        user_name="Admin Staff",
+        user_name=current_user.full_name,
         action=f"queue_{update_in.action}",
         details=f"Office #{office_id} | action={update_in.action}{target_info} | counter={update_in.counter_number or 1}"
     ))

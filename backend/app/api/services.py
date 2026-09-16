@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
-from app.models.models import Service, AuditLog
+from app.core.dependencies import require_admin
+from app.models.models import Service, AuditLog, User
 from app.schemas.schemas import ServiceOut, ServiceCreate
 
 router = APIRouter(prefix="/services", tags=["Services"])
@@ -19,7 +20,11 @@ def get_service(service_id: int, db: Session = Depends(get_db)):
     return service
 
 @router.post("", response_model=ServiceOut)
-def create_service(service_in: ServiceCreate, db: Session = Depends(get_db)):
+def create_service(
+    service_in: ServiceCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     db_service = Service(**service_in.model_dump())
     db.add(db_service)
     db.commit()
@@ -27,7 +32,12 @@ def create_service(service_in: ServiceCreate, db: Session = Depends(get_db)):
     return db_service
 
 @router.put("/{service_id}", response_model=ServiceOut)
-def update_service(service_id: int, service_in: ServiceCreate, db: Session = Depends(get_db)):
+def update_service(
+    service_id: int,
+    service_in: ServiceCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
@@ -40,7 +50,13 @@ def update_service(service_id: int, service_in: ServiceCreate, db: Session = Dep
     return service
 
 @router.patch("/{service_id}/status")
-def toggle_service_status(service_id: int, server_status: str, is_active: bool = True, db: Session = Depends(get_db)):
+def toggle_service_status(
+    service_id: int,
+    server_status: str,
+    is_active: bool = True,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
     service = db.query(Service).filter(Service.id == service_id).first()
     if not service:
         raise HTTPException(status_code=404, detail="Service not found")
@@ -50,7 +66,7 @@ def toggle_service_status(service_id: int, server_status: str, is_active: bool =
     service.is_active = is_active
 
     db.add(AuditLog(
-        user_name="Admin Staff",
+        user_name=current_user.full_name,
         action="service_status_change",
         details=f"Service '{service.name}' (#{service_id}): {prev_status} → {server_status}, active={is_active}"
     ))
