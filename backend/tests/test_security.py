@@ -38,16 +38,17 @@ def setup_db():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
+    engine.dispose()  # Release all connections before file removal
     try:
         os.remove("./test_nimmaseva.db")
-    except FileNotFoundError:
-        pass
+    except (FileNotFoundError, PermissionError):
+        pass  # Windows may still hold the file; it will be cleaned on next run
 
 client = TestClient(app)
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def register_and_login(email="testadmin@nimmaseva.in", password="AdminPass@99"):
+def register_and_login(email="testadmin@nimmaseva.in", password="Admin@99"):
     """Register a test admin user and return a valid Bearer token."""
     client.post("/api/auth/register", json={
         "full_name": "Test Admin",
@@ -293,28 +294,50 @@ class TestAadhaarMasking:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 class TestBookingStatusEnum:
-    """S11: Arbitrary status strings must be rejected."""
+    """S11: Arbitrary status strings must be rejected at schema level."""
 
-    def test_invalid_status_rejected(self):
-        token = register_and_login(email="admin2@nimmaseva.in")
+    def test_invalid_status_rejected_by_schema(self):
+        """Pydantic should reject an unknown status string without needing a DB."""
+        from app.schemas.schemas import BookingStatusUpdate
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError) as exc_info:
+            BookingStatusUpdate(status="hacked_status")
+        errors = exc_info.value.errors()
+        assert any(e["loc"] == ("status",) for e in errors), (
+            f"Expected status field validation error, got: {errors}"
+        )
+
+    def test_valid_statuses_accepted_by_schema(self):
+        """All valid state-machine values must pass schema validation."""
+        from app.schemas.schemas import BookingStatusUpdate
+        valid_statuses = [
+            "Pending", "Called", "In Progress", "Completed",
+            "Cancelled", "Transferred", "Skipped", "No-Show"
+        ]
+        for s in valid_statuses:
+            obj = BookingStatusUpdate(status=s)
+            assert obj.status == s
+
+    def test_invalid_status_via_api_rejected(self):
+        token = register_and_login(email="admin_status@nimmaseva.in")
         resp = client.patch(
             "/api/admin/bookings/1/status",
             json={"status": "hacked_status"},
             headers={"Authorization": f"Bearer {token}"},
         )
         assert resp.status_code == 422, (
-            f"Expected 422 for invalid status, got {resp.status_code}: {resp.text}"
+            f"Expected 422 for invalid status via API, got {resp.status_code}: {resp.text}"
         )
 
-    def test_valid_status_accepted(self):
-        token = register_and_login(email="admin3@nimmaseva.in")
-        # This will 404 (no booking with id=9999) but NOT 422 — schema is valid
+    def test_valid_status_via_api_not_rejected_as_schema_error(self):
+        token = register_and_login(email="admin_status2@nimmaseva.in")
+        # 9999 doesn't exist so we get 404, but NOT 422 (schema valid)
         resp = client.patch(
             "/api/admin/bookings/9999/status",
             json={"status": "Completed"},
             headers={"Authorization": f"Bearer {token}"},
         )
-        assert resp.status_code != 422, "Valid status 'Completed' should not fail schema validation"
+        assert resp.status_code != 422, "Valid status 'Completed' must not fail schema validation"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -344,7 +367,7 @@ class TestJWTSecurity:
 
     def test_tampered_jwt_rejected(self):
         token = register_and_login(email="jwttest@nimmaseva.in")
-        # Flip a character in the signature portion
+        # Flip characters in the signature portion
         parts = token.split(".")
         tampered = parts[0] + "." + parts[1] + "." + parts[2][:-3] + "abc"
         resp = client.get(
@@ -355,9 +378,10 @@ class TestJWTSecurity:
 
     def test_token_with_wrong_secret_rejected(self):
         # Generate a token signed with a DIFFERENT secret
-        from jose import jwt
+        import importlib
+        jose_jwt = importlib.import_module("jose.jwt")
         from datetime import datetime, timedelta, timezone
-        fake_token = jwt.encode(
+        fake_token = jose_jwt.encode(
             {"sub": "admin@nimmaseva.in", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
             "completely_wrong_secret",
             algorithm="HS256"
