@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchAdminSummary, fetchAllBookings, updateBookingStatus, createWalkinBooking, fetchServices, fetchOffices, getExportCsvUrl } from '../../services/api';
+import { fetchAdminSummary, fetchAllBookings, updateBookingStatus, createWalkinBooking, fetchServices, fetchOffices, downloadExportCsv } from '../../services/api';
 import { AnalyticsSummary, Booking, Service, Office } from '../../types';
 import { useStore } from '../../store/useStore';
 import { 
@@ -35,6 +35,18 @@ export const AdminDashboard: React.FC = () => {
 
   // Selected Ticket Detail Modal
   const [selectedTicket, setSelectedTicket] = useState<Booking | null>(null);
+  const [csvLoading, setCsvLoading] = useState(false);
+
+  const handleExportCsv = async () => {
+    setCsvLoading(true);
+    try {
+      await downloadExportCsv();
+    } catch (err: any) {
+      alert(err.message || 'Export failed');
+    } finally {
+      setCsvLoading(false);
+    }
+  };
 
   useEffect(() => {
     loadDashboardData();
@@ -190,13 +202,14 @@ export const AdminDashboard: React.FC = () => {
               <PlusCircle className="w-4 h-4" /> Issue Walk-in Ticket
             </button>
 
-            <a
-              href={getExportCsvUrl()}
-              download
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-extrabold text-xs rounded-xl shadow transition-all"
+            <button
+              onClick={handleExportCsv}
+              disabled={csvLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-slate-200 border border-slate-800 font-extrabold text-xs rounded-xl shadow transition-all"
             >
-              <Download className="w-4 h-4 text-amber-400" /> Export CSV
-            </a>
+              <Download className="w-4 h-4 text-amber-400" />
+              {csvLoading ? 'Exporting…' : 'Export CSV'}
+            </button>
           </div>
         </div>
 

@@ -8,8 +8,33 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 5000,
+  timeout: 8000,
 });
+
+// ── Auth interceptor: attach admin Bearer token on every request ──────────
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('adminToken');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// ── Response interceptor: redirect to login on 401 (token expired/invalid) ─
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      // Clear stale token and redirect to admin login
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUser');
+      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // ── Mock Fallback Data (Ensures Standalone Web Deployment Works Seamlessly) ──
 
@@ -1651,6 +1676,32 @@ export const fetchPublicStats = async () => {
   };
 };
 
+/**
+ * Authenticated CSV export.
+ * The old `getExportCsvUrl()` returned a bare URL that browsers opened without
+ * the Authorization header, causing a 401. This streams the file via axios
+ * (which carries the Bearer token) and triggers a native download via Blob URL.
+ */
+export const downloadExportCsv = async (): Promise<void> => {
+  try {
+    const res = await api.get('/admin/export/csv', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nimmaseva_bookings_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err: any) {
+    if (err?.response?.status === 401) {
+      throw new Error('Session expired. Please log in again.');
+    }
+    throw new Error('CSV export failed. Check your connection.');
+  }
+};
+
+/** @deprecated Use downloadExportCsv() instead */
 export const getExportCsvUrl = (): string => `${API_BASE}/admin/export/csv`;
 
 export default api;
