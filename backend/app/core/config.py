@@ -20,6 +20,13 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./nimmaseva.db"
 
+    # SMTP / Email Verification Settings (Free via Gmail SMTP or similar)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_NAME: str = "Nimma Seva Karnataka"
+
     # CORS — list exact origins; never use "*" with allow_credentials=True
     BACKEND_CORS_ORIGINS: list[str] = [
         "http://localhost",

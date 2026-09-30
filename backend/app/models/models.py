@@ -9,7 +9,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     full_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=True)
-    phone = Column(String, index=True, nullable=False)
+    phone = Column(String, index=True, nullable=True)
     hashed_password = Column(String, nullable=True)
     aadhaar = Column(String, nullable=True)
     age = Column(Integer, nullable=True)
