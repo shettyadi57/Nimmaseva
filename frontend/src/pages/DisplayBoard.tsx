@@ -59,7 +59,8 @@ export const DisplayBoard: React.FC = () => {
 
     const connect = () => {
       try {
-        const ws = new WebSocket(`${WS_BASE}/api/v1/queue/ws/${officeId}`);
+        const ws = new WebSocket(`${WS_BASE}/api/queue/ws/${officeId}`);
+
         wsRef.current = ws;
 
         ws.onmessage = (e) => {

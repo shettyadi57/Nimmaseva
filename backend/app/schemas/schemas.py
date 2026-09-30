@@ -63,7 +63,7 @@ class OTPVerifyRequest(BaseModel):
     
     phone: str = Field(..., min_length=10, max_length=15)
     otp: str = Field(..., min_length=6, max_length=6)
-    aadhaar: str = Field(..., min_length=12, max_length=20)
+    aadhaar: Optional[str] = Field(None, max_length=20)  # Made optional; only required if Aadhaar verification is desired
 
     @field_validator('otp')
     @classmethod
@@ -71,6 +71,52 @@ class OTPVerifyRequest(BaseModel):
         if not v.isdigit():
             raise ValueError('OTP must be a 6-digit number.')
         return v
+
+
+class CitizenOTPVerifyRequest(BaseModel):
+    """Used for phone-OTP based citizen login + auto account creation."""
+    model_config = ConfigDict(extra='forbid')
+
+    phone: str = Field(..., min_length=10, max_length=15)
+    otp: str = Field(..., min_length=6, max_length=6)
+    full_name: Optional[str] = Field(None, max_length=100)
+    age: Optional[int] = Field(None, ge=1, le=120)
+    gender: Optional[str] = Field(None, max_length=20)
+    district: Optional[str] = Field(None, max_length=100)
+    taluk: Optional[str] = Field(None, max_length=100)
+    village_or_address: Optional[str] = Field(None, max_length=300)
+    aadhaar: Optional[str] = Field(None, max_length=20)
+
+    @field_validator('otp')
+    @classmethod
+    def validate_otp(cls, v: str) -> str:
+        if not v.isdigit():
+            raise ValueError('OTP must be a 6-digit number.')
+        return v
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        cleaned = re.sub(r'\D', '', v)
+        if len(cleaned) < 10 or len(cleaned) > 12:
+            raise ValueError('Phone number must contain 10 numeric digits.')
+        return cleaned
+
+    @field_validator('full_name', 'district', 'taluk', 'village_or_address')
+    @classmethod
+    def sanitize_citizen_fields(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_string(v) if v else v
+
+
+class CitizenTokenResponse(BaseModel):
+    """Response after successful citizen OTP verification."""
+    access_token: str
+    token_type: str
+    is_new_account: bool
+    citizen_id: int
+    phone: str
+    full_name: str
+    role: str
 
 class BookingStatusUpdate(BaseModel):
     model_config = ConfigDict(extra='forbid')

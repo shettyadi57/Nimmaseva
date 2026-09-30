@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { useLang } from '../context/LanguageContext';
-import { sendFirebaseOTP, verifyFirebaseOTP, clearRecaptcha } from '../lib/firebase';
+import { sendOTP, verifyCitizenOTP } from '../services/api';
 import { 
   User, Phone, ShieldCheck, Ticket, CheckCircle2, ArrowRight, 
-  Sparkles, LogOut, Edit3, UserCheck, AlertCircle, KeyRound, Check, RefreshCw
+  Sparkles, LogOut, Edit3, UserCheck, AlertCircle, KeyRound, 
+  Check, RefreshCw, Database, Wifi, WifiOff
 } from 'lucide-react';
 import { CitizenProfile } from '../types';
 
@@ -19,7 +20,9 @@ export const CitizenLogin: React.FC = () => {
   const [fullName, setFullName] = useState(citizenProfile?.fullName || '');
   const [age, setAge] = useState<number | ''>(citizenProfile?.age ?? '');
   const [gender, setGender] = useState(citizenProfile?.gender || 'Male');
-  const [aadhaar, setAadhaar] = useState(citizenProfile?.aadhaar || '');
+  const [aadhaar, setAadhaar] = useState(
+    citizenProfile?.aadhaar && citizenProfile.aadhaar !== 'NOT_PROVIDED' ? citizenProfile.aadhaar : ''
+  );
   const [district, setDistrict] = useState(citizenProfile?.district || 'Shivamogga');
   const [taluk, setTaluk] = useState(citizenProfile?.taluk || 'Shivamogga');
   const [villageOrAddress, setVillageOrAddress] = useState(citizenProfile?.villageOrAddress || '');
@@ -27,13 +30,16 @@ export const CitizenLogin: React.FC = () => {
   // OTP state
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
+  const [demoOtp, setDemoOtp] = useState<string | null>(null);
   const [phoneVerified, setPhoneVerified] = useState(citizenProfile?.isVerified || false);
+  const [isDBSynced, setIsDBSynced] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isEditing, setIsEditing] = useState(!citizenProfile);
 
+  // ─── Step 1: Send OTP via Backend ────────────────────────────────────────
   const handleSendOTP = async () => {
     if (!phone || phone.length < 10) {
       setErrorMsg('Please enter a valid 10-digit mobile phone number');
@@ -42,17 +48,20 @@ export const CitizenLogin: React.FC = () => {
     setErrorMsg('');
     setSuccessMsg('');
     setLoading(true);
+    setDemoOtp(null);
 
     try {
-      const res = await sendFirebaseOTP(phone);
+      const res = await sendOTP(phone);
       setOtpSent(true);
-      if (res.isFallback) {
-        setSuccessMsg(res.message || `Instant Verification Code: ${res.fallbackCode}`);
+      
+      // Show the demo OTP prominently so user can copy it
+      if (res.demo_otp) {
+        setDemoOtp(res.demo_otp);
+        setSuccessMsg(`OTP generated! Your verification code is shown below. In production, it will be sent via SMS.`);
       } else {
-        setSuccessMsg(res.message || `OTP sent to +91 ${phone.slice(0, 3)}*****${phone.slice(-2)}. Check your SMS.`);
+        setSuccessMsg(`OTP sent to +91 ${phone.slice(0, 3)}*****${phone.slice(-2)}. Check your SMS.`);
       }
     } catch (err: any) {
-      console.error('Firebase OTP error:', err);
       setErrorMsg(err.message || 'Failed to send OTP. Please check your phone number and try again.');
     } finally {
       setLoading(false);
@@ -60,13 +69,14 @@ export const CitizenLogin: React.FC = () => {
   };
 
   const handleRetryOTP = () => {
-    clearRecaptcha();
     setOtpSent(false);
     setOtp('');
+    setDemoOtp(null);
     setErrorMsg('');
     setSuccessMsg('');
   };
 
+  // ─── Step 2: Verify OTP + Create/Update DB Account ───────────────────────
   const handleVerifyOTP = async () => {
     if (!otp || otp.length < 6) {
       setErrorMsg('Please enter the 6-digit OTP sent to your phone');
@@ -76,22 +86,36 @@ export const CitizenLogin: React.FC = () => {
     setLoading(true);
 
     try {
-      await verifyFirebaseOTP(otp);
+      const res = await verifyCitizenOTP(phone, otp, {
+        full_name: fullName || undefined,
+        age: age !== '' ? Number(age) : undefined,
+        gender: gender || undefined,
+        district: district || undefined,
+        taluk: taluk || undefined,
+        village_or_address: villageOrAddress || undefined,
+        aadhaar: aadhaar || undefined,
+      });
+
       setPhoneVerified(true);
-      setSuccessMsg('✓ Phone number verified successfully via Firebase!');
+      setIsDBSynced(true);
+      
+      const accountMsg = res.is_new_account
+        ? `✓ New account created! Welcome, ${res.full_name}!`
+        : `✓ Welcome back, ${res.full_name}! Phone verified.`;
+      setSuccessMsg(accountMsg);
+
+      // Update full name if returned from DB
+      if (res.full_name && res.full_name !== `Citizen_${phone.slice(-4)}`) {
+        setFullName(res.full_name);
+      }
     } catch (err: any) {
-      console.error('Firebase verify error:', err);
-      const msg = err?.code === 'auth/invalid-verification-code'
-        ? 'Incorrect OTP. Please check the code and try again.'
-        : err?.code === 'auth/code-expired'
-        ? 'OTP has expired. Please request a new one.'
-        : 'Verification failed. Please try again.';
-      setErrorMsg(msg);
+      setErrorMsg(err.message || 'Verification failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  // ─── Step 3: Save Profile & Navigate ──────────────────────────────────────
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
@@ -117,13 +141,12 @@ export const CitizenLogin: React.FC = () => {
     };
 
     setCitizenProfile(profileData);
-    setSuccessMsg('Login profile saved successfully! Your details will auto-fill on booking.');
+    setSuccessMsg('Profile saved! Redirecting to ticket booking...');
     setIsEditing(false);
     
-    // Auto navigate to ticket booking after brief pause
     setTimeout(() => {
       navigate('/book');
-    }, 1200);
+    }, 1000);
   };
 
   const handleQuickDemoLogin = () => {
@@ -162,10 +185,10 @@ export const CitizenLogin: React.FC = () => {
               <span>Smart Citizen Express Login</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Citizen Login & Auto-Fill Profile
+              Citizen Login &amp; Auto-Fill Profile
             </h1>
             <p className="text-sm text-slate-400">
-              Save your basic info once. Skip typing during ticket booking!
+              Enter your mobile number → Get OTP → Create account instantly. No password needed!
             </p>
           </div>
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-amber-500 p-0.5 shadow-lg flex-shrink-0">
@@ -203,6 +226,11 @@ export const CitizenLogin: React.FC = () => {
                     <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full border border-emerald-500/30 font-medium">
                       Logged In
                     </span>
+                    {isDBSynced && (
+                      <span className="bg-blue-500/20 text-blue-300 text-xs px-2 py-0.5 rounded-full border border-blue-500/30 font-medium flex items-center gap-1">
+                        <Database className="w-3 h-3" /> DB Synced
+                      </span>
+                    )}
                   </h2>
                   <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
                     <Phone className="w-3.5 h-3.5 text-amber-400" />
@@ -223,15 +251,19 @@ export const CitizenLogin: React.FC = () => {
             {/* Profile Grid Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-medium block">Age & Gender</span>
+                <span className="text-[11px] text-slate-400 font-medium block">Age &amp; Gender</span>
                 <span className="text-sm font-semibold text-slate-200">{citizenProfile.age} yrs • {citizenProfile.gender}</span>
               </div>
               <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
                 <span className="text-[11px] text-slate-400 font-medium block">Aadhaar Reference</span>
-                <span className="text-sm font-semibold text-slate-200">{citizenProfile.aadhaar || 'Not provided'}</span>
+                <span className="text-sm font-semibold text-slate-200">
+                  {citizenProfile.aadhaar && citizenProfile.aadhaar !== 'NOT_PROVIDED' 
+                    ? `XXXX XXXX ${citizenProfile.aadhaar.replace(/\s/g, '').slice(-4)}` 
+                    : 'Not provided'}
+                </span>
               </div>
               <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
-                <span className="text-[11px] text-slate-400 font-medium block">District & Taluk</span>
+                <span className="text-[11px] text-slate-400 font-medium block">District &amp; Taluk</span>
                 <span className="text-sm font-semibold text-slate-200">{citizenProfile.district}, {citizenProfile.taluk}</span>
               </div>
               <div className="bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
@@ -317,7 +349,16 @@ export const CitizenLogin: React.FC = () => {
                       maxLength={10}
                       placeholder="10-digit mobile number"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      onChange={(e) => {
+                        setPhone(e.target.value.replace(/\D/g, ''));
+                        // Reset OTP state if phone changes
+                        if (otpSent) {
+                          setOtpSent(false);
+                          setPhoneVerified(false);
+                          setOtp('');
+                          setDemoOtp(null);
+                        }
+                      }}
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -325,15 +366,12 @@ export const CitizenLogin: React.FC = () => {
                 </div>
               </div>
 
-              {/* Firebase reCAPTCHA container — must exist in DOM before OTP is sent */}
-              <div id="firebase-recaptcha-container" />
-
-              {/* OTP Verification Section — uses real Firebase SMS */}
+              {/* OTP Verification Section — uses Backend API */}
               {!phoneVerified ? (
-                <div className="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 space-y-3">
+                <div className="bg-slate-900/80 p-4 rounded-2xl border border-amber-500/20 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      <KeyRound className="w-4 h-4" /> Verify Mobile Number (OTP)
+                      <KeyRound className="w-4 h-4" /> Verify Mobile Number via OTP
                     </span>
                     {!otpSent ? (
                       <button
@@ -344,7 +382,7 @@ export const CitizenLogin: React.FC = () => {
                       >
                         {loading ? (
                           <><RefreshCw className="w-3 h-3 animate-spin" /> Sending...</>
-                        ) : 'Send OTP via SMS'}
+                        ) : 'Send OTP'}
                       </button>
                     ) : (
                       <button
@@ -352,15 +390,36 @@ export const CitizenLogin: React.FC = () => {
                         onClick={handleRetryOTP}
                         className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white text-[10px] font-semibold flex items-center gap-1 transition-all"
                       >
-                        <RefreshCw className="w-3 h-3" /> Resend
+                        <RefreshCw className="w-3 h-3" /> Resend OTP
                       </button>
                     )}
                   </div>
 
+                  {/* Demo OTP Banner — shows the OTP code directly for testing */}
+                  {demoOtp && (
+                    <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] text-amber-300 font-semibold uppercase tracking-wide">
+                          Demo / Dev Mode — Your OTP Code
+                        </p>
+                        <p className="text-2xl font-black font-mono text-amber-400 tracking-[0.35em] mt-0.5">
+                          {demoOtp}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setOtp(demoOtp)}
+                        className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition-all flex-shrink-0"
+                      >
+                        Auto-Fill
+                      </button>
+                    </div>
+                  )}
+
                   {otpSent && (
                     <div className="space-y-2">
                       <p className="text-[11px] text-slate-400">
-                        Enter the 6-digit code sent to <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>
+                        Enter the 6-digit code for <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>
                       </p>
                       <div className="flex items-center gap-2">
                         <input
@@ -379,7 +438,7 @@ export const CitizenLogin: React.FC = () => {
                           className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5"
                         >
                           {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                          Verify
+                          Verify &amp; Create Account
                         </button>
                       </div>
                     </div>
@@ -388,7 +447,14 @@ export const CitizenLogin: React.FC = () => {
               ) : (
                 <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-xl flex items-center gap-2 text-emerald-300 text-xs font-medium">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>Mobile number verified via Firebase SMS OTP ✓</span>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-bold">Phone Verified &amp; Account Created ✓</span>
+                    {isDBSynced && (
+                      <span className="text-blue-300 flex items-center gap-1">
+                        <Database className="w-3 h-3" /> Your citizen profile is saved in the Government Database
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -497,7 +563,7 @@ export const CitizenLogin: React.FC = () => {
                 className="w-full sm:flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-extrabold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/40 transition-all active:scale-98"
               >
                 <UserCheck className="w-4 h-4 text-amber-300" />
-                <span>Save Profile & Proceed to Ticket Booking</span>
+                <span>Save Profile &amp; Proceed to Ticket Booking</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 

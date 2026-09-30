@@ -134,3 +134,27 @@ class AuditLog(Base):
     action = Column(String, nullable=False)
     details = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+class Grievance(Base):
+    """Stores citizen grievance submissions for public grievance redressal."""
+    __tablename__ = "grievances"
+
+    id = Column(Integer, primary_key=True, index=True)
+    # Ticket reference auto-generated in format GRV-XXXXXX
+    ticket_id = Column(String, unique=True, index=True, nullable=False)
+
+    citizen_name = Column(String, nullable=False)
+    mobile = Column(String, nullable=False)
+    token_number = Column(String, nullable=True)       # Related token, if any
+    center_name = Column(String, nullable=False)
+    category = Column(String, nullable=False)          # e.g. Delayed Counter Service
+    description = Column(Text, nullable=False)
+
+    # Status lifecycle: Submitted → Under Review → Resolved / Rejected
+    status = Column(String, default="Submitted")
+    resolution_notes = Column(Text, nullable=True)
+
+    submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    resolved_at = Column(DateTime, nullable=True)
+
