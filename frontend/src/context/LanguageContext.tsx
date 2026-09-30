@@ -481,16 +481,37 @@ const LanguageContext = createContext<LanguageContextType>({
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [lang, setLangState] = useState<Language>(() => {
-    return (localStorage.getItem('nimmaseva-lang') as Language) ?? 'kn';
+    try {
+      const isSelected = localStorage.getItem('nimmaseva-lang-selected');
+      const saved = localStorage.getItem('nimmaseva-lang');
+      if (isSelected && (saved === 'kn' || saved === 'en' || saved === 'hi')) {
+        return saved as Language;
+      }
+    } catch (_) {}
+    // Default to Kannada
+    try {
+      localStorage.setItem('nimmaseva-lang', 'kn');
+    } catch (_) {}
+    return 'kn';
   });
 
   const setLang = (l: Language) => {
     setLangState(l);
-    localStorage.setItem('nimmaseva-lang', l);
+    try {
+      localStorage.setItem('nimmaseva-lang', l);
+      localStorage.setItem('nimmaseva-lang-selected', 'true');
+      document.documentElement.setAttribute('lang', l);
+    } catch (_) {}
   };
 
+  React.useEffect(() => {
+    try {
+      document.documentElement.setAttribute('lang', lang);
+    } catch (_) {}
+  }, [lang]);
+
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t: translations[lang] }}>
+    <LanguageContext.Provider value={{ lang, setLang, t: translations[lang] || translations.kn }}>
       {children}
     </LanguageContext.Provider>
   );

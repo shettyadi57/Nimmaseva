@@ -1,23 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kn">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate icon" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#065f46" />
-    <meta name="description" content="Nimma Seva - GramOne & Seva Sindhu Token Management System Shivamogga" />
+    <meta name="description" content="ನಿಮ್ಮ ಸೇವಾ — ಗ್ರಾಮ್‌ಒನ್ & ಸೇವಾ ಸಿಂಧು ಟೋಕನ್ ನಿರ್ವಹಣಾ ವ್ಯವಸ್ಥೆ ಶಿವಮೊಗ್ಗ" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Nimma Seva" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <link rel="manifest" href="/manifest.json" />
-    <title>Nimma Seva — GramOne & Seva Sindhu Token System</title>
-    <!-- Theme Init (prevents flash of wrong theme) -->
+    <title>ನಿಮ್ಮ ಸೇವಾ — ಗ್ರಾಮ್‌ಒನ್ & ಸೇವಾ ಸಿಂಧು ಟೋಕನ್ ವ್ಯವಸ್ಥೆ | Nimma Seva</title>
+    <!-- Theme & Language Init (prevents flash of wrong theme / language) -->
     <script>
       (function() {
         var t = localStorage.getItem('nimmaseva-theme') || 'dark';
         document.documentElement.setAttribute('data-theme', t);
+
+        var isSelected = localStorage.getItem('nimmaseva-lang-selected');
+        var l = localStorage.getItem('nimmaseva-lang');
+        var lang = (isSelected && (l === 'kn' || l === 'en' || l === 'hi')) ? l : 'kn';
+        localStorage.setItem('nimmaseva-lang', lang);
+        document.documentElement.setAttribute('lang', lang);
       })();
     </script>
     <!-- Google Fonts -->
