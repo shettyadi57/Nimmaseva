@@ -7,7 +7,7 @@ from app.models.models import User, AuditLog
 from app.schemas.schemas import (
     Token, LoginRequest, RegisterRequest,
     OTPRequest, OTPVerifyRequest,
-    CitizenOTPVerifyRequest, CitizenTokenResponse,
+    CitizenOTPVerifyRequest, CitizenDirectLoginRequest, CitizenTokenResponse,
 )
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -239,3 +239,65 @@ def citizen_verify_otp(req: CitizenOTPVerifyRequest, db: Session = Depends(get_d
         full_name=citizen.full_name,
         role=citizen.role,
     )
+
+
+@router.post("/citizen-direct-login", response_model=CitizenTokenResponse)
+def citizen_direct_login(req: CitizenDirectLoginRequest, db: Session = Depends(get_db)):
+    """
+    Direct Citizen Registration and Login without OTP verification.
+    Citizens enter their phone number and profile info to register or log in directly.
+    """
+    is_new_account = False
+    citizen = db.query(User).filter(User.phone == req.phone).first()
+
+    if not citizen:
+        is_new_account = True
+        citizen = User(
+            full_name=req.full_name or f"Citizen_{req.phone[-4:]}",
+            phone=req.phone,
+            email=None,
+            hashed_password=None,
+            aadhaar=req.aadhaar,
+            age=req.age or 30,
+            gender=req.gender or "Not Specified",
+            role="citizen",
+        )
+        db.add(citizen)
+        db.flush()
+    else:
+        # Returning citizen — update profile fields if provided
+        if req.full_name:
+            citizen.full_name = req.full_name
+        if req.age is not None:
+            citizen.age = req.age
+        if req.gender:
+            citizen.gender = req.gender
+        if req.aadhaar:
+            citizen.aadhaar = req.aadhaar
+
+    db.commit()
+    db.refresh(citizen)
+
+    access_token = create_access_token(subject=citizen.phone)
+
+    db.add(AuditLog(
+        user_name=citizen.full_name,
+        action="citizen_direct_signup" if is_new_account else "citizen_direct_login",
+        details=(
+            f"Citizen '{citizen.full_name}' "
+            f"({'new account created' if is_new_account else 'returning citizen'}) "
+            f"logged in directly with Phone: {req.phone}"
+        )
+    ))
+    db.commit()
+
+    return CitizenTokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        is_new_account=is_new_account,
+        citizen_id=citizen.id,
+        phone=citizen.phone,
+        full_name=citizen.full_name,
+        role=citizen.role,
+    )
+

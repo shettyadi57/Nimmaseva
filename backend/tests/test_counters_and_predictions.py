@@ -105,3 +105,22 @@ def test_auto_balance_counters():
     assert "message" in data
     assert "estimated_minutes_saved" in data
     assert "counters" in data
+
+def test_citizen_direct_login_no_otp():
+    """Verify citizen direct phone login without OTP requirement."""
+    payload = {
+        "phone": "9845012345",
+        "full_name": "Naveen Kumar",
+        "age": 35,
+        "gender": "Male",
+        "district": "Shivamogga",
+        "taluk": "Shivamogga"
+    }
+    response = client.post("/api/auth/citizen-direct-login", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert "access_token" in data
+    assert data["phone"] == "9845012345"
+    assert data["full_name"] == "Naveen Kumar"
+    assert data["role"] == "citizen"
+

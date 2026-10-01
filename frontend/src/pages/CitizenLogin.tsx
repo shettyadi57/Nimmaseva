@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { useLang } from '../context/LanguageContext';
-import { sendOTP, verifyCitizenOTP } from '../services/api';
+import { citizenDirectLogin } from '../services/api';
 import { 
   User, Phone, ShieldCheck, Ticket, CheckCircle2, ArrowRight, 
-  Sparkles, LogOut, Edit3, UserCheck, AlertCircle, KeyRound, 
-  Check, RefreshCw, Database, Wifi, WifiOff
+  Sparkles, LogOut, Edit3, UserCheck, AlertCircle,
+  Check, RefreshCw, Database, Smartphone
 } from 'lucide-react';
 import { CitizenProfile } from '../types';
 
@@ -27,96 +27,14 @@ export const CitizenLogin: React.FC = () => {
   const [taluk, setTaluk] = useState(citizenProfile?.taluk || 'Shivamogga');
   const [villageOrAddress, setVillageOrAddress] = useState(citizenProfile?.villageOrAddress || '');
 
-  // OTP state
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [demoOtp, setDemoOtp] = useState<string | null>(null);
-  const [phoneVerified, setPhoneVerified] = useState(citizenProfile?.isVerified || false);
   const [isDBSynced, setIsDBSynced] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isEditing, setIsEditing] = useState(!citizenProfile);
 
-  // ─── Step 1: Send OTP via Backend ────────────────────────────────────────
-  const handleSendOTP = async () => {
-    if (!phone || phone.length < 10) {
-      setErrorMsg('Please enter a valid 10-digit mobile phone number');
-      return;
-    }
-    setErrorMsg('');
-    setSuccessMsg('');
-    setLoading(true);
-    setDemoOtp(null);
-
-    try {
-      const res = await sendOTP(phone);
-      setOtpSent(true);
-      
-      // Show the demo OTP prominently so user can copy it
-      if (res.demo_otp) {
-        setDemoOtp(res.demo_otp);
-        setSuccessMsg(`OTP generated! Your verification code is shown below. In production, it will be sent via SMS.`);
-      } else {
-        setSuccessMsg(`OTP sent to +91 ${phone.slice(0, 3)}*****${phone.slice(-2)}. Check your SMS.`);
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to send OTP. Please check your phone number and try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRetryOTP = () => {
-    setOtpSent(false);
-    setOtp('');
-    setDemoOtp(null);
-    setErrorMsg('');
-    setSuccessMsg('');
-  };
-
-  // ─── Step 2: Verify OTP + Create/Update DB Account ───────────────────────
-  const handleVerifyOTP = async () => {
-    if (!otp || otp.length < 6) {
-      setErrorMsg('Please enter the 6-digit OTP sent to your phone');
-      return;
-    }
-    setErrorMsg('');
-    setLoading(true);
-
-    try {
-      const res = await verifyCitizenOTP(phone, otp, {
-        full_name: fullName || undefined,
-        age: age !== '' ? Number(age) : undefined,
-        gender: gender || undefined,
-        district: district || undefined,
-        taluk: taluk || undefined,
-        village_or_address: villageOrAddress || undefined,
-        aadhaar: aadhaar || undefined,
-      });
-
-      setPhoneVerified(true);
-      setIsDBSynced(true);
-      
-      const accountMsg = res.is_new_account
-        ? `✓ New account created! Welcome, ${res.full_name}!`
-        : `✓ Welcome back, ${res.full_name}! Phone verified.`;
-      setSuccessMsg(accountMsg);
-
-      // Update full name if returned from DB
-      if (res.full_name && res.full_name !== `Citizen_${phone.slice(-4)}`) {
-        setFullName(res.full_name);
-      }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Verification failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ─── Step 3: Save Profile & Navigate ──────────────────────────────────────
-  const handleSaveProfile = (e: React.FormEvent) => {
+  // ─── Save Profile Directly & Navigate ──────────────────────────────────────
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim()) {
       setErrorMsg('Please enter your full name');
@@ -127,26 +45,45 @@ export const CitizenLogin: React.FC = () => {
       return;
     }
 
-    const profileData: CitizenProfile = {
-      fullName: fullName.trim(),
-      phone: phone.trim(),
-      aadhaar: aadhaar.trim() || 'NOT_PROVIDED',
-      age: Number(age) || 30,
-      gender,
-      district,
-      taluk,
-      villageOrAddress: villageOrAddress.trim(),
-      isVerified: phoneVerified,
-      createdAt: new Date().toISOString()
-    };
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      await citizenDirectLogin(phone.trim(), {
+        full_name: fullName.trim(),
+        age: Number(age) || 30,
+        gender,
+        district,
+        taluk,
+        village_or_address: villageOrAddress.trim(),
+        aadhaar: aadhaar.trim() || undefined,
+      });
+      setIsDBSynced(true);
 
-    setCitizenProfile(profileData);
-    setSuccessMsg('Profile saved! Redirecting to ticket booking...');
-    setIsEditing(false);
-    
-    setTimeout(() => {
-      navigate('/book');
-    }, 1000);
+      const profileData: CitizenProfile = {
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        aadhaar: aadhaar.trim() || 'NOT_PROVIDED',
+        age: Number(age) || 30,
+        gender,
+        district,
+        taluk,
+        villageOrAddress: villageOrAddress.trim(),
+        isVerified: true,
+        createdAt: new Date().toISOString()
+      };
+
+      setCitizenProfile(profileData);
+      setSuccessMsg('✓ Mobile registered and profile saved! Redirecting to ticket booking...');
+      setIsEditing(false);
+      
+      setTimeout(() => {
+        navigate('/book');
+      }, 700);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to save profile. Please check details and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleQuickDemoLogin = () => {
@@ -163,12 +100,11 @@ export const CitizenLogin: React.FC = () => {
       createdAt: new Date().toISOString()
     };
     setCitizenProfile(demoProfile);
-    setPhoneVerified(true);
     setIsEditing(false);
     setSuccessMsg('Demo Citizen Logged In! Redirecting to Ticket Booking...');
     setTimeout(() => {
       navigate('/book');
-    }, 1000);
+    }, 700);
   };
 
   const talukOptions = ['Shivamogga', 'Bhadravathi', 'Sagara', 'Shikaripura', 'Soraba', 'Hosanagara', 'Thirthahalli'];
@@ -349,16 +285,7 @@ export const CitizenLogin: React.FC = () => {
                       maxLength={10}
                       placeholder="10-digit mobile number"
                       value={phone}
-                      onChange={(e) => {
-                        setPhone(e.target.value.replace(/\D/g, ''));
-                        // Reset OTP state if phone changes
-                        if (otpSent) {
-                          setOtpSent(false);
-                          setPhoneVerified(false);
-                          setOtp('');
-                          setDemoOtp(null);
-                        }
-                      }}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -366,97 +293,18 @@ export const CitizenLogin: React.FC = () => {
                 </div>
               </div>
 
-              {/* OTP Verification Section — uses Backend API */}
-              {!phoneVerified ? (
-                <div className="bg-slate-900/80 p-4 rounded-2xl border border-amber-500/20 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      <KeyRound className="w-4 h-4" /> Verify Mobile Number via OTP
-                    </span>
-                    {!otpSent ? (
-                      <button
-                        type="button"
-                        onClick={handleSendOTP}
-                        disabled={loading || phone.length < 10}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold disabled:opacity-50 transition-all flex items-center gap-1.5"
-                      >
-                        {loading ? (
-                          <><RefreshCw className="w-3 h-3 animate-spin" /> Sending...</>
-                        ) : 'Send OTP'}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleRetryOTP}
-                        className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white text-[10px] font-semibold flex items-center gap-1 transition-all"
-                      >
-                        <RefreshCw className="w-3 h-3" /> Resend OTP
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Demo OTP Banner — shows the OTP code directly for testing */}
-                  {demoOtp && (
-                    <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-3 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-[10px] text-amber-300 font-semibold uppercase tracking-wide">
-                          Demo / Dev Mode — Your OTP Code
-                        </p>
-                        <p className="text-2xl font-black font-mono text-amber-400 tracking-[0.35em] mt-0.5">
-                          {demoOtp}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setOtp(demoOtp)}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400 transition-all flex-shrink-0"
-                      >
-                        Auto-Fill
-                      </button>
-                    </div>
-                  )}
-
-                  {otpSent && (
-                    <div className="space-y-2">
-                      <p className="text-[11px] text-slate-400">
-                        Enter the 6-digit code for <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={6}
-                          placeholder="6-digit OTP"
-                          value={otp}
-                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                          className="flex-1 px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-sm tracking-[0.3em] font-mono focus:border-emerald-500 focus:outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleVerifyOTP}
-                          disabled={loading || otp.length < 6}
-                          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all disabled:opacity-50 flex items-center gap-1.5"
-                        >
-                          {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-                          Verify &amp; Create Account
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-emerald-500/10 border border-emerald-500/30 p-3 rounded-xl flex items-center gap-2 text-emerald-300 text-xs font-medium">
+              {/* Direct Phone Authentication Badge — No SMS OTP required */}
+              <div className="bg-emerald-950/40 border border-emerald-500/20 p-3.5 rounded-2xl flex items-center gap-3 text-xs text-emerald-300">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="font-bold">Phone Verified &amp; Account Created ✓</span>
-                    {isDBSynced && (
-                      <span className="text-blue-300 flex items-center gap-1">
-                        <Database className="w-3 h-3" /> Your citizen profile is saved in the Government Database
-                      </span>
-                    )}
-                  </div>
                 </div>
-              )}
+                <div>
+                  <span className="font-bold text-white block">Direct Mobile Registration Active</span>
+                  <span className="text-emerald-400/80 text-[11px]">
+                    No SMS OTP required. Your phone number is saved directly to your citizen account and token passes.
+                  </span>
+                </div>
+              </div>
 
               {/* Age, Gender, Aadhaar */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

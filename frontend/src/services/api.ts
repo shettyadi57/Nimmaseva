@@ -1394,6 +1394,53 @@ export const verifyCitizenOTP = async (
   };
 };
 
+/**
+ * Direct Citizen Registration / Login without OTP verification.
+ * Directly stores phone and profile in the database or local storage.
+ */
+export const citizenDirectLogin = async (
+  phone: string,
+  profile?: {
+    full_name?: string;
+    age?: number;
+    gender?: string;
+    district?: string;
+    taluk?: string;
+    village_or_address?: string;
+    aadhaar?: string;
+  }
+): Promise<{
+  access_token: string;
+  token_type: string;
+  is_new_account: boolean;
+  citizen_id: number;
+  phone: string;
+  full_name: string;
+  role: string;
+}> => {
+  try {
+    const res = await api.post('/auth/citizen-direct-login', { phone, ...profile });
+    if (res.data) {
+      if (res.data.access_token) {
+        localStorage.setItem('citizenToken', res.data.access_token);
+      }
+      return res.data;
+    }
+  } catch (err: any) {
+    console.warn('API citizenDirectLogin unreachable, using local fallback');
+  }
+  // Offline fallback
+  return {
+    access_token: `mock-citizen-token-${Date.now()}`,
+    token_type: 'bearer',
+    is_new_account: false,
+    citizen_id: 9999,
+    phone,
+    full_name: profile?.full_name || `Citizen_${phone.slice(-4)}`,
+    role: 'citizen',
+  };
+};
+
 
 export const adminLogin = async (email_or_phone: string, password: string) => {
   try {

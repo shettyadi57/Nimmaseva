@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { fetchOffices, fetchServices, createBooking } from '../services/api';
-import { sendFirebaseOTP, verifyFirebaseOTP, clearRecaptcha } from '../lib/firebase';
 import { Office, Service, Booking } from '../types';
 import { useStore } from '../store/useStore';
 import { useLang } from '../context/LanguageContext';
@@ -26,9 +25,6 @@ export const BookingForm: React.FC = () => {
   const [gender, setGender] = useState(citizenProfile?.gender || 'Male');
   const [phone, setPhone] = useState(citizenProfile?.phone || '');
   const [aadhaar, setAadhaar] = useState(citizenProfile?.aadhaar || ''); 
-  const [otp, setOtp] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [phoneVerified, setPhoneVerified] = useState(!!citizenProfile);
 
   // Priority & Service state
   const [officeId, setOfficeId] = useState<number>(selectedOffice?.id || 1);
@@ -88,8 +84,6 @@ export const BookingForm: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [otpNotice, setOtpNotice] = useState<string>('');
-  const [suggestedOtpCode, setSuggestedOtpCode] = useState<string | null>(null);
 
   useEffect(() => {
     loadOptions();
@@ -102,7 +96,6 @@ export const BookingForm: React.FC = () => {
       if (citizenProfile.aadhaar) setAadhaar(citizenProfile.aadhaar);
       if (citizenProfile.age) setAge(citizenProfile.age);
       if (citizenProfile.gender) setGender(citizenProfile.gender);
-      setPhoneVerified(true);
     }
   }, [citizenProfile]);
 
@@ -155,66 +148,10 @@ export const BookingForm: React.FC = () => {
     }
   }, [age]);
 
-  const handleSendOTP = async (overridePhone?: string): Promise<boolean> => {
-    const targetPhone = overridePhone || phone;
-    if (!targetPhone || targetPhone.length < 10) {
-      setErrorMsg('Please enter a valid 10-digit mobile phone number');
-      return false;
-    }
-
-    setErrorMsg('');
-    setLoading(true);
-    try {
-      const res = await sendFirebaseOTP(targetPhone);
-      setOtpSent(true);
-      if (res.message) setOtpNotice(res.message);
-      if (res.fallbackCode) setSuggestedOtpCode(res.fallbackCode);
-      return true;
-    } catch (err: any) {
-      const msg = err?.message || 'Failed to send OTP. Please try again.';
-      setErrorMsg(msg);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRetryOTP = () => {
-    clearRecaptcha();
-    setOtpSent(false);
-    setOtp('');
-    setErrorMsg('');
-    setOtpNotice('');
-    setSuggestedOtpCode(null);
-  };
-
-  const handleVerifyOTP = async (overrideCode?: string): Promise<boolean> => {
-    const codeToVerify = overrideCode || otp;
-    if (!codeToVerify || codeToVerify.length < 6) {
-      setErrorMsg('Please enter the 6-digit SMS OTP code sent to your mobile');
-      return false;
-    }
-    setErrorMsg('');
-    setLoading(true);
-    try {
-      await verifyFirebaseOTP(codeToVerify);
-      setPhoneVerified(true);
-      setOtpNotice('');
-      setSuggestedOtpCode(null);
-      return true;
-    } catch (err: any) {
-      const msg = err?.message || 'Verification failed. Please try again.';
-      setErrorMsg(msg);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phoneVerified) {
-      setErrorMsg('Please verify your mobile number with Phone OTP before submitting');
+    if (!phone || phone.length < 10) {
+      setErrorMsg('Please enter a valid 10-digit mobile phone number');
       return;
     }
 
@@ -406,108 +343,44 @@ export const BookingForm: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
                   <Phone className="w-5 h-5 text-emerald-400" />
-                  <span>Mobile Phone Number Verification</span>
+                  <span>Mobile Phone Number for Token Pass</span>
                 </div>
-                {phoneVerified && (
-                  <span className="px-3 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold text-xs rounded-full flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4" /> Phone Verified
+                <span className="px-3 py-1 bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold text-xs rounded-full flex items-center gap-1">
+                  <CheckCircle2 className="w-4 h-4" /> Direct Registration
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 mb-1">10-Digit Mobile Phone Number *</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">+91</span>
+                  <input
+                    type="tel"
+                    maxLength={10}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                    placeholder="9876543210"
+                    className="w-full pl-12 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Direct phone registration note */}
+              <div className="bg-emerald-950/40 border border-emerald-500/20 p-3.5 rounded-2xl flex items-center gap-3 text-xs text-emerald-300">
+                <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div>
+                  <span className="font-bold text-white block">Direct Mobile Registration Active</span>
+                  <span className="text-emerald-400/80 text-[11px]">
+                    No SMS OTP required. Phone number is saved for real-time live queue sync and digital pass lookup.
                   </span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-400 mb-1">10-Digit Mobile Phone Number</label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">+91</span>
-                    <input
-                      type="text"
-                      maxLength={10}
-                      disabled={phoneVerified}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="9876543210"
-                      className="w-full pl-12 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    disabled={otpSent || phoneVerified || loading || phone.length < 10}
-                    onClick={() => handleSendOTP()}
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
-                  >
-                    <Smartphone className="w-4 h-4" />
-                    <span>{loading ? 'Sending SMS...' : phoneVerified ? 'Verified ✓' : otpSent ? 'OTP Sent ✓' : 'Send Phone OTP'}</span>
-                  </button>
                 </div>
               </div>
-
-              {/* Firebase reCAPTCHA container — required for signInWithPhoneNumber */}
-              <div id="firebase-recaptcha-container" />
-
-              {otpSent && !phoneVerified && (
-                <div className="pt-3 space-y-3 border-t border-slate-800">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
-                    <span className="text-slate-300">
-                      OTP sent to <span className="text-amber-300 font-bold">+91 {phone.slice(0, 3)}*****{phone.slice(-2)}</span>. {otpNotice}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleRetryOTP}
-                      className="text-slate-400 hover:text-white text-[11px] font-semibold underline underline-offset-2 self-start sm:self-auto"
-                    >
-                      Resend OTP
-                    </button>
-                  </div>
-
-                  {suggestedOtpCode && (
-                    <div className="bg-amber-950/60 border border-amber-500/40 p-3 rounded-xl flex items-center justify-between gap-3 text-xs">
-                      <div className="flex items-center gap-2 text-amber-200">
-                        <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-                        <span>Instant Verification Code: <strong className="font-mono text-amber-300 text-sm">{suggestedOtpCode}</strong></span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOtp(suggestedOtpCode);
-                          handleVerifyOTP(suggestedOtpCode);
-                        }}
-                        className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg shadow shrink-0 transition-transform active:scale-95"
-                      >
-                        ⚡ Auto-Fill &amp; Verify
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={6}
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter 6-digit SMS OTP"
-                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm font-mono tracking-[0.3em] focus:border-amber-400 focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleVerifyOTP()}
-                      disabled={loading || otp.length < 6}
-                      className="py-2.5 px-6 bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-extrabold text-xs rounded-xl shadow transition-all"
-                    >
-                      {loading ? 'Verifying...' : 'Verify OTP'}
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="flex justify-end pt-2">
               <button
                 type="button"
-                onClick={async () => {
+                onClick={() => {
                   if (!fullName.trim()) {
                     setErrorMsg('Please enter your Full Name');
                     return;
@@ -516,34 +389,6 @@ export const BookingForm: React.FC = () => {
                     setErrorMsg('Please enter a valid 10-digit mobile phone number');
                     return;
                   }
-
-                  if (!phoneVerified) {
-                    if (!otpSent) {
-                      const sent = await handleSendOTP();
-                      if (sent) setErrorMsg('');
-                      return;
-                    }
-                    if (otp.length === 6) {
-                      const verified = await handleVerifyOTP();
-                      if (verified) {
-                        setErrorMsg('');
-                        setStep(2);
-                      }
-                      return;
-                    }
-                    if (suggestedOtpCode) {
-                      setOtp(suggestedOtpCode);
-                      const verified = await handleVerifyOTP(suggestedOtpCode);
-                      if (verified) {
-                        setErrorMsg('');
-                        setStep(2);
-                      }
-                      return;
-                    }
-                    setErrorMsg('Please enter the 6-digit OTP code sent to your mobile number');
-                    return;
-                  }
-
                   setErrorMsg('');
                   setStep(2);
                 }}

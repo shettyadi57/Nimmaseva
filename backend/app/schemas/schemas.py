@@ -108,6 +108,31 @@ class CitizenOTPVerifyRequest(BaseModel):
         return sanitize_string(v) if v else v
 
 
+class CitizenDirectLoginRequest(BaseModel):
+    """Direct phone-based login/registration without requiring OTP."""
+    phone: str = Field(..., min_length=10, max_length=15)
+    full_name: Optional[str] = Field(None, max_length=100)
+    age: Optional[int] = Field(None, ge=1, le=120)
+    gender: Optional[str] = Field(None, max_length=20)
+    district: Optional[str] = Field(None, max_length=100)
+    taluk: Optional[str] = Field(None, max_length=100)
+    village_or_address: Optional[str] = Field(None, max_length=300)
+    aadhaar: Optional[str] = Field(None, max_length=20)
+
+    @field_validator('phone')
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        cleaned = re.sub(r'\D', '', v)
+        if len(cleaned) < 10 or len(cleaned) > 12:
+            raise ValueError('Phone number must contain 10 numeric digits.')
+        return cleaned
+
+    @field_validator('full_name', 'district', 'taluk', 'village_or_address')
+    @classmethod
+    def sanitize_citizen_fields(cls, v: Optional[str]) -> Optional[str]:
+        return sanitize_string(v) if v else v
+
+
 class CitizenTokenResponse(BaseModel):
     """Response after successful citizen OTP verification."""
     access_token: str
