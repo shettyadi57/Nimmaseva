@@ -26,6 +26,12 @@ export interface Translations {
   tokensIssued: string;
   avgProcessing: string;
   tatkalAccuracy: string;
+  popularServicesTitle: string;
+  popularServicesSubtitle: string;
+  popularBadge: string;
+  oneClickBook: string;
+  viewAllServices: string;
+  allServices: string;
 
   // Booking form
   bookTitle: string;
@@ -148,6 +154,12 @@ const translations: Record<Language, Translations> = {
     tokensIssued: 'Tokens Issued Today',
     avgProcessing: 'Avg. Processing Time',
     tatkalAccuracy: 'Tatkal Accuracy',
+    popularServicesTitle: 'Most Popular Citizen Services',
+    popularServicesSubtitle: 'Quickly access high-demand Karnataka GramOne & Seva Sindhu services with 1-click token booking.',
+    popularBadge: 'High Demand',
+    oneClickBook: '1-Click Book',
+    viewAllServices: 'View All 18+ Services',
+    allServices: 'All Services',
 
     bookTitle: 'Book Your Token Pass',
     fullName: 'Full Name',
@@ -261,6 +273,12 @@ const translations: Record<Language, Translations> = {
     tokensIssued: 'ಇಂದು ನೀಡಿದ ಟೋಕನ್‌ಗಳು',
     avgProcessing: 'ಸರಾಸರಿ ಸಂಸ್ಕರಣ ಸಮಯ',
     tatkalAccuracy: 'ತತ್‌ಕಾಲ್ ನಿಖರತೆ',
+    popularServicesTitle: 'ಅತ್ಯಂತ ಜನಪ್ರಿಯ ನಾಗರಿಕ ಸೇವೆಗಳು',
+    popularServicesSubtitle: 'ಹೆಚ್ಚು ಬೇಡಿಕೆಯಿರುವ ಕರ್ನಾಟಕ GramOne ಮತ್ತು ಸೇವಾ ಸಿಂಧು ಸೇವೆಗಳಿಗೆ ತಕ್ಷಣ 1-ಕ್ಲಿಕ್ ಟೋಕನ್ ಬುಕ್ ಮಾಡಿ.',
+    popularBadge: 'ಹೆಚ್ಚು ಬೇಡಿಕೆ',
+    oneClickBook: '1-ಕ್ಲಿಕ್ ಬುಕಿಂಗ್',
+    viewAllServices: 'ಎಲ್ಲಾ 18+ ಸೇವೆಗಳನ್ನು ನೋಡಿ',
+    allServices: 'ಎಲ್ಲಾ ಸೇವೆಗಳು',
 
     bookTitle: 'ನಿಮ್ಮ ಟೋಕನ್ ಪಾಸ್ ಬುಕ್ ಮಾಡಿ',
     fullName: 'ಪೂರ್ಣ ಹೆಸರು',
@@ -374,6 +392,12 @@ const translations: Record<Language, Translations> = {
     tokensIssued: 'आज जारी टोकन',
     avgProcessing: 'औसत प्रसंस्करण समय',
     tatkalAccuracy: 'तत्काल सटीकता',
+    popularServicesTitle: 'सबसे लोकप्रिय नागरिक सेवाएं',
+    popularServicesSubtitle: 'उच्च मांग वाली कर्नाटक GramOne और सेवा सिंधु सेवाओं के लिए 1-क्लिक में तुरंत टोकन बुक करें।',
+    popularBadge: 'उच्च मांग',
+    oneClickBook: '1-क्लिक बुकिंग',
+    viewAllServices: 'सभी 18+ सेवाएं देखें',
+    allServices: 'सभी सेवाएं',
 
     bookTitle: 'अपना टोकन पास बुक करें',
     fullName: 'पूरा नाम',

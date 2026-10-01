@@ -611,7 +611,7 @@ export const AdminDashboard: React.FC = () => {
         mode="admin"
         currentCounterNumber={1}
         onActionExecuted={() => {
-          loadData();
+          loadDashboardData();
         }}
       />
 

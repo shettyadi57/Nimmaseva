@@ -10,7 +10,7 @@ import { useLang } from '../context/LanguageContext';
 import { 
   MapPin, Navigation, Clock, Phone, AlertTriangle, ArrowRight, ShieldCheck, 
   Ticket, Users, CheckCircle2, RefreshCw, Sparkles, Activity, FileText, AlertOctagon,
-  Compass, ExternalLink, Share2
+  Compass, ExternalLink, Share2, Flame, Star
 } from 'lucide-react';
 
 export const Home: React.FC = () => {
@@ -102,6 +102,37 @@ export const Home: React.FC = () => {
     };
   }, [userLocation]);
 
+  const popularServiceCodes = ['ICC-003', 'INC-001', 'GLK-014', 'LND-008', 'RAT-006', 'YVN-015'];
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const popularServices = React.useMemo(() => {
+    if (!services || services.length === 0) return [];
+    const matched = popularServiceCodes
+      .map(code => services.find(s => s.code === code))
+      .filter((s): s is Service => !!s);
+    if (matched.length < 6) {
+      const remaining = services.filter(s => !matched.some(m => m.id === s.id));
+      return [...matched, ...remaining].slice(0, 6);
+    }
+    return matched.slice(0, 6);
+  }, [services]);
+
+  const categories = React.useMemo(() => {
+    const set = new Set<string>();
+    services.forEach(s => {
+      if (s.category) set.add(s.category);
+    });
+    return Array.from(set);
+  }, [services]);
+
+  const filteredServices = React.useMemo(() => {
+    if (selectedCategory === 'all') return services;
+    if (selectedCategory === 'popular') {
+      return services.filter(s => popularServiceCodes.includes(s.code));
+    }
+    return services.filter(s => s.category === selectedCategory);
+  }, [services, selectedCategory]);
+
   const handleBookAtOffice = (office: Office) => {
     setSelectedOffice(office);
     navigate('/book');
@@ -113,6 +144,16 @@ export const Home: React.FC = () => {
     setOutageModalOpen(true);
   };
 
+  const handleQuickBookService = (service: Service) => {
+    setSelectedService(service);
+    if (service.server_status === 'Down' || service.server_status === 'Maintenance' || !service.is_active) {
+      setOutageService(service);
+      setOutageModalOpen(true);
+      return;
+    }
+    navigate('/book');
+  };
+
   const currentHour = new Date().getHours();
   const isClosed = currentHour >= 17 || currentHour < 9;
   const isLunch = currentHour === 12;
@@ -120,153 +161,253 @@ export const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 space-y-14 pb-24">
       
-      {/* High-Impact Hero Section */}
-      <section className="relative hero-gradient pt-10 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden border-b border-slate-900">
+      {/* High-Impact Hero Section — Laptop & Multilingual Optimized */}
+      <section className="relative hero-gradient pt-8 sm:pt-10 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden border-b border-slate-900">
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="relative max-w-7xl mx-auto space-y-10">
           
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-              <KarnatakaBadge />
-            </div>
+          {/* Main Hero 2-Column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 xl:gap-12 items-center">
             
-            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-none text-white">
-              {t.heroTitle.split('\n')[0]} <br />
-              <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
-                {t.heroTitle.split('\n')[1] || 'Token Engine'}
-              </span>
-            </h1>
-            
-            <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl">
-              {t.heroDesc}
-            </p>
+            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
+                <KarnatakaBadge />
+              </div>
+              
+              <h1 className="text-3xl sm:text-5xl lg:text-4xl xl:text-5xl font-black tracking-tight leading-tight text-white">
+                {t.heroTitle.split('\n')[0]} <br />
+                <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
+                  {t.heroTitle.split('\n')[1] || 'Token Engine'}
+                </span>
+              </h1>
+              
+              <p className="text-slate-300 text-sm sm:text-base lg:text-base leading-relaxed max-w-2xl">
+                {t.heroDesc}
+              </p>
 
-            {/* Operating Hours Alert */}
-            {isClosed ? (
-              <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-950/60 border border-red-800/60 text-red-200 text-xs font-semibold backdrop-blur-md">
-                <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                <span>Operating Hours Closed (05:00 PM - 09:00 AM). Next available slots automatically assigned for tomorrow.</span>
-              </div>
-            ) : isLunch ? (
-              <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-950/60 border border-amber-800/60 text-amber-200 text-xs font-semibold backdrop-blur-md">
-                <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                <span>Lunch Recess Active (12:00 PM - 01:00 PM). Counters paused temporarily.</span>
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-semibold backdrop-blur-md">
-                <Activity className="w-4 h-4 text-emerald-400 animate-pulse flex-shrink-0" />
-                <span>Counters Active • Instant Digital Slot Booking Available</span>
-              </div>
-            )}
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4">
-              <Link
-                to="/book"
-                className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-500/20 active:scale-95 transition-all"
-              >
-                <Ticket className="w-5 h-5 text-slate-950" />
-                <span>{t.bookNow}</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/queue"
-                className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-100 font-bold text-sm border border-slate-700/80 shadow-lg transition-all"
-              >
-                <Users className="w-5 h-5 text-amber-400" />
-                <span>{t.liveQueue}</span>
-              </Link>
-            </div>
-
-            {/* Metric Counters Bar — live data from /public/stats */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-900 max-w-lg">
-              <div>
-                {statsLoading ? (
-                  <span className="text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
-                ) : (
-                  <span className="text-2xl font-black text-white font-mono block">
-                    {heroStats?.total_tokens_issued != null
-                      ? `${heroStats.total_tokens_issued.toLocaleString()}+`
-                      : '—'}
-                  </span>
-                )}
-                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tokensIssued}</span>
-              </div>
-              <div>
-                {statsLoading ? (
-                  <span className="text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
-                ) : (
-                  <span className="text-2xl font-black text-emerald-400 font-mono block">
-                    {heroStats?.avg_wait_time_mins != null
-                      ? `~${heroStats.avg_wait_time_mins} Mins`
-                      : '—'}
-                  </span>
-                )}
-                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.avgProcessing}</span>
-              </div>
-              <div>
-                {statsLoading ? (
-                  <span className="text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
-                ) : (
-                  <span className="text-2xl font-black text-amber-400 font-mono block">
-                    {heroStats?.completion_rate_pct != null
-                      ? `${heroStats.completion_rate_pct}%`
-                      : '—'}
-                  </span>
-                )}
-                <span className="text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tatkalAccuracy}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Location & Nearest Centers Glass Card */}
-          <div className="lg:col-span-5">
-            <div className="glass-panel rounded-3xl p-6 shadow-2xl border border-slate-800 space-y-5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
-                  <MapPin className="w-4 h-4 text-emerald-400" />
-                  <span>Detected Coordinates</span>
+              {/* Operating Hours Alert */}
+              {isClosed ? (
+                <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-red-950/60 border border-red-800/60 text-red-200 text-xs font-semibold backdrop-blur-md">
+                  <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span>Operating Hours Closed (05:00 PM - 09:00 AM). Next available slots automatically assigned for tomorrow.</span>
                 </div>
-                <button 
-                  onClick={() => userLocation && loadData(userLocation.lat, userLocation.lng)} 
-                  className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              ) : isLunch ? (
+                <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-amber-950/60 border border-amber-800/60 text-amber-200 text-xs font-semibold backdrop-blur-md">
+                  <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>Lunch Recess Active (12:00 PM - 01:00 PM). Counters paused temporarily.</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-3 px-4 py-3 rounded-2xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-semibold backdrop-blur-md">
+                  <Activity className="w-4 h-4 text-emerald-400 animate-pulse flex-shrink-0" />
+                  <span>Counters Active • Instant Digital Slot Booking Available</span>
+                </div>
+              )}
+
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3.5 pt-2">
+                <Link
+                  to="/book"
+                  className="flex items-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-500/20 active:scale-95 transition-all"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                </button>
+                  <Ticket className="w-5 h-5 text-slate-950" />
+                  <span>{t.bookNow}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/queue"
+                  className="flex items-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-100 font-bold text-sm border border-slate-700/80 shadow-lg transition-all"
+                >
+                  <Users className="w-5 h-5 text-amber-400" />
+                  <span>{t.liveQueue}</span>
+                </Link>
               </div>
 
-              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 font-mono text-xs text-slate-300 flex items-center justify-between">
-                <span>Lat: {userLocation?.lat.toFixed(4)} | Lng: {userLocation?.lng.toFixed(4)}</span>
-                <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 text-[10px] font-bold">GPS ACTIVE</span>
+              {/* Metric Counters Bar — live data from /public/stats */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 pt-5 border-t border-slate-900 max-w-lg">
+                <div>
+                  {statsLoading ? (
+                    <span className="text-xl sm:text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
+                  ) : (
+                    <span className="text-xl sm:text-2xl font-black text-white font-mono block">
+                      {heroStats?.total_tokens_issued != null
+                        ? `${heroStats.total_tokens_issued.toLocaleString()}+`
+                        : '—'}
+                    </span>
+                  )}
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tokensIssued}</span>
+                </div>
+                <div>
+                  {statsLoading ? (
+                    <span className="text-xl sm:text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
+                  ) : (
+                    <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono block">
+                      {heroStats?.avg_wait_time_mins != null
+                        ? `~${heroStats.avg_wait_time_mins} Mins`
+                        : '—'}
+                    </span>
+                  )}
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.avgProcessing}</span>
+                </div>
+                <div>
+                  {statsLoading ? (
+                    <span className="text-xl sm:text-2xl font-black text-slate-700 font-mono block animate-pulse">·····</span>
+                  ) : (
+                    <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono block">
+                      {heroStats?.completion_rate_pct != null
+                        ? `${heroStats.completion_rate_pct}%`
+                        : '—'}
+                    </span>
+                  )}
+                  <span className="text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wide font-semibold">{t.tatkalAccuracy}</span>
+                </div>
               </div>
+            </div>
 
-              <div className="space-y-3 pt-2">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Nearest Shivamogga Centers</span>
-                
-                {offices.slice(0, 2).map((off) => (
-                  <div key={off.id} className="bg-slate-900/90 p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-all">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${off.type === 'GramOne' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-                        <span className="font-bold text-sm text-white">{off.name}</span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1">{off.distance_km ? `${off.distance_km} km away` : 'Shivamogga City'}</p>
-                    </div>
-                    <button
-                      onClick={() => handleBookAtOffice(off)}
-                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-all"
-                    >
-                      Book Pass
-                    </button>
+            {/* Quick Location & Nearest Centers Glass Card */}
+            <div className="lg:col-span-5">
+              <div className="glass-panel rounded-3xl p-5 sm:p-6 shadow-2xl border border-slate-800 space-y-4 sm:space-y-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
+                    <MapPin className="w-4 h-4 text-emerald-400" />
+                    <span>Detected Coordinates</span>
                   </div>
-                ))}
+                  <button 
+                    onClick={() => userLocation && loadData(userLocation.lat, userLocation.lng)} 
+                    className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 font-mono text-xs text-slate-300 flex items-center justify-between">
+                  <span className="truncate mr-2">Lat: {userLocation?.lat.toFixed(4)} | Lng: {userLocation?.lng.toFixed(4)}</span>
+                  <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 text-[10px] font-bold shrink-0">GPS ACTIVE</span>
+                </div>
+
+                <div className="space-y-2.5 pt-1">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Nearest Shivamogga Centers</span>
+                  
+                  {offices.slice(0, 2).map((off) => (
+                    <div key={off.id} className="bg-slate-900/90 p-3.5 sm:p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between hover:border-slate-700 transition-all gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full shrink-0 ${off.type === 'GramOne' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                          <span className="font-bold text-sm text-white truncate">{off.name}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-0.5">{off.distance_km ? `${off.distance_km} km away` : 'Shivamogga City'}</p>
+                      </div>
+                      <button
+                        onClick={() => handleBookAtOffice(off)}
+                        className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-all shrink-0"
+                      >
+                        Book Pass
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Popular Citizen Services Quick Launcher Shelf */}
+          {popularServices.length > 0 && (
+            <div className="pt-8 border-t border-slate-900/80 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                    <Flame className="w-4 h-4 fill-amber-400" />
+                  </span>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                      <span>{t.popularServicesTitle}</span>
+                      <span className="text-[10px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        {t.popularBadge}
+                      </span>
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {t.popularServicesSubtitle}
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  to="/services"
+                  className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1.5 self-start sm:self-auto shrink-0 transition-colors bg-amber-950/40 hover:bg-amber-950/70 px-3 py-1.5 rounded-xl border border-amber-800/60"
+                >
+                  <span>{t.viewAllServices}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {/* 6 High-Impact Cards: responsive on all laptop & mobile viewports */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
+                {popularServices.map((service) => {
+                  const isDown = service.server_status === 'Down' || !service.is_active;
+                  const isMaint = service.server_status === 'Maintenance';
+                  return (
+                    <div
+                      key={service.id}
+                      className="glass-panel p-4 rounded-2xl border border-slate-800/80 hover:border-amber-500/50 hover:bg-slate-900/90 transition-all flex flex-col justify-between group shadow-lg"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 font-semibold truncate max-w-[110px]">
+                            {service.category}
+                          </span>
+                          <span className="font-mono font-extrabold text-amber-400">
+                            {service.fee === 0 ? 'FREE' : `₹${service.fee}`}
+                          </span>
+                        </div>
+
+                        <h3 className="text-xs sm:text-sm font-extrabold text-white group-hover:text-amber-300 line-clamp-2 leading-snug">
+                          {service.name}
+                        </h3>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-500" />
+                            <span>~{service.avg_processing_time_mins}m</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDocModalService(service);
+                            }}
+                            className="text-[10px] text-slate-400 hover:text-white underline decoration-slate-600 underline-offset-2"
+                          >
+                            Docs ({service.required_documents?.length || 3})
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 mt-2 border-t border-slate-900">
+                        <button
+                          type="button"
+                          onClick={() => handleQuickBookService(service)}
+                          className={`w-full py-2 px-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
+                            isDown
+                              ? 'bg-red-950/80 text-red-300 border border-red-800/80 hover:bg-red-900'
+                              : isMaint
+                              ? 'bg-amber-950/80 text-amber-300 border border-amber-800/80 hover:bg-amber-900'
+                              : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-950/40'
+                          }`}
+                        >
+                          <Ticket className="w-3.5 h-3.5" />
+                          <span>{isDown ? 'Server Down' : isMaint ? 'Maintenance' : t.oneClickBook}</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
         </div>
       </section>
 
@@ -383,7 +524,7 @@ export const Home: React.FC = () => {
         {/* Available Government Services Grid */}
         {/* Citizen Services Section */}
         <section className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">Karnataka Public Services</span>
               <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">Available Citizen Services</h3>
@@ -398,10 +539,49 @@ export const Home: React.FC = () => {
             </Link>
           </div>
 
+          {/* Quick Category & Popular Filters */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
+                selectedCategory === 'all'
+                  ? 'bg-amber-500 text-slate-950 shadow-md'
+                  : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+              }`}
+            >
+              {t.allServices || 'All Services'} ({services.length})
+            </button>
+            <button
+              onClick={() => setSelectedCategory('popular')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 ${
+                selectedCategory === 'popular'
+                  ? 'bg-amber-500 text-slate-950 shadow-md'
+                  : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-800'
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5" />
+              <span>{t.popularBadge || 'Popular'} ({popularServices.length})</span>
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
+                  selectedCategory === cat
+                    ? 'bg-emerald-500 text-slate-950 shadow-md'
+                    : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {services.map((service) => {
+            {filteredServices.map((service) => {
               const isDown = service.server_status === 'Down' || !service.is_active;
               const isMaint = service.server_status === 'Maintenance';
+              const isPopular = popularServiceCodes.includes(service.code);
 
               return (
                 <div
@@ -409,14 +589,23 @@ export const Home: React.FC = () => {
                   className={`glass-panel rounded-2xl p-5 border ${
                     isDown ? 'border-red-900/60 bg-red-950/10 hover:border-red-600' :
                     isMaint ? 'border-amber-900/60 bg-amber-950/10 hover:border-amber-500' :
+                    isPopular ? 'border-amber-500/40 hover:border-amber-400 bg-slate-900/60' :
                     'border-slate-800 hover:border-emerald-500/60'
                   } hover:shadow-xl hover:-translate-y-1 transition-all group space-y-4 relative flex flex-col justify-between`}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
-                        {service.category}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
+                          {service.category}
+                        </span>
+                        {isPopular && (
+                          <span className="text-[9px] font-black uppercase tracking-wider text-amber-300 bg-amber-950/80 px-2 py-0.5 rounded-md border border-amber-800/80 flex items-center gap-1">
+                            <Flame className="w-2.5 h-2.5 fill-amber-400" />
+                            <span>Popular</span>
+                          </span>
+                        )}
+                      </div>
                       <span className="text-xs font-black text-amber-400 font-mono">
                         {service.fee === 0 ? 'FREE' : `₹${service.fee}`}
                       </span>

@@ -77,7 +77,8 @@ export const Header: React.FC = () => {
           </Link>
 
           {/* ===== DESKTOP Nav Pills ===== */}
-          <nav className="hidden md:flex items-center gap-1.5 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 shadow-inner">
+          {/* ===== DESKTOP Nav Pills ===== */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 bg-slate-900/80 p-1 xl:p-1.5 rounded-2xl border border-slate-800 shadow-inner">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = location.pathname === link.path;
@@ -85,23 +86,23 @@ export const Header: React.FC = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold tracking-wide transition-all duration-200 ${
+                  className={`flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-4 py-1.5 xl:py-2 rounded-xl text-[11px] xl:text-xs font-semibold tracking-wide transition-all duration-200 ${
                     isActive
                       ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-lg shadow-emerald-900/40 border border-emerald-500/30'
                       : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-300' : 'text-slate-400'}`} />
-                  <span>{link.label}</span>
+                  <Icon className={`w-3.5 h-3.5 xl:w-4 xl:h-4 ${isActive ? 'text-amber-300' : 'text-slate-400'}`} />
+                  <span className="whitespace-nowrap">{link.label}</span>
                 </Link>
               );
             })}
           </nav>
 
           {/* ===== DESKTOP Action Buttons ===== */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-1.5 lg:gap-2 xl:gap-3 flex-shrink-0">
 
-            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] font-medium text-slate-400">
+            <div className="hidden 2xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] font-medium text-slate-400">
               <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
               <span>{t.allSystems}</span>
             </div>
@@ -110,11 +111,11 @@ export const Header: React.FC = () => {
             <div className="relative" onClick={e => e.stopPropagation()}>
               <button
                 onClick={() => setLangDropdownOpen(prev => !prev)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-emerald-500/50 text-slate-200 text-xs font-semibold transition-all duration-200 active:scale-95"
+                className="flex items-center gap-1 px-2.5 xl:px-3 py-1.5 xl:py-2 rounded-xl bg-slate-900/80 border border-slate-700 hover:border-emerald-500/50 text-slate-200 text-xs font-semibold transition-all duration-200 active:scale-95"
               >
-                <Globe className="w-4 h-4 text-emerald-400" />
+                <Globe className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                 <span className="font-bold">{currentLang.native}</span>
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${langDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {langDropdownOpen && (
                 <div className="absolute right-0 top-full mt-2 w-44 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden z-50">
@@ -144,60 +145,61 @@ export const Header: React.FC = () => {
             <button
               onClick={toggleTheme}
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="relative flex items-center justify-center w-10 h-10 rounded-xl border transition-all duration-300 active:scale-95 bg-slate-900/80 border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800"
+              className="relative flex items-center justify-center w-8 h-8 xl:w-9 xl:h-9 rounded-xl border transition-all duration-300 active:scale-95 bg-slate-900/80 border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800 flex-shrink-0"
             >
               <span
                 className="absolute inset-0 flex items-center justify-center transition-all duration-300"
                 style={{ opacity: theme === 'dark' ? 1 : 0, transform: theme === 'dark' ? 'rotate(0deg)' : 'rotate(-90deg)' }}
               >
-                <Moon className="w-4 h-4 text-indigo-400" />
+                <Moon className="w-3.5 h-3.5 text-indigo-400" />
               </span>
               <span
                 className="absolute inset-0 flex items-center justify-center transition-all duration-300"
                 style={{ opacity: theme === 'light' ? 1 : 0, transform: theme === 'light' ? 'rotate(0deg)' : 'rotate(90deg)' }}
               >
-                <Sun className="w-4 h-4 text-amber-500" />
+                <Sun className="w-3.5 h-3.5 text-amber-500" />
               </span>
             </button>
 
             {/* QR Code Scanner Button */}
             <button
               onClick={() => setQrScannerOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+              className="flex items-center gap-1.5 px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-500/20 active:scale-95 transition-all flex-shrink-0"
               title="Scan QR Code to open Digital Coupon Pass"
             >
-              <QrCode className="w-4 h-4 text-slate-950 font-black" />
-              <span>Scan QR Pass</span>
+              <QrCode className="w-3.5 h-3.5 text-slate-950 font-black" />
+              <span className="hidden xl:inline">Scan QR Pass</span>
+              <span className="xl:hidden">Scan</span>
             </button>
 
             {/* Citizen Profile / Login button */}
             <Link
               to="/login"
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 xl:px-3.5 py-1.5 xl:py-2 rounded-xl text-xs font-semibold border transition-all flex-shrink-0 ${
                 citizenProfile
                   ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                   : 'bg-slate-900/90 hover:bg-slate-800 text-slate-200 border-slate-700/80'
               }`}
             >
-              <User className={`w-4 h-4 ${citizenProfile ? 'text-emerald-400' : 'text-slate-400'}`} />
-              <span>{citizenProfile ? citizenProfile.fullName.split(' ')[0] : (t.navLogin || 'Login')}</span>
+              <User className={`w-3.5 h-3.5 ${citizenProfile ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <span className="whitespace-nowrap">{citizenProfile ? citizenProfile.fullName.split(' ')[0] : (t.navLogin || 'Login')}</span>
             </Link>
 
             {adminToken ? (
               <Link
                 to="/admin/dashboard"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-semibold text-xs border border-amber-500/30 shadow-md transition-all"
+                className="flex items-center gap-1.5 px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-400 font-semibold text-xs border border-amber-500/30 shadow-md transition-all flex-shrink-0"
               >
-                <LayoutDashboard className="w-4 h-4 text-amber-400" />
-                <span>{t.adminPanel}</span>
+                <LayoutDashboard className="w-3.5 h-3.5 text-amber-400" />
+                <span className="whitespace-nowrap">{t.adminPanel}</span>
               </Link>
             ) : (
               <Link
                 to="/admin/login"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-semibold text-xs border border-slate-700/80 transition-all"
+                className="flex items-center gap-1.5 px-3 xl:px-4 py-1.5 xl:py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 font-semibold text-xs border border-slate-700/80 transition-all flex-shrink-0"
               >
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>{t.staffLogin}</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="whitespace-nowrap">{t.staffLogin}</span>
               </Link>
             )}
 
