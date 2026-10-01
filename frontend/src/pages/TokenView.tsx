@@ -4,9 +4,10 @@ import { fetchBookingByToken, downloadPDFUrl, acknowledgeReminder, sendCitizenRe
 import { Booking } from '../types';
 import { 
   Ticket, Download, Printer, Share2, Sparkles, Clock, CheckCircle2, Shield, 
-  QrCode, ArrowRight, User, BellRing, Navigation, Check, AlertTriangle, Smartphone, Star
+  QrCode, ArrowRight, User, BellRing, Navigation, Check, AlertTriangle, Smartphone, Star, Layers, Zap
 } from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
+import { RealQRCode } from '../components/RealQRCode';
 
 export const TokenView: React.FC = () => {
   const { tokenNumber } = useParams<{ tokenNumber: string }>();
@@ -236,26 +237,53 @@ export const TokenView: React.FC = () => {
               </div>
             </div>
 
-            {/* Real-time dynamic queue position tracker bar */}
-            <div className="mt-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">People Ahead</span>
-                <span className="text-xl font-black text-amber-400 font-mono">
-                  {booking.status === 'Completed' ? '0' : (booking.status === 'Called' || booking.status === 'In Progress' ? 'NOW SERVING' : `${booking.people_ahead ?? 0} in line`)}
-                </span>
+            {/* Real-time DUAL TIME PREDICTOR BAR */}
+            <div className="mt-4 p-4 rounded-2xl bg-slate-900/90 border border-slate-800/80 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Queue Position</span>
+                  <span className="text-xl font-black text-amber-400 font-mono">
+                    {booking.status === 'Completed' ? '0 (Served)' : (booking.status === 'Called' || booking.status === 'In Progress' ? 'NOW SERVING' : `${booking.people_ahead ?? 0} in line`)}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">1. Wait Time Before Turn</span>
+                  <span className="text-xl font-black text-amber-400 font-mono">
+                    {booking.status === 'Completed' ? 'Served' : (booking.status === 'Called' || booking.status === 'In Progress' ? 'Now at Desk' : `~${booking.estimated_wait_mins ?? booking.avg_wait_mins ?? 15} Mins`)}
+                  </span>
+                  <span className="text-[9px] text-slate-400 block font-mono">
+                    {booking.status === 'Completed' ? 'Completed' : (booking.estimated_call_time ? `Est. Call: ${booking.estimated_call_time}` : '')}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">2. Work Completion</span>
+                  <span className="text-xl font-black text-emerald-400 font-mono">
+                    {booking.status === 'Completed' ? 'Completed' : `~${booking.service_processing_mins ?? 15} Mins`}
+                  </span>
+                  <span className="text-[9px] text-slate-400 block font-mono">
+                    {booking.status === 'Completed' ? 'Documents Issued' : (booking.estimated_completion_time ? `Finish: ${booking.estimated_completion_time}` : '')}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Assigned Counter</span>
+                  <span className="text-xl font-black text-white font-mono">
+                    Counter 0{booking.counter_number || 1}
+                  </span>
+                  <span className="text-[9px] text-emerald-400 block font-mono font-bold">
+                    {booking.active_counters_for_service && booking.active_counters_for_service > 1 ? `⚡ ${booking.active_counters_for_service} Active Desks` : 'Standard Desk'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Estimated Wait</span>
-                <span className="text-xl font-black text-emerald-400 font-mono">
-                  {booking.status === 'Completed' ? 'Completed' : (booking.status === 'Called' || booking.status === 'In Progress' ? 'Immediate' : `~${booking.avg_wait_mins ?? 15} Mins`)}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] uppercase font-bold text-slate-500 block">Assigned Counter</span>
-                <span className="text-xl font-black text-white font-mono">
-                  Counter 0{booking.counter_number || 1}
-                </span>
-              </div>
+
+              {/* Dynamic Allocation Benefit Banner */}
+              {(booking.time_saved_by_dynamic_allocation_mins ?? 0) > 0 && (
+                <div className="p-2 bg-emerald-950/70 rounded-xl border border-emerald-800 text-[11px] text-emerald-300 flex items-center justify-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>
+                    <strong>Dynamic Counter Allocation Active:</strong> Cut your expected wait time by ~{booking.time_saved_by_dynamic_allocation_mins} minutes!
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -310,11 +338,14 @@ export const TokenView: React.FC = () => {
                 </p>
               </div>
 
-              {/* QR Code Container */}
-              <div className="p-4 bg-white rounded-2xl shadow-inner border border-slate-200">
-                <QrCode className="w-28 h-28 text-slate-950" />
+              {/* Real Scannable QR Code */}
+              <div className="flex flex-col items-center justify-center">
+                <RealQRCode
+                  value={`${window.location.origin}/token/${booking.token_number}`}
+                  tokenNumber={booking.token_number}
+                  size={155}
+                />
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">Present QR code at Shivamogga office counter</span>
             </div>
           </div>
 

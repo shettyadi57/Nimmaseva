@@ -59,12 +59,63 @@ export interface Booking {
   service_name?: string;
   people_ahead?: number;
   avg_wait_mins?: number;
+  estimated_wait_mins?: number;
+  estimated_call_time?: string;
+  service_processing_mins?: number;
+  total_estimated_duration_mins?: number;
+  estimated_completion_time?: string;
+  time_saved_by_dynamic_allocation_mins?: number;
+  active_counters_for_service?: number;
+  qr_code_data_url?: string;
   reminder_sent?: boolean;
   reminder_time?: string;
   acknowledged?: boolean;
   rating?: number;           // 1–5 star rating (null until submitted)
   rating_comment?: string;
   rated_at?: string;
+}
+
+export interface CounterAllocationItem {
+  counter_number: number;
+  counter_name: string;
+  operator_name: string;
+  status: 'Active' | 'Busy' | 'Break' | 'Closed';
+  mode: string;
+  assigned_service_ids: number[];
+  assigned_service_names: string[];
+  current_token?: string;
+  queue_count: number;
+  estimated_wait_mins: number;
+  is_overflow: boolean;
+}
+
+export interface ServiceCongestionMetric {
+  service_id: number;
+  service_name: string;
+  pending_count: number;
+  avg_processing_mins: number;
+  total_wait_mins: number;
+  allocated_counters: number;
+  congestion_level: 'Normal' | 'Moderate' | 'High Congestion';
+}
+
+export interface DynamicCounterMatrix {
+  office_id: number;
+  office_name: string;
+  total_active_counters: number;
+  total_pending_queue: number;
+  counters: CounterAllocationItem[];
+  service_congestion: ServiceCongestionMetric[];
+  ai_recommendation?: string;
+  total_time_saved_today_mins: number;
+}
+
+export interface AutoBalanceResponse {
+  office_id: number;
+  message: string;
+  estimated_minutes_saved: number;
+  counters: CounterAllocationItem[];
+  reallocated_count: number;
 }
 
 export interface QueueState {

@@ -5,8 +5,10 @@ import { fetchBookingsByPhone, cancelBooking } from '../services/api';
 import { Booking } from '../types';
 import {
   Ticket, Clock, CheckCircle2, XCircle, AlertTriangle, ArrowRight,
-  Phone, CalendarDays, Building2, RefreshCw, History, LogIn, X, AlertCircle
+  Phone, CalendarDays, Building2, RefreshCw, History, LogIn, X, AlertCircle, QrCode, Scan, Sparkles
 } from 'lucide-react';
+import { CouponModal } from '../components/CouponModal';
+import { QRScannerModal } from '../components/QRScannerModal';
 
 // ── Status badge ─────────────────────────────────────────────────────────────
 const StatusBadge: React.FC<{ status: Booking['status'] }> = ({ status }) => {
@@ -98,6 +100,8 @@ export const MyBookings: React.FC = () => {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [selectedBookingForCoupon, setSelectedBookingForCoupon] = useState<Booking | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     if (!citizenProfile?.phone) return;
@@ -181,13 +185,23 @@ export const MyBookings: React.FC = () => {
                 All tokens for +91 {citizenProfile.phone} — newest first
               </p>
             </div>
-            <button
-              onClick={load}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-emerald-500 transition-all"
-              title="Refresh"
-            >
-              <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setScannerOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all"
+                title="Scan QR Pass"
+              >
+                <Scan className="w-4 h-4" />
+                <span>Scan Pass</span>
+              </button>
+              <button
+                onClick={load}
+                className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-emerald-500 transition-all"
+                title="Refresh"
+              >
+                <RefreshCw className={`w-4 h-4 text-emerald-400 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -276,16 +290,43 @@ export const MyBookings: React.FC = () => {
                         <Clock className="w-3 h-3" />{b.visit_time}
                       </span>
                     </div>
+
+                    {/* Dual predictive timing pills */}
+                    {(b.estimated_wait_mins !== undefined || b.service_processing_mins !== undefined) && (
+                      <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px]">
+                        <span className="inline-flex items-center gap-1 text-amber-300 font-semibold bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                          <Clock className="w-3 h-3" />
+                          Wait: ~{b.estimated_wait_mins ?? 0}m
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-emerald-300 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                          <Sparkles className="w-3 h-3" />
+                          Work: ~{b.service_processing_mins ?? 15}m
+                        </span>
+                        {b.estimated_completion_time && (
+                          <span className="text-slate-400 hidden sm:inline">
+                            Est. Done: <strong className="text-slate-200">{b.estimated_completion_time}</strong>
+                          </span>
+                        )}
+                      </div>
+                    )}
+
                     <p className="text-[11px] text-slate-500">Token: <span className="font-mono text-slate-300">{b.token_number}</span></p>
                   </div>
 
                   {/* Actions */}
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setSelectedBookingForCoupon(b)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 text-amber-300 text-xs font-bold border border-amber-500/30 transition-all shadow-sm"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                      Digital Coupon
+                    </button>
                     <Link
                       to={`/token/${b.token_number}`}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-200 border border-slate-700 transition-all"
                     >
-                      View Pass <ArrowRight className="w-3 h-3" />
+                      Full Pass <ArrowRight className="w-3 h-3" />
                     </Link>
                     {isCancellable(b) && (
                       <button
@@ -303,6 +344,24 @@ export const MyBookings: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Digital Coupon Modal */}
+      <CouponModal
+        booking={selectedBookingForCoupon}
+        isOpen={!!selectedBookingForCoupon}
+        onClose={() => setSelectedBookingForCoupon(null)}
+      />
+
+      {/* Universal QR Scanner Modal */}
+      <QRScannerModal
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScanSuccess={(token) => {
+          setScannerOpen(false);
+          navigate(`/token/${token}`);
+        }}
+      />
     </div>
   );
 };
+

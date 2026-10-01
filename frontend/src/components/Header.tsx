@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Building2, Ticket, Search, LayoutDashboard, ShieldCheck, FileText,
-  Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight, User, History
+  Menu, X, Landmark, Activity, Sun, Moon, Globe, ChevronDown, ChevronRight, User, History, QrCode
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { useTheme } from '../context/ThemeContext';
 import { useLang, Language } from '../context/LanguageContext';
+import { QRScannerModal } from './QRScannerModal';
+
 
 const LANG_OPTIONS: { code: Language; label: string; native: string; flag: string }[] = [
   { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ', flag: '🇮🇳' },
@@ -23,6 +25,7 @@ export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [mobileLangOpen, setMobileLangOpen] = useState(false);
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
 
   // Close desktop lang dropdown on outside click
   useEffect(() => {
@@ -157,6 +160,16 @@ export const Header: React.FC = () => {
               </span>
             </button>
 
+            {/* QR Code Scanner Button */}
+            <button
+              onClick={() => setQrScannerOpen(true)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+              title="Scan QR Code to open Digital Coupon Pass"
+            >
+              <QrCode className="w-4 h-4 text-slate-950 font-black" />
+              <span>Scan QR Pass</span>
+            </button>
+
             {/* Citizen Profile / Login button */}
             <Link
               to="/login"
@@ -278,6 +291,23 @@ export const Header: React.FC = () => {
             </button>
           </div>
 
+          {/* Mobile QR Scan Button */}
+          <div className="px-4 pt-2">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setQrScannerOpen(true);
+              }}
+              className="flex items-center justify-between w-full px-4 py-3 rounded-2xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 border border-amber-500/40 text-amber-300 font-bold text-sm"
+            >
+              <div className="flex items-center gap-2.5">
+                <QrCode className="w-5 h-5 text-amber-400" />
+                <span>Scan QR Pass / Coupon</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-amber-400" />
+            </button>
+          </div>
+
           {/* Citizen Login / Profile Link */}
           <div className="px-4 pt-2">
             <Link
@@ -307,6 +337,13 @@ export const Header: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Universal QR Scanner Modal */}
+      <QRScannerModal
+        isOpen={qrScannerOpen}
+        onClose={() => setQrScannerOpen(false)}
+      />
     </header>
   );
 };
+

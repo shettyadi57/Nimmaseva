@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { fetchQueueState, fetchOffices, fetchAllBookings } from '../services/api';
 import { QueueState, Office, Booking } from '../types';
-import { Landmark, Users, Clock, Monitor, RefreshCw, Volume2, PauseCircle, PlayCircle, Radio, Activity, Ticket, Tv, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Landmark, Users, Clock, Monitor, RefreshCw, Volume2, PauseCircle, PlayCircle, Radio, Activity, Ticket, Tv, Sparkles, ArrowRight, CheckCircle2, QrCode, Zap } from 'lucide-react';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
 import { useLang } from '../context/LanguageContext';
+import { QRScannerModal } from '../components/QRScannerModal';
+import { CouponModal } from '../components/CouponModal';
 
 export const QueueTracker: React.FC = () => {
   const { t } = useLang();
@@ -16,6 +18,8 @@ export const QueueTracker: React.FC = () => {
   const [queueState, setQueueState] = useState<QueueState | null>(null);
   const [waitingTokens, setWaitingTokens] = useState<Booking[]>([]);
   const [wsConnected, setWsConnected] = useState(false);
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
+  const [selectedCoupon, setSelectedCoupon] = useState<Booking | null>(null);
 
   useEffect(() => {
     loadOffices();
@@ -146,6 +150,15 @@ export const QueueTracker: React.FC = () => {
               <span>{wsConnected ? 'LIVE WS' : 'DYNAMIC SYNC'}</span>
             </div>
 
+            <button
+              onClick={() => setQrScannerOpen(true)}
+              className="p-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-xl flex items-center gap-1.5 text-xs font-black shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+              title="Scan QR Code to Pop Up Your Token Pass"
+            >
+              <QrCode className="w-4 h-4" />
+              <span>Scan QR Pass</span>
+            </button>
+
             <Link
               to={`/display-board/${selectedOfficeId}`}
               target="_blank"
@@ -254,13 +267,17 @@ export const QueueTracker: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {waitingTokens.map((tok, idx) => {
                 const isServing = tok.status === 'Called' || tok.status === 'In Progress' || tok.status === 'Approaching Counter';
+                const wait = tok.estimated_wait_mins ?? tok.avg_wait_mins ?? 15;
+                const proc = tok.service_processing_mins ?? 15;
+
                 return (
                   <div
                     key={tok.id}
-                    className={`p-5 rounded-2xl border transition-all ${
+                    onClick={() => setSelectedCoupon(tok)}
+                    className={`p-5 rounded-2xl border transition-all cursor-pointer hover:scale-[1.01] hover:shadow-xl ${
                       isServing
                         ? 'bg-amber-500/10 border-amber-500/40 text-white'
-                        : 'bg-slate-900/90 border-slate-800 text-slate-200'
+                        : 'bg-slate-900/90 border-slate-800 text-slate-200 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -279,13 +296,25 @@ export const QueueTracker: React.FC = () => {
                     <p className="text-xs font-bold text-white truncate">{tok.service_name}</p>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5">Citizen: {tok.citizen_name}</p>
 
-                    <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-800/80 text-[11px]">
-                      <span className="text-slate-400">Slot: <strong className="text-slate-200">{tok.visit_time}</strong></span>
-                      {tok.is_priority && (
-                        <span className="text-amber-400 font-bold flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" /> Priority Pass
-                        </span>
-                      )}
+                    {/* Dual Timing Predictions */}
+                    <div className="grid grid-cols-2 gap-2 mt-3 p-2 bg-slate-950/70 rounded-xl border border-slate-800/80 text-[10px]">
+                      <div>
+                        <span className="text-slate-500 block font-bold">1. Est. Wait</span>
+                        <span className="font-mono font-black text-amber-400">~{wait} Mins</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-500 block font-bold">2. Work Done In</span>
+                        <span className="font-mono font-black text-emerald-400">~{proc} Mins</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2.5 mt-2 border-t border-slate-800/80 text-[11px]">
+                      <span className="text-slate-400 font-mono">
+                        {tok.estimated_call_time ? `Call: ${tok.estimated_call_time}` : `Slot: ${tok.visit_time}`}
+                      </span>
+                      <span className="text-amber-400 font-bold text-[10px] flex items-center gap-1 hover:underline">
+                        View Pass <ArrowRight className="w-3 h-3" />
+                      </span>
                     </div>
                   </div>
                 );
@@ -313,6 +342,20 @@ export const QueueTracker: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* POP-UP DIGITAL COUPON PASS MODAL */}
+      <CouponModal
+        booking={selectedCoupon}
+        isOpen={selectedCoupon !== null}
+        onClose={() => setSelectedCoupon(null)}
+      />
+
+      {/* UNIVERSAL QR SCANNER MODAL */}
+      <QRScannerModal
+        isOpen={qrScannerOpen}
+        onClose={() => setQrScannerOpen(false)}
+        onBookingFound={(b) => setSelectedCoupon(b)}
+      />
     </div>
   );
 };

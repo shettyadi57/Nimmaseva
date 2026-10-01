@@ -248,9 +248,65 @@ class BookingOut(BaseModel):
     service_name: Optional[str] = None
     people_ahead: Optional[int] = 0
     avg_wait_mins: Optional[int] = 15
+    estimated_wait_mins: Optional[int] = 15
+    estimated_call_time: Optional[str] = None
+    service_processing_mins: Optional[int] = 15
+    total_estimated_duration_mins: Optional[int] = 30
+    estimated_completion_time: Optional[str] = None
+    time_saved_by_dynamic_allocation_mins: Optional[int] = 0
+    active_counters_for_service: Optional[int] = 1
+    qr_code_data_url: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+# Dynamic Counter Allocation Schemas
+class CounterAllocationItem(BaseModel):
+    counter_number: int
+    counter_name: str
+    operator_name: str
+    status: str = "Active"  # Active, Busy, Break, Closed
+    mode: str = "Dynamic Auto-Balance"  # Dedicated, Dynamic Auto-Balance, Priority Express
+    assigned_service_ids: List[int] = []
+    assigned_service_names: List[str] = []
+    current_token: Optional[str] = None
+    queue_count: int = 0
+    estimated_wait_mins: int = 0
+    is_overflow: bool = False
+
+class ServiceCongestionMetric(BaseModel):
+    service_id: int
+    service_name: str
+    pending_count: int
+    avg_processing_mins: int
+    total_wait_mins: int
+    allocated_counters: int
+    congestion_level: str  # Normal, Moderate, High Congestion
+
+class DynamicCounterMatrixOut(BaseModel):
+    office_id: int
+    office_name: str
+    total_active_counters: int
+    total_pending_queue: int
+    counters: List[CounterAllocationItem]
+    service_congestion: List[ServiceCongestionMetric]
+    ai_recommendation: Optional[str] = None
+    total_time_saved_today_mins: int = 0
+
+class CounterAllocationUpdate(BaseModel):
+    counter_number: int
+    counter_name: Optional[str] = None
+    operator_name: Optional[str] = None
+    status: Optional[str] = "Active"
+    mode: Optional[str] = "Dynamic Auto-Balance"
+    assigned_service_ids: List[int] = []
+
+class AutoBalanceResponse(BaseModel):
+    office_id: int
+    message: str
+    estimated_minutes_saved: int
+    counters: List[CounterAllocationItem]
+    reallocated_count: int = 0
 
 # Queue State & Control
 class QueueUpdate(BaseModel):

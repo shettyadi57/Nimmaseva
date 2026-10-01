@@ -6,12 +6,66 @@ from app.core.database import get_db
 from app.models.models import Booking, Office, Service, AuditLog
 from app.schemas.schemas import BookingCreate, BookingOut
 from app.services.token_service import get_next_token_number, get_next_available_visit_date, generate_verification_code
-from app.services.prediction_service import calculate_tatkal_probability
+from app.services.prediction_service import calculate_tatkal_probability, calculate_booking_timings
 from app.services.pdf_service import generate_token_pdf
 from app.services.qr_service import generate_qr_code_base64
 from app.core.security import verify_aadhaar
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
+
+def serialize_booking_out(booking: Booking, db: Session, office: Optional[Office] = None, service: Optional[Service] = None) -> BookingOut:
+    if not office:
+        office = db.query(Office).filter(Office.id == booking.office_id).first()
+    if not service:
+        service = db.query(Service).filter(Service.id == booking.service_id).first()
+
+    timings = calculate_booking_timings(
+        db=db,
+        office_id=booking.office_id,
+        service_id=booking.service_id,
+        booking_id=booking.id,
+        is_priority=booking.is_priority,
+        status=booking.status
+    )
+
+    qr_b64 = generate_qr_code_base64(f"/token/{booking.token_number}")
+
+    return BookingOut(
+        id=booking.id,
+        token_number=booking.token_number,
+        verification_code=booking.verification_code,
+        citizen_name=booking.citizen_name,
+        phone=booking.phone,
+        aadhaar=f"XXXX XXXX {booking.aadhaar[-4:]}" if booking.aadhaar and len(booking.aadhaar) >= 4 else "XXXX",
+        age=booking.age,
+        gender=booking.gender,
+        is_priority=booking.is_priority,
+        priority_reason=booking.priority_reason,
+        booking_type=booking.booking_type,
+        office_id=booking.office_id,
+        service_id=booking.service_id,
+        booking_date=booking.booking_date,
+        visit_date=booking.visit_date,
+        visit_time=booking.visit_time,
+        status=booking.status,
+        counter_number=booking.counter_number,
+        amount_paid=booking.amount_paid,
+        tatkal_probability=booking.tatkal_probability,
+        created_at=booking.created_at,
+        office_name=office.name if office else "",
+        service_name=service.name if service else "",
+        people_ahead=timings["people_ahead"],
+        avg_wait_mins=timings["estimated_wait_mins"],
+        estimated_wait_mins=timings["estimated_wait_mins"],
+        estimated_call_time=timings["estimated_call_time"],
+        service_processing_mins=timings["service_processing_mins"],
+        total_estimated_duration_mins=timings["total_estimated_duration_mins"],
+        estimated_completion_time=timings["estimated_completion_time"],
+        time_saved_by_dynamic_allocation_mins=timings["time_saved_by_dynamic_allocation_mins"],
+        active_counters_for_service=timings["active_counters_for_service"],
+        qr_code_data_url=qr_b64
+    )
+
 
 @router.post("", response_model=BookingOut)
 def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db)):
@@ -107,41 +161,7 @@ def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db)):
     ))
     db.commit()
 
-    # Prepare response
-    people_ahead = db.query(Booking).filter(
-        Booking.office_id == office.id,
-        Booking.visit_date == visit_date_str,
-        Booking.status == "Pending",
-        Booking.id < db_booking.id
-    ).count()
-
-    return BookingOut(
-        id=db_booking.id,
-        token_number=db_booking.token_number,
-        verification_code=db_booking.verification_code,
-        citizen_name=db_booking.citizen_name,
-        phone=db_booking.phone,
-        aadhaar=db_booking.aadhaar,
-        age=db_booking.age,
-        gender=db_booking.gender,
-        is_priority=db_booking.is_priority,
-        priority_reason=db_booking.priority_reason,
-        booking_type=db_booking.booking_type,
-        office_id=db_booking.office_id,
-        service_id=db_booking.service_id,
-        booking_date=db_booking.booking_date,
-        visit_date=db_booking.visit_date,
-        visit_time=db_booking.visit_time,
-        status=db_booking.status,
-        counter_number=db_booking.counter_number,
-        amount_paid=db_booking.amount_paid,
-        tatkal_probability=db_booking.tatkal_probability,
-        created_at=db_booking.created_at,
-        office_name=office.name,
-        service_name=service.name,
-        people_ahead=people_ahead,
-        avg_wait_mins=people_ahead * service.avg_processing_time_mins
-    )
+    return serialize_booking_out(db_booking, db, office, service)
 
 @router.get("/token/{token_number}", response_model=BookingOut)
 def get_booking_by_token(token_number: str, db: Session = Depends(get_db)):
@@ -151,43 +171,16 @@ def get_booking_by_token(token_number: str, db: Session = Depends(get_db)):
     
     office = db.query(Office).filter(Office.id == booking.office_id).first()
     service = db.query(Service).filter(Service.id == booking.service_id).first()
+    return serialize_booking_out(booking, db, office, service)
 
-    today_str = datetime.now().strftime("%Y-%m-%d")
-    people_ahead = db.query(Booking).filter(
-        Booking.office_id == booking.office_id,
-        Booking.visit_date == today_str,
-        Booking.status == "Pending",
-        Booking.id < booking.id
-    ).count()
+@router.get("/qr/{token_number}")
+def get_booking_qr(token_number: str, db: Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.token_number == token_number).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Token not found")
+    qr_b64 = generate_qr_code_base64(f"/token/{token_number}")
+    return {"token_number": token_number, "qr_code_data_url": qr_b64}
 
-    return BookingOut(
-        id=booking.id,
-        token_number=booking.token_number,
-        verification_code=booking.verification_code,
-        citizen_name=booking.citizen_name,
-        phone=booking.phone,
-        # S10 fix: mask Aadhaar — never expose full number on public endpoint
-        aadhaar=f"XXXX XXXX {booking.aadhaar[-4:]}" if booking.aadhaar and len(booking.aadhaar) >= 4 else "XXXX",
-        age=booking.age,
-        gender=booking.gender,
-        is_priority=booking.is_priority,
-        priority_reason=booking.priority_reason,
-        booking_type=booking.booking_type,
-        office_id=booking.office_id,
-        service_id=booking.service_id,
-        booking_date=booking.booking_date,
-        visit_date=booking.visit_date,
-        visit_time=booking.visit_time,
-        status=booking.status,
-        counter_number=booking.counter_number,
-        amount_paid=booking.amount_paid,
-        tatkal_probability=booking.tatkal_probability,
-        created_at=booking.created_at,
-        office_name=office.name if office else "",
-        service_name=service.name if service else "",
-        people_ahead=people_ahead,
-        avg_wait_mins=people_ahead * (service.avg_processing_time_mins if service else 15)
-    )
 
 @router.get("/pdf/{token_number}")
 def download_token_pdf(token_number: str, db: Session = Depends(get_db)):
@@ -231,38 +224,8 @@ def get_bookings_by_phone(phone: str, db: Session = Depends(get_db)):
         .limit(50)
         .all()
     )
-    result = []
-    for b in bookings:
-        off = db.query(Office).filter(Office.id == b.office_id).first()
-        srv = db.query(Service).filter(Service.id == b.service_id).first()
-        result.append(BookingOut(
-            id=b.id,
-            token_number=b.token_number,
-            verification_code=b.verification_code,
-            citizen_name=b.citizen_name,
-            phone=b.phone,
-            aadhaar=f"XXXX XXXX {b.aadhaar[-4:]}" if b.aadhaar and len(b.aadhaar) >= 4 else "XXXX",
-            age=b.age,
-            gender=b.gender,
-            is_priority=b.is_priority,
-            priority_reason=b.priority_reason,
-            booking_type=b.booking_type,
-            office_id=b.office_id,
-            service_id=b.service_id,
-            booking_date=b.booking_date,
-            visit_date=b.visit_date,
-            visit_time=b.visit_time,
-            status=b.status,
-            counter_number=b.counter_number,
-            amount_paid=b.amount_paid,
-            tatkal_probability=b.tatkal_probability,
-            created_at=b.created_at,
-            office_name=off.name if off else "",
-            service_name=srv.name if srv else "",
-            people_ahead=0,
-            avg_wait_mins=0
-        ))
-    return result
+    return [serialize_booking_out(b, db) for b in bookings]
+
 
 
 @router.post("/{booking_id}/cancel")

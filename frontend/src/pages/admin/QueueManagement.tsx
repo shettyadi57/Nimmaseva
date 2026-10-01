@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { fetchQueueState, controlQueueAction, fetchOffices } from '../../services/api';
-import { QueueState, Office } from '../../types';
-import { Monitor, Play, Pause, FastForward, CheckCircle2, RotateCcw, XCircle, ArrowRightLeft, Volume2, VolumeX, Shield, ArrowLeft } from 'lucide-react';
+import { fetchQueueState, controlQueueAction, fetchOffices, fetchBookingByToken } from '../../services/api';
+import { QueueState, Office, Booking } from '../../types';
+import { Monitor, Play, Pause, FastForward, CheckCircle2, RotateCcw, XCircle, ArrowRightLeft, Volume2, VolumeX, Shield, ArrowLeft, QrCode, Sparkles } from 'lucide-react';
 import { KarnatakaBadge } from '../../components/KarnatakaBadge';
 import { Link } from 'react-router-dom';
+import { DynamicCounterMatrixControl } from '../../components/DynamicCounterMatrixControl';
+import { QRScannerModal } from '../../components/QRScannerModal';
+import { CouponModal } from '../../components/CouponModal';
 
 export const QueueManagement: React.FC = () => {
   const [offices, setOffices] = useState<Office[]>([]);
@@ -14,6 +17,9 @@ export const QueueManagement: React.FC = () => {
   const [transferOfficeId, setTransferOfficeId] = useState<number>(2);
   const [loading, setLoading] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
+  const [selectedCoupon, setSelectedCoupon] = useState<Booking | null>(null);
+  const [showCouponModal, setShowCouponModal] = useState(false);
 
   useEffect(() => {
     loadInitialData();
@@ -115,7 +121,15 @@ export const QueueManagement: React.FC = () => {
             <p className="text-xs text-slate-400">Call Next, Complete, Skip, Recall, or Transfer citizen tokens in real-time</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setQrScannerOpen(true)}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+            >
+              <QrCode className="w-4 h-4 text-slate-950" />
+              <span>Scan Citizen QR Pass</span>
+            </button>
+
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className={`p-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 transition-all ${
@@ -161,10 +175,11 @@ export const QueueManagement: React.FC = () => {
                 onChange={(e) => setCounterNum(Number(e.target.value))}
                 className="bg-slate-950 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-800 focus:outline-none"
               >
-                <option value={1}>Counter 01</option>
-                <option value={2}>Counter 02</option>
-                <option value={3}>Counter 03</option>
-                <option value={4}>Counter 04 (Priority)</option>
+                <option value={1}>Counter 01 (Revenue & Identity)</option>
+                <option value={2}>Counter 02 (Certificates)</option>
+                <option value={3}>Counter 03 (Utility Services)</option>
+                <option value={4}>Counter 04 (⚡ Dynamic Overflow)</option>
+                <option value={5}>Counter 05 (Priority Express)</option>
               </select>
             </div>
           </div>
@@ -304,7 +319,45 @@ export const QueueManagement: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* DYNAMIC COUNTER ALLOCATION MATRIX CONTROL PANEL */}
+        <DynamicCounterMatrixControl
+          officeId={selectedOfficeId}
+          onCounterUpdated={() => loadQueue(selectedOfficeId)}
+          onOpenCoupon={async (tok) => {
+            try {
+              const b = await fetchBookingByToken(tok);
+              if (b) {
+                setSelectedCoupon(b);
+                setShowCouponModal(true);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }}
+        />
+
       </div>
+
+      {/* UNIVERSAL QR SCANNER MODAL */}
+      <QRScannerModal
+        isOpen={qrScannerOpen}
+        onClose={() => setQrScannerOpen(false)}
+        onBookingFound={(b) => {
+          setSelectedCoupon(b);
+          setShowCouponModal(true);
+        }}
+      />
+
+      {/* POP-UP DIGITAL COUPON PASS MODAL */}
+      <CouponModal
+        booking={selectedCoupon}
+        isOpen={showCouponModal}
+        onClose={() => {
+          setShowCouponModal(false);
+          setSelectedCoupon(null);
+        }}
+      />
     </div>
   );
 };

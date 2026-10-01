@@ -105,6 +105,7 @@ class QueueState(Base):
     next_token = Column(String, default="None")
     active_counters = Column(Integer, default=3)
     is_paused = Column(Boolean, default=False)
+    counter_allocations = Column(JSON, default=list, nullable=True)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     office = relationship("Office", back_populates="queue_state")

@@ -114,42 +114,9 @@ def get_all_bookings(
         query = query.filter(Booking.office_id == office_id)
 
     bookings = query.order_by(Booking.id.desc()).limit(100).all()
-    
-    result = []
-    for b in bookings:
-        off = db.query(Office).filter(Office.id == b.office_id).first()
-        srv = db.query(Service).filter(Service.id == b.service_id).first()
-        
-        b_out = BookingOut(
-            id=b.id,
-            token_number=b.token_number,
-            verification_code=b.verification_code,
-            citizen_name=b.citizen_name,
-            phone=b.phone,
-            aadhaar=b.aadhaar,
-            age=b.age,
-            gender=b.gender,
-            is_priority=b.is_priority,
-            priority_reason=b.priority_reason,
-            booking_type=b.booking_type,
-            office_id=b.office_id,
-            service_id=b.service_id,
-            booking_date=b.booking_date,
-            visit_date=b.visit_date,
-            visit_time=b.visit_time,
-            status=b.status,
-            counter_number=b.counter_number,
-            amount_paid=b.amount_paid,
-            tatkal_probability=b.tatkal_probability,
-            created_at=b.created_at,
-            office_name=off.name if off else "",
-            service_name=srv.name if srv else "",
-            people_ahead=0,
-            avg_wait_mins=15
-        )
-        result.append(b_out)
+    from app.api.bookings import serialize_booking_out
+    return [serialize_booking_out(b, db) for b in bookings]
 
-    return result
 
 @router.patch("/bookings/{booking_id}/status")
 def update_booking_status(
@@ -228,33 +195,9 @@ def create_walkin_booking(
     db.commit()
     db.refresh(b)
 
-    return BookingOut(
-        id=b.id,
-        token_number=b.token_number,
-        verification_code=b.verification_code,
-        citizen_name=b.citizen_name,
-        phone=b.phone,
-        aadhaar=b.aadhaar,
-        age=b.age,
-        gender=b.gender,
-        is_priority=b.is_priority,
-        priority_reason=b.priority_reason,
-        booking_type=b.booking_type,
-        office_id=b.office_id,
-        service_id=b.service_id,
-        booking_date=b.booking_date,
-        visit_date=b.visit_date,
-        visit_time=b.visit_time,
-        status=b.status,
-        counter_number=b.counter_number,
-        amount_paid=b.amount_paid,
-        tatkal_probability=b.tatkal_probability,
-        created_at=b.created_at,
-        office_name=off.name,
-        service_name=srv.name,
-        people_ahead=0,
-        avg_wait_mins=10
-    )
+    from app.api.bookings import serialize_booking_out
+    return serialize_booking_out(b, db, off, srv)
+
 
 @router.get("/export/csv")
 def export_bookings_csv(

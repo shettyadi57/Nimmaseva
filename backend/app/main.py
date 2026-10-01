@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api import auth, offices, services, bookings, queue, admin, analytics, schemes, notifications, public, grievances
+from sqlalchemy import text
+from app.api import auth, offices, services, bookings, queue, admin, analytics, schemes, notifications, public, grievances, counters
 from app.seed import seed_database
 from app.core.database import engine, Base
 from app.core.security_middleware import (
@@ -40,6 +41,13 @@ register_security_exception_handlers(app)
 def on_startup():
     try:
         Base.metadata.create_all(bind=engine)
+        # Safe migration for counter_allocations column
+        with engine.connect() as conn:
+            try:
+                conn.execute(text("ALTER TABLE queue_states ADD COLUMN counter_allocations JSON DEFAULT '[]'"))
+                conn.commit()
+            except Exception:
+                pass
         seed_database()
     except Exception as e:
         print(f"Startup database initialization: {e}")
@@ -69,3 +77,5 @@ app.include_router(schemes.router, prefix=settings.API_V1_STR)
 app.include_router(notifications.router, prefix=settings.API_V1_STR)
 app.include_router(public.router, prefix=settings.API_V1_STR)
 app.include_router(grievances.router, prefix=settings.API_V1_STR)
+app.include_router(counters.router, prefix=settings.API_V1_STR)
+

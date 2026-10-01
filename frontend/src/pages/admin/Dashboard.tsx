@@ -6,9 +6,12 @@ import { useStore } from '../../store/useStore';
 import { 
   Users, IndianRupee, CheckCircle2, XCircle, Clock, Download, Search, Filter, 
   Monitor, Sliders, LogOut, Activity, PlusCircle, RefreshCw, Volume2, ShieldCheck, 
-  Eye, Check, Phone, User, Calendar, ExternalLink
+  Eye, Check, Phone, User, Calendar, ExternalLink, QrCode, Sparkles 
 } from 'lucide-react';
 import { KarnatakaBadge } from '../../components/KarnatakaBadge';
+import { DynamicCounterMatrixControl } from '../../components/DynamicCounterMatrixControl';
+import { QRScannerModal } from '../../components/QRScannerModal';
+import { CouponModal } from '../../components/CouponModal';
 
 export const AdminDashboard: React.FC = () => {
   const { adminUser, setAdminAuth } = useStore();
@@ -35,6 +38,8 @@ export const AdminDashboard: React.FC = () => {
 
   // Selected Ticket Detail Modal
   const [selectedTicket, setSelectedTicket] = useState<Booking | null>(null);
+  const [couponModalOpen, setCouponModalOpen] = useState(false);
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
   const [csvLoading, setCsvLoading] = useState(false);
 
   const handleExportCsv = async () => {
@@ -194,7 +199,15 @@ export const AdminDashboard: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setQrScannerOpen(true)}
+              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+            >
+              <QrCode className="w-4 h-4 text-slate-950" />
+              <span>Scan Citizen QR Pass</span>
+            </button>
+
             <button
               onClick={() => setShowWalkinModal(true)}
               className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
@@ -260,6 +273,19 @@ export const AdminDashboard: React.FC = () => {
             <div className="text-xs text-slate-400">Avg Wait Time: ~{summary?.avg_wait_time_mins} mins</div>
           </div>
         </div>
+
+        {/* DYNAMIC COUNTER ALLOCATION MATRIX CONTROL */}
+        <DynamicCounterMatrixControl
+          officeId={officeFilter ? Number(officeFilter) : 1}
+          onCounterUpdated={() => loadDashboardData(false)}
+          onOpenCoupon={(tok) => {
+            const found = bookings.find(b => b.token_number === tok);
+            if (found) {
+              setSelectedTicket(found);
+              setCouponModalOpen(true);
+            }
+          }}
+        />
 
         {/* Bookings Data Table Card */}
         <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6 shadow-2xl">
@@ -566,6 +592,27 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* POP-UP DIGITAL COUPON PASS MODAL */}
+      <CouponModal
+        booking={selectedTicket}
+        isOpen={couponModalOpen}
+        onClose={() => {
+          setCouponModalOpen(false);
+          setSelectedTicket(null);
+        }}
+      />
+
+
+      {/* UNIVERSAL QR SCANNER MODAL */}
+      <QRScannerModal
+        isOpen={qrScannerOpen}
+        onClose={() => setQrScannerOpen(false)}
+        onBookingFound={(b) => {
+          setSelectedTicket(b);
+          setCouponModalOpen(true);
+        }}
+      />
 
     </div>
   );
