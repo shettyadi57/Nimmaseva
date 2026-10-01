@@ -9,6 +9,7 @@ from app.services.token_service import get_next_token_number, get_next_available
 from app.services.prediction_service import calculate_tatkal_probability, calculate_booking_timings
 from app.services.pdf_service import generate_token_pdf
 from app.services.qr_service import generate_qr_code_base64
+from app.services.counter_allocation_service import allocate_counter_for_token
 from app.core.security import verify_aadhaar
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
@@ -127,6 +128,14 @@ def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db)):
         time_of_day_hour=now.hour
     )
 
+    # Dynamically allocate optimal active counter to avoid bottlenecking single counter
+    allocated_counter = allocate_counter_for_token(
+        db=db,
+        office_id=office.id,
+        service_id=service.id,
+        is_priority=is_priority
+    )
+
     # Save to database
     db_booking = Booking(
         token_number=token_num,
@@ -144,6 +153,7 @@ def create_booking(booking_in: BookingCreate, db: Session = Depends(get_db)):
         booking_date=today_str,
         visit_date=visit_date_str,
         visit_time=visit_slot,
+        counter_number=allocated_counter,
         amount_paid=service.fee,
         tatkal_probability=tatkal_res["probability"],
         status="Pending"

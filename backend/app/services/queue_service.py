@@ -38,15 +38,49 @@ def update_queue_action(
         queue_state.is_paused = False
 
     elif action == "call_next":
-        if pending_bookings:
-            next_booking = pending_bookings[0]
+        # 0. Check if a specific target token was requested
+        candidate = None
+        if target_token:
+            candidate = db.query(Booking).filter(
+                Booking.office_id == office_id,
+                Booking.token_number == target_token,
+                Booking.visit_date == today_str
+            ).first()
+
+        if not candidate:
+            from app.services.counter_allocation_service import get_or_init_counter_allocations
+            allocations = get_or_init_counter_allocations(db, office_id)
+            current_counter_conf = next((c for c in allocations if c.get("counter_number") == counter_number), None)
+            assigned_services = current_counter_conf.get("assigned_service_ids", []) if current_counter_conf else []
+            is_overflow = current_counter_conf.get("is_overflow", False) if current_counter_conf else False
+
+            # 1. First priority: Pending booking explicitly assigned to this counter
+            for b in pending_bookings:
+                if b.counter_number == counter_number:
+                    candidate = b
+                    break
+
+            # 2. Second priority: If counter has specific assigned services, pick next booking matching those services
+            if not candidate and assigned_services and not is_overflow:
+                for b in pending_bookings:
+                    if b.service_id in assigned_services:
+                        candidate = b
+                        break
+
+            # 3. Third priority: If overflow counter, or if no service-specific bookings remain, take highest priority/first pending
+            if not candidate and pending_bookings:
+                candidate = pending_bookings[0]
+
+        if candidate:
+            next_booking = candidate
             next_booking.status = "Called"
             next_booking.counter_number = counter_number
             queue_state.current_token = next_booking.token_number
             
-            # Next token preview
-            if len(pending_bookings) > 1:
-                queue_state.next_token = pending_bookings[1].token_number
+            # Next token preview (find next candidate in pending)
+            remaining_pending = [b for b in pending_bookings if b.id != candidate.id]
+            if remaining_pending:
+                queue_state.next_token = remaining_pending[0].token_number
             else:
                 queue_state.next_token = "None"
         else:

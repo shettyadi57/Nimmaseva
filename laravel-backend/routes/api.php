@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SchemeController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\PublicController;
+use App\Http\Controllers\Api\CounterController;
 
 // ── Health ────────────────────────────────────────────────────────────────────
 Route::get('/health', fn() => response()->json([
@@ -81,6 +82,8 @@ Route::prefix('bookings')->group(function () {
 // ── Queue Operations ──────────────────────────────────────────────────────────
 Route::prefix('queue')->group(function () {
     Route::get('/state/{officeId}', [QueueController::class, 'state'])->whereNumber('officeId');
+    Route::get('/{officeId}',       [QueueController::class, 'state'])->whereNumber('officeId');
+    Route::post('/{officeId}/control', [QueueController::class, 'controlAction'])->whereNumber('officeId');
 
     Route::middleware(['auth:sanctum', 'role:operator|office_admin|district_admin'])->group(function () {
         Route::post('/call-next', [QueueController::class, 'callNext']);
@@ -91,6 +94,13 @@ Route::prefix('queue')->group(function () {
         Route::post('/cancel',    [QueueController::class, 'cancelToken']);
         Route::post('/transfer',  [QueueController::class, 'transfer']);
     });
+});
+
+// ── Dynamic Counter Matrix & Auto-Balancing ──────────────────────────────────
+Route::prefix('counters')->group(function () {
+    Route::get('/{officeId}',          [CounterController::class, 'show'])->whereNumber('officeId');
+    Route::post('/{officeId}/allocate', [CounterController::class, 'allocate'])->whereNumber('officeId');
+    Route::post('/{officeId}/auto-balance', [CounterController::class, 'autoBalance'])->whereNumber('officeId');
 });
 
 // ── Grievances ────────────────────────────────────────────────────────────────

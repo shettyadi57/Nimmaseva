@@ -20,6 +20,7 @@ class BookingController extends Controller
         private readonly TokenService      $tokens,
         private readonly PredictionService $prediction,
         private readonly PdfService        $pdf,
+        private readonly CounterService    $counters,
     ) {}
 
     // ── POST /api/bookings ────────────────────────────────────────────────────
@@ -73,6 +74,9 @@ class BookingController extends Controller
 
         $phone = preg_replace('/\D/', '', $data['phone']);
 
+        // Allocate counter dynamically across active desks
+        $allocatedCounter = $this->counters->allocateCounterForBooking($office, $service, $isPriority);
+
         $booking = new Booking([
             'token_number'        => $tokenNumber,
             'verification_code'   => $verifCode,
@@ -87,6 +91,7 @@ class BookingController extends Controller
             'booking_date'        => today('Asia/Kolkata')->toDateString(),
             'visit_date'          => $visitDate->toDateString(),
             'visit_time'          => $visitTime,
+            'counter_number'      => $allocatedCounter,
             'status'              => 'Pending',
             'amount_paid'         => $service->fee,
             'signed_access_token' => $signedToken,
@@ -264,22 +269,8 @@ class BookingController extends Controller
 
     private function enforceHours(Office $office): void
     {
-        $now  = now('Asia/Kolkata');
-        $hour = $now->hour;
-        $min  = $now->minute;
-
-        // 09:00 - 17:00
-        if ($hour < 9 || $hour >= 17) {
-            abort(422, 'Booking is only available between 09:00 AM and 05:00 PM. Please book for the next working day.');
-        }
-
-        // Lunch 01:00 PM - 02:00 PM
-        if ($hour === 13 && $min < 60) {
-            abort(422, 'Counter is on lunch break (01:00 PM – 02:00 PM). Please try again after 02:00 PM.');
-        }
-
-        if ($office->server_status === 'Down') {
-            abort(503, "Office '{$office->name}' is currently offline. Please try another center.");
+        if ($office->server_status === 'Down' || $office->server_status === 'Maintenance' || $office->server_status === 'Unavailable') {
+            abort(503, "Office '{$office->name}' is currently under maintenance or offline. Please try another center.");
         }
     }
 }

@@ -92,6 +92,65 @@ def get_or_init_counter_allocations(db: Session, office_id: int) -> List[Dict[st
 
     return allocations
 
+def allocate_counter_for_token(
+    db: Session,
+    office_id: int,
+    service_id: int,
+    is_priority: bool = False
+) -> int:
+    """
+    Dynamically allocates an active counter for a new or unassigned token pass.
+    Prevents bottlenecking a single counter by distributing according to assigned service,
+    counter operational status (Active vs Break), and current queue load.
+    """
+    allocations = get_or_init_counter_allocations(db, office_id)
+    active_counters = [c for c in allocations if c.get("status") == "Active"]
+    if not active_counters:
+        return 1
+
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    pending_bookings = db.query(Booking).filter(
+        Booking.office_id == office_id,
+        Booking.visit_date == today_str,
+        Booking.status.in_(["Pending", "Skipped"])
+    ).all()
+
+    # Count current load per counter
+    load_per_counter: Dict[int, int] = {c.get("counter_number", 1): 0 for c in active_counters}
+    for b in pending_bookings:
+        if b.counter_number in load_per_counter:
+            load_per_counter[b.counter_number] += 1
+
+    # 1. Priority citizen: route to Priority/Express or overflow counter
+    if is_priority:
+        overflow_counters = [c for c in active_counters if c.get("is_overflow")]
+        if overflow_counters:
+            return overflow_counters[0].get("counter_number", 4)
+        return min(load_per_counter.keys(), key=lambda c_num: load_per_counter[c_num])
+
+    # 2. Match counter by assigned service ID
+    matching_counters = [
+        c for c in active_counters
+        if service_id in c.get("assigned_service_ids", [])
+    ]
+
+    if matching_counters:
+        # Pick the matching counter with the lowest current queue load
+        best_counter = min(matching_counters, key=lambda c: load_per_counter.get(c.get("counter_number", 1), 0))
+        return best_counter.get("counter_number", 1)
+
+    # 3. If no direct match, check dynamic auto-balance or overflow counters
+    auto_balance_counters_list = [
+        c for c in active_counters
+        if c.get("mode") in ["Dynamic Auto-Balance", "Universal"] or c.get("is_overflow")
+    ]
+    if auto_balance_counters_list:
+        best_counter = min(auto_balance_counters_list, key=lambda c: load_per_counter.get(c.get("counter_number", 1), 0))
+        return best_counter.get("counter_number", 1)
+
+    # 4. Fallback: least loaded active counter overall
+    return min(load_per_counter.keys(), key=lambda c_num: load_per_counter[c_num])
+
 def get_dynamic_counter_matrix(db: Session, office_id: int) -> Dict[str, Any]:
     """
     Returns full dynamic counter matrix with queue congestion analytics and AI recommendations.
@@ -342,6 +401,10 @@ def auto_balance_counters(
     queue_state.updated_at = datetime.now(timezone.utc)
 
     saved_estimate = sum(counts.values()) * 20
+
+    # Dynamically reallocate all currently pending uncalled bookings to the newly configured counters
+    for b in pending_bookings:
+        b.counter_number = allocate_counter_for_token(db, office_id, b.service_id, b.is_priority)
 
     db.add(AuditLog(
         user_name=user_name,

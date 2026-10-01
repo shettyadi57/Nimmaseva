@@ -124,3 +124,38 @@ def test_citizen_direct_login_no_otp():
     assert data["full_name"] == "Naveen Kumar"
     assert data["role"] == "citizen"
 
+def test_dynamic_counter_allocation_on_booking():
+    """Verify that when a citizen books, an active counter is dynamically allocated."""
+    payload = {
+        "citizen_name": "Ravi Shastri",
+        "phone": "9988776655",
+        "aadhaar": "123456789012",
+        "age": 32,
+        "gender": "Male",
+        "office_id": 1,
+        "service_id": 1,
+        "booking_type": "Online"
+    }
+    response = client.post("/api/bookings", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["counter_number"] is not None
+    assert 1 <= data["counter_number"] <= 4
+
+    # Priority booking (Senior citizen age 65)
+    senior_payload = {
+        "citizen_name": "Mahadevappa G.",
+        "phone": "9988776644",
+        "aadhaar": "123456789014",
+        "age": 68,
+        "gender": "Male",
+        "office_id": 1,
+        "service_id": 2,
+        "booking_type": "Online"
+    }
+    sen_response = client.post("/api/bookings", json=senior_payload)
+    assert sen_response.status_code == 200
+    sen_data = sen_response.json()
+    assert sen_data["is_priority"] is True
+    assert sen_data["counter_number"] is not None
+

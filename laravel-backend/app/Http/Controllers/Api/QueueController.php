@@ -17,6 +17,14 @@ class QueueController extends Controller
         return response()->json($this->queue->getStatePayload($officeId));
     }
 
+    // ── POST /api/queue/{officeId}/control ────────────────────────────────────
+    public function controlAction(Request $request, int $officeId): JsonResponse
+    {
+        $actor = $request->user()?->full_name ?? 'Admin Operator';
+        $result = $this->queue->executeControlAction($officeId, $request->all(), $actor);
+        return response()->json($result);
+    }
+
     // ── POST /api/queue/call-next ─────────────────────────────────────────────
     public function callNext(Request $request): JsonResponse
     {

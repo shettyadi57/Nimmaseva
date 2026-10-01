@@ -170,6 +170,14 @@ def create_walkin_booking(
         priority_reason=data.priority_reason
     )
 
+    from app.services.counter_allocation_service import allocate_counter_for_token
+    assigned_counter = allocate_counter_for_token(
+        db=db,
+        office_id=data.office_id,
+        service_id=data.service_id,
+        is_priority=data.is_priority
+    )
+
     b = Booking(
         token_number=token_num,
         verification_code="WALK-IN",
@@ -187,7 +195,7 @@ def create_walkin_booking(
         visit_date=today_str,
         visit_time=now_str,
         status="Pending",
-        counter_number=1,
+        counter_number=assigned_counter,
         amount_paid=srv.fee,
         tatkal_probability=99
     )

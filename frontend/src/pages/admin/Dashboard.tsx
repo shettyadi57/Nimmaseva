@@ -604,13 +604,14 @@ export const AdminDashboard: React.FC = () => {
       />
 
 
-      {/* UNIVERSAL QR SCANNER MODAL */}
+      {/* UNIVERSAL QR SCANNER & ADMIN DESK ADMISSION MODAL */}
       <QRScannerModal
         isOpen={qrScannerOpen}
         onClose={() => setQrScannerOpen(false)}
-        onBookingFound={(b) => {
-          setSelectedTicket(b);
-          setCouponModalOpen(true);
+        mode="admin"
+        currentCounterNumber={1}
+        onActionExecuted={() => {
+          loadData();
         }}
       />
 

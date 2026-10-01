@@ -339,13 +339,15 @@ export const QueueManagement: React.FC = () => {
 
       </div>
 
-      {/* UNIVERSAL QR SCANNER MODAL */}
+      {/* UNIVERSAL QR SCANNER & ADMIN DESK ADMISSION MODAL */}
       <QRScannerModal
         isOpen={qrScannerOpen}
         onClose={() => setQrScannerOpen(false)}
-        onBookingFound={(b) => {
-          setSelectedCoupon(b);
-          setShowCouponModal(true);
+        mode="admin"
+        officeId={selectedOfficeId}
+        currentCounterNumber={counterNum}
+        onActionExecuted={() => {
+          loadQueue(selectedOfficeId);
         }}
       />
 
