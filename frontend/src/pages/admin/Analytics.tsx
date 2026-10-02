@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { fetchAnalyticsCharts } from '../../services/api';
+import { fetchAnalyticsCharts, downloadExportCsv } from '../../services/api';
 import { AnalyticsChartData } from '../../types';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line, Legend
 } from 'recharts';
-import { BarChart3, TrendingUp, Clock, PieChart, RefreshCw } from 'lucide-react';
+import { BarChart3, TrendingUp, Clock, RefreshCw, Download, Calendar } from 'lucide-react';
 import { KarnatakaBadge } from '../../components/KarnatakaBadge';
 
 // ── Skeleton loader for charts ──────────────────────────────────────────────
@@ -44,6 +44,10 @@ export const AdminAnalytics: React.FC = () => {
   const [chartData, setChartData] = useState<AnalyticsChartData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   useEffect(() => {
     loadCharts(period);
@@ -63,6 +67,18 @@ export const AdminAnalytics: React.FC = () => {
     }
   };
 
+  const handleExportCsv = async () => {
+    setExporting(true);
+    setExportError('');
+    try {
+      await downloadExportCsv();
+    } catch (e: any) {
+      setExportError(e?.message || 'CSV export failed.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 space-y-10">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -75,26 +91,68 @@ export const AdminAnalytics: React.FC = () => {
             <p className="text-xs text-slate-400">Peak hours, service demand breakdown, and token utilization analytics</p>
           </div>
 
-          <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
-            {['daily', 'weekly', 'monthly'].map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`px-4 py-2 rounded-xl text-xs font-black capitalize transition-all ${
-                  period === p
-                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-3">
+
+            {/* Date range filter */}
+            <div className="flex items-center gap-2 bg-slate-950 px-3 py-2 rounded-2xl border border-slate-800">
+              <Calendar className="w-4 h-4 text-slate-400 flex-shrink-0" />
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="bg-transparent text-slate-300 text-xs font-mono focus:outline-none w-[130px]"
+                title="Date from"
+              />
+              <span className="text-slate-600 text-xs">→</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="bg-transparent text-slate-300 text-xs font-mono focus:outline-none w-[130px]"
+                title="Date to"
+              />
+            </div>
+
+            {/* Period filter */}
+            <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800">
+              {['daily', 'weekly', 'monthly'].map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`px-4 py-2 rounded-xl text-xs font-black capitalize transition-all ${
+                    period === p
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            {/* CSV Export */}
+            <button
+              id="analytics-export-csv-btn"
+              onClick={handleExportCsv}
+              disabled={exporting}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 disabled:opacity-60 text-white font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
+            >
+              {exporting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span>{exporting ? 'Exporting…' : 'Export CSV'}</span>
+            </button>
           </div>
         </div>
 
         {error && (
           <div className="p-4 bg-red-950/80 border border-red-800 rounded-2xl text-red-300 text-xs font-bold">
             {error}
+          </div>
+        )}
+
+        {exportError && (
+          <div className="p-4 bg-red-950/80 border border-red-800 rounded-2xl text-red-300 text-xs font-bold flex items-center gap-2">
+            <Download className="w-4 h-4 text-red-400" />
+            {exportError}
           </div>
         )}
 
@@ -158,7 +216,7 @@ export const AdminAnalytics: React.FC = () => {
         {/* Service Demand Breakdown */}
         <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-5 shadow-2xl">
           <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-            <PieChart className="w-5 h-5 text-indigo-400" /> Most Requested Government Services
+            <BarChart3 className="w-5 h-5 text-indigo-400" /> Most Requested Government Services
           </h3>
 
           {loading ? <ChartSkeleton /> : !chartData?.service_demand?.length ? (

@@ -50,6 +50,44 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  build: {
+    // Target modern browsers — smaller, faster output
+    target: 'es2020',
+    // Warn when a single chunk exceeds 500 kB (was ∞)
+    chunkSizeWarningLimit: 500,
+    rollupOptions: {
+      output: {
+        /**
+         * Manual chunk strategy:
+         * - 'vendor-react'    → React runtime (cached aggressively; changes rarely)
+         * - 'vendor-charts'   → Recharts (only loaded on Analytics page)
+         * - 'vendor-ui'       → Lucide icons + all other third-party UI
+         * - 'admin'           → All admin pages (protected; never loaded by citizens)
+         * Page-level route chunks are created automatically via React.lazy()
+         */
+        manualChunks(id: string) {
+          // React core
+          if (id.includes('node_modules/react') ||
+              id.includes('node_modules/react-dom') ||
+              id.includes('node_modules/react-router-dom') ||
+              id.includes('node_modules/scheduler')) {
+            return 'vendor-react';
+          }
+          // Charting library (heavy; only Analytics page)
+          if (id.includes('node_modules/recharts') ||
+              id.includes('node_modules/d3-')) {
+            return 'vendor-charts';
+          }
+          // Icon library + general UI dependencies
+          if (id.includes('node_modules/lucide-react') ||
+              id.includes('node_modules/zustand') ||
+              id.includes('node_modules/axios')) {
+            return 'vendor-ui';
+          }
+        }
+      }
+    }
+  },
   server: {
     port: 5173,
     host: true,

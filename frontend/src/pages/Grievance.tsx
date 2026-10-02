@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   HelpCircle, Send, ShieldAlert, CheckCircle2, Phone, Mail, Building,
   AlertCircle, RefreshCw, Search, ClipboardCheck, Clock, XCircle
 } from 'lucide-react';
 import { useLang } from '../context/LanguageContext';
 import { KarnatakaBadge } from '../components/KarnatakaBadge';
-import { submitGrievance, trackGrievance, GrievanceResult } from '../services/api';
+import { submitGrievance, trackGrievance, fetchOffices, GrievanceResult } from '../services/api';
 
 const STATUS_STYLE: Record<string, string> = {
   'Submitted':    'bg-amber-500/10 text-amber-300 border-amber-500/30',
@@ -16,6 +16,22 @@ const STATUS_STYLE: Record<string, string> = {
 
 export const Grievance: React.FC = () => {
   const { t } = useLang();
+
+  // Dynamic office list (fetched from API, falls back to static list)
+  const [centers, setCenters] = useState<string[]>([
+    'GramOne Shivamogga Main', 'Seva Sindhu District Office',
+    'GramOne Bhadravathi East', 'GramOne Sagar Town',
+    'GramOne Shikaripura', 'GramOne Soraba',
+    'GramOne Hosanagara', 'GramOne Thirthahalli',
+  ]);
+
+  useEffect(() => {
+    fetchOffices().then((offices) => {
+      if (offices && offices.length > 0) {
+        setCenters(offices.map((o) => o.name));
+      }
+    }).catch(() => { /* keep fallback list */ });
+  }, []);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -259,14 +275,9 @@ export const Grievance: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, centerName: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                   >
-                    <option>GramOne Shivamogga Main</option>
-                    <option>Seva Sindhu District Office</option>
-                    <option>GramOne Bhadravathi East</option>
-                    <option>GramOne Sagar Town</option>
-                    <option>GramOne Shikaripura</option>
-                    <option>GramOne Soraba</option>
-                    <option>GramOne Hosanagara</option>
-                    <option>GramOne Thirthahalli</option>
+                    {centers.map((c) => (
+                      <option key={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
 

@@ -12,7 +12,10 @@ export const QueueManagement: React.FC = () => {
   const [offices, setOffices] = useState<Office[]>([]);
   const [selectedOfficeId, setSelectedOfficeId] = useState<number>(1);
   const [queueState, setQueueState] = useState<QueueState | null>(null);
-  const [counterNum, setCounterNum] = useState<number>(1);
+  // Persist operator counter assignment across page reloads
+  const [counterNum, setCounterNum] = useState<number>(() => {
+    try { return Number(localStorage.getItem('nimmaseva_operator_counter')) || 1; } catch { return 1; }
+  });
   const [targetToken, setTargetToken] = useState<string>('');
   const [transferOfficeId, setTransferOfficeId] = useState<number>(2);
   const [loading, setLoading] = useState(false);
@@ -20,6 +23,12 @@ export const QueueManagement: React.FC = () => {
   const [qrScannerOpen, setQrScannerOpen] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState<Booking | null>(null);
   const [showCouponModal, setShowCouponModal] = useState(false);
+
+  // Persist counter number whenever operator changes it
+  const handleSetCounterNum = (n: number) => {
+    setCounterNum(n);
+    try { localStorage.setItem('nimmaseva_operator_counter', String(n)); } catch {}
+  };
 
   useEffect(() => {
     loadInitialData();
@@ -70,12 +79,24 @@ export const QueueManagement: React.FC = () => {
   const announceTokenAudio = (tokenStr: string, counter: number) => {
     if (!soundEnabled || !('speechSynthesis' in window)) return;
     try {
-      window.speechSynthesis.cancel(); // Stop ongoing speech
-      const text = `Attention please. Token number ${tokenStr.replace('-', ' ')}, please proceed to Counter 0 ${counter}.`;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      window.speechSynthesis.speak(utterance);
+      window.speechSynthesis.cancel();
+
+      // Kannada first (Karnataka State Language Mandate)
+      const knText = `ಟೋಕನ್ ಸಂಖ್ಯೆ ${tokenStr.replace(/-/g, ' ')}, ಕೌಂಟರ್ ${counter} ಕ್ಕೆ ದಯವಿಟ್ಟು ಬನ್ನಿ.`;
+      const enText = `Token number ${tokenStr.replace(/-/g, ' ')}, please proceed to Counter ${counter}.`;
+
+      const utterKn = new SpeechSynthesisUtterance(knText);
+      utterKn.lang = 'kn-IN';
+      utterKn.rate = 0.85;
+      utterKn.pitch = 1.0;
+
+      const utterEn = new SpeechSynthesisUtterance(enText);
+      utterEn.lang = 'en-IN';
+      utterEn.rate = 0.9;
+      utterEn.pitch = 1.0;
+
+      window.speechSynthesis.speak(utterKn);
+      window.speechSynthesis.speak(utterEn);
     } catch (e) {
       console.error('Speech synthesis error', e);
     }
@@ -172,7 +193,7 @@ export const QueueManagement: React.FC = () => {
               <span className="text-xs font-bold text-slate-400">Assigned Counter:</span>
               <select
                 value={counterNum}
-                onChange={(e) => setCounterNum(Number(e.target.value))}
+                onChange={(e) => handleSetCounterNum(Number(e.target.value))}
                 className="bg-slate-950 text-amber-400 text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-800 focus:outline-none"
               >
                 <option value={1}>Counter 01 (Revenue & Identity)</option>
